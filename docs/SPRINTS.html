@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IdolUniv — Sprint Plan</title>
+  <style>
+    :root {
+      --primary: #a855f7;
+      --primary-dark: #7c3aed;
+      --primary-light: #e9d5ff;
+      --accent: #ec4899;
+      --accent-light: #fce7f3;
+      --bg: #0f0f1a;
+      --surface: #1a1a2e;
+      --surface2: #252540;
+      --surface3: #2d2d50;
+      --border: #3a3a5c;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+
+      --s1: #a855f7;
+      --s2: #ec4899;
+      --s3: #3b82f6;
+      --s4: #22c55e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 260px; height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-logo {
+      padding: 24px 20px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-logo .brand {
+      font-size: 1.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: block;
+    }
+
+    .sidebar-logo .doc-type {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .sidebar-logo .version-badge {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 2px 8px;
+      background: var(--primary-dark);
+      color: #fff;
+      border-radius: 999px;
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+
+    .sidebar nav { padding: 12px 0; flex: 1; }
+
+    .nav-section-title {
+      padding: 12px 20px 4px;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 20px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.83rem;
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .sidebar a:hover {
+      color: var(--primary-light);
+      background: rgba(168, 85, 247, 0.06);
+      border-left-color: var(--primary);
+    }
+
+    .sidebar a .nav-icon { font-size: 0.9em; opacity: 0.7; }
+
+    .sidebar a.s1:hover { border-left-color: var(--s1); color: #e9d5ff; }
+    .sidebar a.s2:hover { border-left-color: var(--s2); color: #fce7f3; }
+    .sidebar a.s3:hover { border-left-color: var(--s3); color: #bfdbfe; }
+    .sidebar a.s4:hover { border-left-color: var(--s4); color: #bbf7d0; }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+
+    /* ── Main ── */
+    .main { margin-left: 260px; }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #1a0a2e 0%, #0f0f1a 40%, #1a0e2e 100%);
+      padding: 80px 60px 60px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-primary { background: rgba(168,85,247,0.2); color: var(--primary-light); border: 1px solid rgba(168,85,247,0.3); }
+    .badge-accent  { background: rgba(236,72,153,0.2); color: #fbcfe8; border: 1px solid rgba(236,72,153,0.3); }
+    .badge-info    { background: rgba(59,130,246,0.2); color: #bfdbfe; border: 1px solid rgba(59,130,246,0.3); }
+    .badge-success { background: rgba(34,197,94,0.2);  color: #bbf7d0; border: 1px solid rgba(34,197,94,0.3); }
+    .badge-warning { background: rgba(245,158,11,0.2); color: #fde68a; border: 1px solid rgba(245,158,11,0.3); }
+
+    .hero h1 {
+      font-size: 2.8rem;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 .gradient {
+      background: linear-gradient(135deg, #c084fc, #ec4899, #f59e0b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero .tagline {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      max-width: 600px;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .hero-stat .value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--primary-light);
+    }
+
+    .hero-stat .label {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 2px;
+    }
+
+    /* ── Content ── */
+    .content { padding: 60px; max-width: 1000px; }
+
+    section { margin-bottom: 80px; }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-number {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--primary-dark), var(--accent));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .section-header h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+    }
+
+    .section-header h2 .sub {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 400;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 32px 0 14px;
+      color: var(--primary-light);
+    }
+
+    p { color: var(--text-muted); margin-bottom: 12px; font-size: 0.92rem; }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      margin-bottom: 40px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .tl-col {
+      padding: 16px;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+
+    .tl-col:last-child { border-right: none; }
+
+    .tl-col.s1 { background: rgba(168,85,247,0.08); }
+    .tl-col.s2 { background: rgba(236,72,153,0.08); }
+    .tl-col.s3 { background: rgba(59,130,246,0.08); }
+    .tl-col.s4 { background: rgba(34,197,94,0.08); }
+
+    .tl-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+    }
+
+    .tl-col.s1 .tl-label { color: #c084fc; }
+    .tl-col.s2 .tl-label { color: #f9a8d4; }
+    .tl-col.s3 .tl-label { color: #93c5fd; }
+    .tl-col.s4 .tl-label { color: #86efac; }
+
+    .tl-week {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+
+    .tl-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* ── Sprint Card ── */
+    .sprint-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 32px;
+    }
+
+    .sprint-header {
+      padding: 24px 28px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .sprint-header.s1 { background: linear-gradient(135deg, rgba(168,85,247,0.15), rgba(139,92,246,0.04)); border-bottom: 1px solid rgba(168,85,247,0.2); }
+    .sprint-header.s2 { background: linear-gradient(135deg, rgba(236,72,153,0.15), rgba(219,39,119,0.04)); border-bottom: 1px solid rgba(236,72,153,0.2); }
+    .sprint-header.s3 { background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(37,99,235,0.04));  border-bottom: 1px solid rgba(59,130,246,0.2); }
+    .sprint-header.s4 { background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(21,128,61,0.04));   border-bottom: 1px solid rgba(34,197,94,0.2); }
+
+    .sprint-title-block {}
+
+    .sprint-num {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 6px;
+    }
+
+    .s1 .sprint-num { color: #c084fc; }
+    .s2 .sprint-num { color: #f9a8d4; }
+    .s3 .sprint-num { color: #93c5fd; }
+    .s4 .sprint-num { color: #86efac; }
+
+    .sprint-name {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .sprint-goal {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      max-width: 480px;
+    }
+
+    .sprint-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .sprint-period {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      background: var(--surface2);
+      padding: 4px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    /* ── Sprint Body ── */
+    .sprint-body {
+      padding: 28px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .task-group {}
+
+    .task-group-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .task-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--surface2);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      transition: border-color 0.15s;
+    }
+
+    .task-item:hover { border-color: var(--primary); }
+
+    .task-icon {
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .task-text { flex: 1; }
+
+    .task-tag {
+      flex-shrink: 0;
+      padding: 1px 7px;
+      border-radius: 6px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tag-fe  { background: rgba(168,85,247,0.15); color: #c084fc; }
+    .tag-be  { background: rgba(59,130,246,0.15);  color: #93c5fd; }
+    .tag-db  { background: rgba(245,158,11,0.15);  color: #fde68a; }
+    .tag-ai  { background: rgba(236,72,153,0.15);  color: #f9a8d4; }
+    .tag-ops { background: rgba(34,197,94,0.15);   color: #86efac; }
+    .tag-ux  { background: rgba(139,92,246,0.15);  color: #c4b5fd; }
+
+    /* ── Deliverable ── */
+    .sprint-footer {
+      padding: 20px 28px;
+      border-top: 1px solid var(--border);
+      background: var(--surface2);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .deliverable-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    .deliverable-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .deliverable-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: var(--surface3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .deliverable-item .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .s1 .dot { background: var(--s1); }
+    .s2 .dot { background: var(--s2); }
+    .s3 .dot { background: var(--s3); }
+    .s4 .dot { background: var(--s4); }
+
+    /* ── Overview table ── */
+    .table-wrap { overflow-x: auto; margin-bottom: 16px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    thead tr { background: var(--surface2); }
+
+    th {
+      text-align: left;
+      padding: 10px 16px;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(168,85,247,0.04); }
+
+    /* ── Info Box ── */
+    .info-box {
+      padding: 16px 20px;
+      border-radius: 10px;
+      border-left: 4px solid;
+      margin-bottom: 20px;
+      font-size: 0.83rem;
+    }
+
+    .info-box.primary { background: rgba(168,85,247,0.08); border-color: var(--primary); color: var(--primary-light); }
+    .info-box.warning { background: rgba(245,158,11,0.08);  border-color: var(--warning); color: #fde68a; }
+    .info-box.success { background: rgba(34,197,94,0.08);   border-color: var(--success); color: #bbf7d0; }
+
+    /* ── Progress Bar ── */
+    .progress-wrap {
+      margin-bottom: 24px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: var(--surface3);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+
+    /* ── Misc ── */
+    hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .card h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card p { font-size: 0.82rem; margin: 0; }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .hero { padding: 40px 24px; }
+      .content { padding: 32px 24px; }
+      .hero h1 { font-size: 2rem; }
+      .timeline { grid-template-columns: 1fr 1fr; }
+      .sprint-body { grid-template-columns: 1fr; }
+      .two-col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span class="brand">✦ IdolUniv</span>
+    <span class="doc-type">Sprint Plan · Phase 1 MVP</span>
+    <span class="version-badge">v1.0.0 · 2026.05</span>
+  </div>
+
+  <nav>
+    <div class="nav-section-title">개요</div>
+    <a href="#overview"><span class="nav-icon">📋</span> Sprint 개요</a>
+    <a href="#timeline"><span class="nav-icon">🗓️</span> 타임라인</a>
+    <a href="#principles"><span class="nav-icon">📌</span> 운영 원칙</a>
+
+    <div class="nav-section-title">Sprints</div>
+    <a href="#sprint1" class="s1"><span class="nav-icon">🚀</span> Sprint 1 — Foundation</a>
+    <a href="#sprint2" class="s2"><span class="nav-icon">📝</span> Sprint 2 — Community</a>
+    <a href="#sprint3" class="s3"><span class="nav-icon">💬</span> Sprint 3 — Realtime</a>
+    <a href="#sprint4" class="s4"><span class="nav-icon">🛡️</span> Sprint 4 — Launch</a>
+
+    <div class="nav-section-title">이후 단계</div>
+    <a href="#next"><span class="nav-icon">🔮</span> Phase 2~4 예고</a>
+  </nav>
+
+  <div class="sidebar-footer">
+    Phase: <span style="color:var(--success)">1 · MVP</span><br/>
+    목표: <span style="color:var(--primary-light)">2026 Q2 출시</span><br/>
+    Last updated: 2026-05-31
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════
+     MAIN
+════════════════════════════════════════════════════ -->
+<main class="main">
+
+  <!-- ── HERO ── -->
+  <div class="hero">
+    <div class="hero-meta">
+      <span class="badge badge-primary">Sprint Plan</span>
+      <span class="badge badge-success">Phase 1 · MVP</span>
+      <span class="badge badge-info">2026 Q2</span>
+      <span class="badge badge-warning">8주 / 4 Sprints</span>
+    </div>
+    <h1>
+      <span class="gradient">IdolUniv</span><br/>
+      MVP Sprint 계획
+    </h1>
+    <p class="tagline">
+      PRD Phase 1 Foundation을 4개의 2주 Sprint로 분리한 실행 계획 —
+      소셜 로그인부터 관리자 대시보드까지, 단계별 deliverable 중심 개발
+    </p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="value">4</div>
+        <div class="label">Total Sprints</div>
+      </div>
+      <div class="hero-stat">
+        <div class="value">8주</div>
+        <div class="label">MVP 개발 기간</div>
+      </div>
+      <div class="hero-stat">
+        <div class="value">10</div>
+        <div class="label">핵심 기능</div>
+      </div>
+      <div class="hero-stat">
+        <div class="value">Q2</div>
+        <div class="label">2026 출시 목표</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CONTENT ── -->
+  <div class="content">
+
+    <!-- ══════════════════════════════════════════
+         1. Sprint 개요
+    ══════════════════════════════════════════ -->
+    <section id="overview">
+      <div class="section-header">
+        <div class="section-number">01</div>
+        <h2>Sprint 개요 <span class="sub">Overview</span></h2>
+      </div>
+
+      <div class="info-box primary">
+        <strong>목표</strong> — PRD 1단계(Foundation) 기능 전체를 8주 안에 완성하여 2026 Q2 베타 출시.
+        각 Sprint는 독립적으로 배포 가능한 단위로 설계되어 있어 중간 점검·피드백이 용이합니다.
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Sprint</th>
+              <th>기간</th>
+              <th>핵심 목표</th>
+              <th>주요 기술</th>
+              <th>상태</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-primary">Sprint 1</span></td>
+              <td>Week 1–2</td>
+              <td><strong>Foundation Setup</strong> — 프로젝트 초기화 + 인증</td>
+              <td>Next.js · Supabase Auth · shadcn/ui</td>
+              <td><span class="badge badge-warning">진행 중</span></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-accent">Sprint 2</span></td>
+              <td>Week 3–4</td>
+              <td><strong>Community Core</strong> — 게시판 + 댓글 + 반응</td>
+              <td>Supabase DB · RLS · React Query</td>
+              <td><span class="badge" style="background:rgba(100,116,139,0.2);color:#94a3b8;border:1px solid rgba(100,116,139,0.3)">대기</span></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-info">Sprint 3</span></td>
+              <td>Week 5–6</td>
+              <td><strong>Realtime & Media</strong> — 채팅 + 업로드 + 반응형</td>
+              <td>Supabase Realtime · Storage · Tailwind</td>
+              <td><span class="badge" style="background:rgba(100,116,139,0.2);color:#94a3b8;border:1px solid rgba(100,116,139,0.3)">대기</span></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-success">Sprint 4</span></td>
+              <td>Week 7–8</td>
+              <td><strong>Admin & Launch</strong> — 관리자 + SEO + 배포</td>
+              <td>Vercel · GitHub Actions · Sentry</td>
+              <td><span class="badge" style="background:rgba(100,116,139,0.2);color:#94a3b8;border:1px solid rgba(100,116,139,0.3)">대기</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         2. 타임라인
+    ══════════════════════════════════════════ -->
+    <section id="timeline">
+      <div class="section-header">
+        <div class="section-number">02</div>
+        <h2>타임라인 <span class="sub">8-Week Timeline</span></h2>
+      </div>
+
+      <div class="timeline">
+        <div class="tl-col s1">
+          <div class="tl-label">Sprint 1</div>
+          <div class="tl-week">Week 1–2 · 6.02 ~ 6.15</div>
+          <div class="tl-title">Foundation Setup</div>
+        </div>
+        <div class="tl-col s2">
+          <div class="tl-label">Sprint 2</div>
+          <div class="tl-week">Week 3–4 · 6.16 ~ 6.29</div>
+          <div class="tl-title">Community Core</div>
+        </div>
+        <div class="tl-col s3">
+          <div class="tl-label">Sprint 3</div>
+          <div class="tl-week">Week 5–6 · 6.30 ~ 7.13</div>
+          <div class="tl-title">Realtime & Media</div>
+        </div>
+        <div class="tl-col s4">
+          <div class="tl-label">Sprint 4</div>
+          <div class="tl-week">Week 7–8 · 7.14 ~ 7.27</div>
+          <div class="tl-title">Admin & Launch</div>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>전체 진행률</span>
+          <span>Sprint 1 진행 중 (25%)</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 8%"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         3. 운영 원칙
+    ══════════════════════════════════════════ -->
+    <section id="principles">
+      <div class="section-header">
+        <div class="section-number">03</div>
+        <h2>운영 원칙 <span class="sub">Sprint Rules</span></h2>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <h4>🔁 Sprint 기본 원칙</h4>
+          <ul style="list-style:none; font-size:0.82rem; color:var(--text-muted);">
+            <li style="padding:5px 0; border-bottom:1px solid var(--border)">• 각 Sprint = 2주 / 14일</li>
+            <li style="padding:5px 0; border-bottom:1px solid var(--border)">• Sprint 종료 시 Vercel 배포 가능 상태 유지</li>
+            <li style="padding:5px 0; border-bottom:1px solid var(--border)">• 미완 태스크는 다음 Sprint로 이월 (스코프 조정)</li>
+            <li style="padding:5px 0; border-bottom:1px solid var(--border)">• PR 단위 개발 → Vercel Preview 검증 후 merge</li>
+            <li style="padding:5px 0">• 커밋 컨벤션: feat / fix / chore / docs</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>🎯 1인 개발 최적화</h4>
+          <ul style="list-style:none; font-size:0.82rem; color:var(--text-muted);">
+            <li style="padding:5px 0; border-bottom:1px solid var(--border)">• 엄격한 deadline 대신 체크포인트 개념으로 운영</li>
+            <li style="padding:5px 0; border-bottom:1px solid var(--border)">• 완성도 &gt; 기능 수 — 덜 만들고 잘 만들기</li>
+            <li style="padding:5px 0; border-bottom:1px solid var(--border)">• UI는 shadcn/ui 컴포넌트 우선 활용</li>
+            <li style="padding:5px 0; border-bottom:1px solid var(--border)">• DB 변경은 Supabase Migration으로 추적</li>
+            <li style="padding:5px 0">• 에러 핸들링은 Sprint 4에서 일괄 보강</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box warning">
+        <strong>스코프 원칙</strong> — 각 Sprint의 태스크는 "Must Have"와 "Nice to Have"로 분리합니다.
+        Must Have가 완료되면 Sprint를 닫고, Nice to Have는 다음 Sprint 백로그에 추가합니다.
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SPRINT 1
+    ══════════════════════════════════════════ -->
+    <section id="sprint1">
+      <div class="section-header">
+        <div class="section-number" style="background:linear-gradient(135deg,#7c3aed,#a855f7)">S1</div>
+        <h2>Sprint 1 — Foundation Setup <span class="sub">Week 1–2 · 2026.06.02 ~ 06.15</span></h2>
+      </div>
+
+      <div class="sprint-card">
+        <div class="sprint-header s1">
+          <div class="sprint-title-block">
+            <div class="sprint-num">Sprint 1 · Foundation</div>
+            <div class="sprint-name">프로젝트 초기화 & 인증 시스템</div>
+            <div class="sprint-goal">
+              개발 환경 구성, Supabase 연동, 소셜 로그인 3종 완성.<br/>
+              이후 모든 Sprint의 기반이 되는 프로젝트 골격을 확립한다.
+            </div>
+          </div>
+          <div class="sprint-meta">
+            <span class="badge badge-warning">진행 중</span>
+            <span class="sprint-period">06.02 ~ 06.15</span>
+            <span class="badge badge-primary">Week 1–2</span>
+          </div>
+        </div>
+
+        <div class="sprint-body">
+          <!-- Must Have -->
+          <div class="task-group">
+            <div class="task-group-title">✅ Must Have</div>
+            <ul class="task-list">
+              <li class="task-item">
+                <span class="task-icon">🏗️</span>
+                <span class="task-text">Next.js 14 App Router 프로젝트 생성 + TypeScript 설정</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🎨</span>
+                <span class="task-text">Tailwind CSS + shadcn/ui 셋업 + 기본 테마 (다크모드 기본)</span>
+                <span class="task-tag tag-ux">UX</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🗃️</span>
+                <span class="task-text">Supabase 프로젝트 생성 + 클라이언트 연동 (SSR 지원)</span>
+                <span class="task-tag tag-be">BE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🗄️</span>
+                <span class="task-text">초기 DB 마이그레이션 — users, fan_profiles, idol_groups</span>
+                <span class="task-tag tag-db">DB</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🔐</span>
+                <span class="task-text">소셜 로그인 — Google OAuth 연동</span>
+                <span class="task-tag tag-be">BE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🔐</span>
+                <span class="task-text">소셜 로그인 — Kakao OAuth 연동</span>
+                <span class="task-tag tag-be">BE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🔐</span>
+                <span class="task-text">소셜 로그인 — Twitter/X OAuth 연동</span>
+                <span class="task-tag tag-be">BE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">📐</span>
+                <span class="task-text">기본 레이아웃 — 헤더, 사이드바, 푸터 컴포넌트</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Nice to Have -->
+          <div class="task-group">
+            <div class="task-group-title">💡 Nice to Have</div>
+            <ul class="task-list">
+              <li class="task-item">
+                <span class="task-icon">👤</span>
+                <span class="task-text">회원가입 후 닉네임 설정 온보딩 플로우</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🛡️</span>
+                <span class="task-text">Supabase RLS 정책 초안 (users 테이블)</span>
+                <span class="task-tag tag-db">DB</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">📁</span>
+                <span class="task-text">환경변수 관리 체계 + .env.example 작성</span>
+                <span class="task-tag tag-ops">OPS</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🔀</span>
+                <span class="task-text">인증 미들웨어 — 비로그인 접근 리다이렉트</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">📦</span>
+                <span class="task-text">Zustand 스토어 기본 구조 설계</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="sprint-footer s1">
+          <span class="deliverable-label">Deliverable</span>
+          <div class="deliverable-list">
+            <div class="deliverable-item"><span class="dot" style="background:#a855f7"></span>로그인 페이지 (Google·Kakao·Twitter)</div>
+            <div class="deliverable-item"><span class="dot" style="background:#a855f7"></span>인증 후 메인 페이지 진입</div>
+            <div class="deliverable-item"><span class="dot" style="background:#a855f7"></span>Supabase DB 초기 스키마</div>
+            <div class="deliverable-item"><span class="dot" style="background:#a855f7"></span>Vercel Preview 배포</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SPRINT 2
+    ══════════════════════════════════════════ -->
+    <section id="sprint2">
+      <div class="section-header">
+        <div class="section-number" style="background:linear-gradient(135deg,#be185d,#ec4899)">S2</div>
+        <h2>Sprint 2 — Community Core <span class="sub">Week 3–4 · 2026.06.16 ~ 06.29</span></h2>
+      </div>
+
+      <div class="sprint-card">
+        <div class="sprint-header s2">
+          <div class="sprint-title-block">
+            <div class="sprint-num">Sprint 2 · Community</div>
+            <div class="sprint-name">게시판 · 댓글 · 좋아요 · 프로필</div>
+            <div class="sprint-goal">
+              아이돌 그룹별 게시판 CRUD, 댓글/대댓글, 좋아요/스크랩 완성.<br/>
+              플랫폼의 핵심 콘텐츠 소비 루프를 구현한다.
+            </div>
+          </div>
+          <div class="sprint-meta">
+            <span class="badge" style="background:rgba(100,116,139,0.2);color:#94a3b8;border:1px solid rgba(100,116,139,0.3)">대기</span>
+            <span class="sprint-period">06.16 ~ 06.29</span>
+            <span class="badge badge-accent">Week 3–4</span>
+          </div>
+        </div>
+
+        <div class="sprint-body">
+          <div class="task-group">
+            <div class="task-group-title">✅ Must Have</div>
+            <ul class="task-list">
+              <li class="task-item">
+                <span class="task-icon">🗄️</span>
+                <span class="task-text">DB 마이그레이션 — posts, comments, reactions 테이블</span>
+                <span class="task-tag tag-db">DB</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🏠</span>
+                <span class="task-text">아이돌 그룹 목록 페이지 + 그룹별 라우팅</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">📝</span>
+                <span class="task-text">게시글 작성 폼 (텍스트 + Markdown 지원)</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">📋</span>
+                <span class="task-text">게시판 목록 + 게시글 상세 페이지</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">✏️</span>
+                <span class="task-text">게시글 수정 / 삭제 (작성자 본인만)</span>
+                <span class="task-tag tag-be">BE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">💬</span>
+                <span class="task-text">댓글 & 대댓글 작성 / 삭제</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">❤️</span>
+                <span class="task-text">좋아요 토글 (게시글 / 댓글)</span>
+                <span class="task-tag tag-be">BE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🔖</span>
+                <span class="task-text">스크랩 기능 + 마이페이지 스크랩 목록</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="task-group">
+            <div class="task-group-title">💡 Nice to Have</div>
+            <ul class="task-list">
+              <li class="task-item">
+                <span class="task-icon">👤</span>
+                <span class="task-text">회원 프로필 페이지 (작성글, 댓글 이력)</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🔢</span>
+                <span class="task-text">게시글 조회수 카운터 (debounced update)</span>
+                <span class="task-tag tag-be">BE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">📄</span>
+                <span class="task-text">게시판 무한 스크롤 (React Query + cursor)</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🏷️</span>
+                <span class="task-text">게시글 타입 분류 (텍스트 / 이미지 / 팬픽)</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🛡️</span>
+                <span class="task-text">RLS 정책 완성 (posts, comments)</span>
+                <span class="task-tag tag-db">DB</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="sprint-footer s2">
+          <span class="deliverable-label">Deliverable</span>
+          <div class="deliverable-list">
+            <div class="deliverable-item"><span class="dot" style="background:#ec4899"></span>아이돌 그룹별 게시판</div>
+            <div class="deliverable-item"><span class="dot" style="background:#ec4899"></span>게시글 CRUD</div>
+            <div class="deliverable-item"><span class="dot" style="background:#ec4899"></span>댓글/대댓글</div>
+            <div class="deliverable-item"><span class="dot" style="background:#ec4899"></span>좋아요/스크랩</div>
+            <div class="deliverable-item"><span class="dot" style="background:#ec4899"></span>Vercel Preview 배포</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SPRINT 3
+    ══════════════════════════════════════════ -->
+    <section id="sprint3">
+      <div class="section-header">
+        <div class="section-number" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6)">S3</div>
+        <h2>Sprint 3 — Realtime & Media <span class="sub">Week 5–6 · 2026.06.30 ~ 07.13</span></h2>
+      </div>
+
+      <div class="sprint-card">
+        <div class="sprint-header s3">
+          <div class="sprint-title-block">
+            <div class="sprint-num">Sprint 3 · Realtime</div>
+            <div class="sprint-name">실시간 채팅 · 이미지 업로드 · 반응형 UI</div>
+            <div class="sprint-goal">
+              Supabase Realtime 기반 그룹 채팅방, 이미지/영상 업로드, Mobile First 반응형 완성.<br/>
+              콘텐츠 신고 시스템으로 커뮤니티 자정 기능을 확보한다.
+            </div>
+          </div>
+          <div class="sprint-meta">
+            <span class="badge" style="background:rgba(100,116,139,0.2);color:#94a3b8;border:1px solid rgba(100,116,139,0.3)">대기</span>
+            <span class="sprint-period">06.30 ~ 07.13</span>
+            <span class="badge badge-info">Week 5–6</span>
+          </div>
+        </div>
+
+        <div class="sprint-body">
+          <div class="task-group">
+            <div class="task-group-title">✅ Must Have</div>
+            <ul class="task-list">
+              <li class="task-item">
+                <span class="task-icon">🗄️</span>
+                <span class="task-text">DB 마이그레이션 — chat_rooms, messages, chat_members</span>
+                <span class="task-tag tag-db">DB</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">💬</span>
+                <span class="task-text">아이돌 그룹별 채팅 라운지 (Supabase Realtime)</span>
+                <span class="task-tag tag-be">BE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">⌨️</span>
+                <span class="task-text">실시간 메시지 수신 + 타이핑 인디케이터</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🖼️</span>
+                <span class="task-text">이미지 업로드 (Supabase Storage + Vercel 최적화)</span>
+                <span class="task-tag tag-be">BE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">📱</span>
+                <span class="task-text">반응형 UI 완성 — 모바일 레이아웃 전체 점검</span>
+                <span class="task-tag tag-ux">UX</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🚩</span>
+                <span class="task-text">콘텐츠 신고 시스템 (게시글 / 댓글 / 메시지)</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="task-group">
+            <div class="task-group-title">💡 Nice to Have</div>
+            <ul class="task-list">
+              <li class="task-item">
+                <span class="task-icon">🎬</span>
+                <span class="task-text">영상 게시글 지원 (URL embed — YouTube/Twitter)</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🔔</span>
+                <span class="task-text">브라우저 푸시 알림 — 댓글 답글 실시간</span>
+                <span class="task-tag tag-be">BE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">😊</span>
+                <span class="task-text">채팅 이모지 반응</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🖼️</span>
+                <span class="task-text">채팅 내 이미지 공유</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">📊</span>
+                <span class="task-text">이미지 업로드 용량/형식 validation</span>
+                <span class="task-tag tag-be">BE</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="sprint-footer s3">
+          <span class="deliverable-label">Deliverable</span>
+          <div class="deliverable-list">
+            <div class="deliverable-item"><span class="dot" style="background:#3b82f6"></span>실시간 채팅방</div>
+            <div class="deliverable-item"><span class="dot" style="background:#3b82f6"></span>이미지 업로드</div>
+            <div class="deliverable-item"><span class="dot" style="background:#3b82f6"></span>모바일 반응형 완성</div>
+            <div class="deliverable-item"><span class="dot" style="background:#3b82f6"></span>신고 시스템</div>
+            <div class="deliverable-item"><span class="dot" style="background:#3b82f6"></span>Vercel Preview 배포</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SPRINT 4
+    ══════════════════════════════════════════ -->
+    <section id="sprint4">
+      <div class="section-header">
+        <div class="section-number" style="background:linear-gradient(135deg,#15803d,#22c55e)">S4</div>
+        <h2>Sprint 4 — Admin & Launch <span class="sub">Week 7–8 · 2026.07.14 ~ 07.27</span></h2>
+      </div>
+
+      <div class="sprint-card">
+        <div class="sprint-header s4">
+          <div class="sprint-title-block">
+            <div class="sprint-num">Sprint 4 · Launch</div>
+            <div class="sprint-name">관리자 대시보드 · SEO · CI/CD · 출시</div>
+            <div class="sprint-goal">
+              관리자 패널, SEO 최적화, GitHub Actions CI, Sentry 모니터링 연동 후 베타 출시.<br/>
+              1인 운영 자동화 인프라를 완성하여 지속 가능한 운영 체계를 확립한다.
+            </div>
+          </div>
+          <div class="sprint-meta">
+            <span class="badge" style="background:rgba(100,116,139,0.2);color:#94a3b8;border:1px solid rgba(100,116,139,0.3)">대기</span>
+            <span class="sprint-period">07.14 ~ 07.27</span>
+            <span class="badge badge-success">Week 7–8</span>
+          </div>
+        </div>
+
+        <div class="sprint-body">
+          <div class="task-group">
+            <div class="task-group-title">✅ Must Have</div>
+            <ul class="task-list">
+              <li class="task-item">
+                <span class="task-icon">🛡️</span>
+                <span class="task-text">관리자 대시보드 — 신고 목록 + 처리 (숨김/삭제/경고)</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🎛️</span>
+                <span class="task-text">아이돌 그룹 관리 CMS (추가/수정/비활성화)</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🔍</span>
+                <span class="task-text">SEO — Next.js generateMetadata + OG 이미지</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🗺️</span>
+                <span class="task-text">sitemap.xml + robots.txt 자동 생성</span>
+                <span class="task-tag tag-ops">OPS</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">⚙️</span>
+                <span class="task-text">GitHub Actions CI — lint + type-check + build</span>
+                <span class="task-tag tag-ops">OPS</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🚨</span>
+                <span class="task-text">Sentry 에러 모니터링 연동 (FE + Edge Functions)</span>
+                <span class="task-tag tag-ops">OPS</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🚀</span>
+                <span class="task-text">Vercel Production 배포 + 커스텀 도메인 연결</span>
+                <span class="task-tag tag-ops">OPS</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="task-group">
+            <div class="task-group-title">💡 Nice to Have</div>
+            <ul class="task-list">
+              <li class="task-item">
+                <span class="task-icon">📊</span>
+                <span class="task-text">관리자 대시보드 통계 — 가입자/게시글/신고 추이</span>
+                <span class="task-tag tag-fe">FE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">⚡</span>
+                <span class="task-text">Core Web Vitals 점검 + Lighthouse 90+ 달성</span>
+                <span class="task-tag tag-ux">UX</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🌐</span>
+                <span class="task-text">Google AdSense 기본 연동 (수익 모델 1단계)</span>
+                <span class="task-tag tag-ops">OPS</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">🔒</span>
+                <span class="task-text">Rate Limiting — API Route별 설정</span>
+                <span class="task-tag tag-be">BE</span>
+              </li>
+              <li class="task-item">
+                <span class="task-icon">📧</span>
+                <span class="task-text">Sentry → 이메일 알림 설정</span>
+                <span class="task-tag tag-ops">OPS</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="sprint-footer s4">
+          <span class="deliverable-label">Deliverable</span>
+          <div class="deliverable-list">
+            <div class="deliverable-item"><span class="dot" style="background:#22c55e"></span>관리자 대시보드</div>
+            <div class="deliverable-item"><span class="dot" style="background:#22c55e"></span>SEO 최적화</div>
+            <div class="deliverable-item"><span class="dot" style="background:#22c55e"></span>GitHub Actions CI</div>
+            <div class="deliverable-item"><span class="dot" style="background:#22c55e"></span>Sentry 모니터링</div>
+            <div class="deliverable-item"><span class="dot" style="background:#22c55e"></span>🎉 Production 출시</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         이후 단계
+    ══════════════════════════════════════════ -->
+    <section id="next">
+      <div class="section-header">
+        <div class="section-number">05</div>
+        <h2>Phase 2~4 예고 <span class="sub">Post-MVP Roadmap</span></h2>
+      </div>
+
+      <div class="info-box success">
+        MVP 출시 후 실제 사용자 피드백을 반영하여 Phase 2 Sprint를 구체화합니다.
+        아래는 PRD 기준 예상 일정이며, 유저 데이터에 따라 우선순위가 변경될 수 있습니다.
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Phase</th>
+              <th>예상 시점</th>
+              <th>핵심 기능</th>
+              <th>KPI 목표</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-accent">Phase 2 · Engagement</span></td>
+              <td>2026 Q3~Q4</td>
+              <td>팬덤 레벨, 투표/차트, 팬 캘린더, 다국어, 푸시 알림</td>
+              <td>MAU 10,000 / DAU 30%</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-info">Phase 3 · Creator Economy</span></td>
+              <td>2027 Q1~Q2</td>
+              <td>팬 마켓, 후원/펀딩, 구독 멤버십, 결제 연동</td>
+              <td>유료 전환 2% / 수익화 시작</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-warning">Phase 4 · AI & Web3</span></td>
+              <td>2027 Q4+</td>
+              <td>AI 팬픽, AI 챗봇, NFT 카드, AR 포토 부스</td>
+              <td>MAU 100,000 / 유료 전환 5%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div><!-- /content -->
+</main>
+
+</body>
+</html>

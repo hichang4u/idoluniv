@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const fs=require\\('fs'\\); const html=fs.readFileSync\\('c:/Project/idolUniv/docs/SPRINTS.html','utf8'\\); const text=html.replace\\(/<[^>]+>/g,' '\\).replace\\(/\\\\s+/g,' '\\).trim\\(\\); console.log\\(text.substring\\(0,3000\\)\\)\")",
+      "Bash(node -e ' *)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --no-src-dir --turbopack --import-alias \"@/*\" --yes)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --no-src-dir --turbopack --import-alias \"@/*\")",
+      "Read(//c/Project/**)",
+      "Bash(npx create-next-app@latest idol-univ-tmp --typescript --tailwind --eslint --app --no-src-dir --turbopack --import-alias \"@/*\" --yes)",
+      "Bash(robocopy \"c:\\\\Project\\\\idol-univ-tmp\" \"c:\\\\Project\\\\idolUniv\" /E /XD \".git\" /NFL /NDL /NJH)",
+      "Bash(Copy-Item -Path \"c:\\\\Project\\\\idol-univ-tmp\\\\*\" -Destination \"c:\\\\Project\\\\idolUniv\\\\\" -Recurse -Force -Exclude \".git\"; echo \"Done\")",
+      "PowerShell(Remove-Item -Recurse -Force \"c:\\\\Project\\\\idol-univ-tmp\" -Confirm:$false)",
+      "Bash(Test-Path \"c:\\\\Project\\\\idolUniv\\\\app\\\\page.tsx\")",
+      "PowerShell(Remove-Item \"c:\\\\Project\\\\idolUniv\\\\middleware.ts\" -Confirm:$false)"
+    ],
+    "additionalDirectories": [
+      "c:\\Project\\idol-univ-tmp"
+    ]
+  }
+}

@@ -29,15 +29,14 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 보호된 경로 — 비로그인 시 /login으로 리다이렉트
-  const isProtected =
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth") &&
-    !request.nextUrl.pathname.startsWith("/_next") &&
-    !request.nextUrl.pathname.startsWith("/api") &&
-    request.nextUrl.pathname !== "/";
+  // TODO: 소셜 로그인 구현 후 보호 경로 확장
+  // 현재는 /profile만 auth 필요 — board/chat은 익명 허용
+  const PROTECTED_PATHS = ["/profile"];
+  const requiresAuth = PROTECTED_PATHS.some((p) =>
+    request.nextUrl.pathname.startsWith(p)
+  );
 
-  if (isProtected && !user) {
+  if (requiresAuth && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

@@ -2,8 +2,8 @@ import Link from "next/link";
 
 const navItems = [
   { href: "/", label: "홈", icon: "🏠" },
+  { href: "/board", label: "게시판", icon: "📋" },
   { href: "/groups", label: "아이돌 그룹", icon: "🎤" },
-  { href: "/community", label: "커뮤니티", icon: "💬" },
   { href: "/chat", label: "채팅", icon: "⚡" },
   { href: "/profile", label: "마이페이지", icon: "👤" },
 ];

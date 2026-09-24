@@ -1,28 +1,58 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Home, ClipboardList, Mic, Zap, User } from "lucide-react";
+
+import {
+  Sidebar as SidebarRoot,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
 
 const navItems = [
-  { href: "/", label: "홈", icon: "🏠" },
-  { href: "/board", label: "게시판", icon: "📋" },
-  { href: "/groups", label: "아이돌 그룹", icon: "🎤" },
-  { href: "/chat", label: "채팅", icon: "⚡" },
-  { href: "/profile", label: "마이페이지", icon: "👤" },
+  { href: "/", label: "홈", icon: Home },
+  { href: "/board", label: "게시판", icon: ClipboardList },
+  { href: "/groups", label: "아이돌 그룹", icon: Mic },
+  { href: "/chat", label: "채팅", icon: Zap },
+  { href: "/profile", label: "마이페이지", icon: User },
 ];
 
 export function Sidebar() {
+  const pathname = usePathname();
+
   return (
-    <aside className="hidden lg:flex flex-col w-60 shrink-0 border-r border-border bg-sidebar min-h-screen pt-4">
-      <nav className="flex flex-col gap-1 px-3">
-        {navItems.map(({ href, label, icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-primary transition-colors"
-          >
-            <span className="text-base">{icon}</span>
-            {label}
-          </Link>
-        ))}
-      </nav>
-    </aside>
+    <SidebarRoot collapsible="offcanvas">
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navItems.map(({ href, label, icon: Icon }) => {
+                const isActive =
+                  href === "/" ? pathname === "/" : pathname.startsWith(href);
+
+                return (
+                  <SidebarMenuItem key={href}>
+                    <SidebarMenuButton
+                      isActive={isActive}
+                      render={
+                        <Link href={href}>
+                          <Icon />
+                          <span>{label}</span>
+                        </Link>
+                      }
+                    />
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </SidebarRoot>
   );
 }

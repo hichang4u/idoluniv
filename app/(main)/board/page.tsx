@@ -1,6 +1,19 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
+import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item";
 import type { IdolGroup } from "@/types/database";
 
 export const metadata: Metadata = { title: "게시판" };
@@ -20,44 +33,39 @@ export default async function BoardIndexPage() {
       <h1 className="text-xl font-bold">게시판</h1>
 
       {typedGroups.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-12 text-center">
-          <p className="text-muted-foreground text-sm">
-            등록된 아이돌 그룹이 없습니다.
-          </p>
-        </div>
+        <Empty>
+          <EmptyHeader>
+            <EmptyDescription>등록된 아이돌 그룹이 없습니다.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {typedGroups.map((group) => (
-            <Link
+            <Item
               key={group.id}
-              href={`/board/${group.slug}`}
-              className="group flex items-center gap-4 rounded-xl border border-border bg-card p-4 hover:border-primary/40 hover:bg-card/80 transition-colors"
+              variant="outline"
+              render={<Link href={`/board/${group.slug}`} />}
             >
-              {group.cover_url ? (
-                <img
-                  src={group.cover_url}
-                  alt={group.name}
-                  className="size-12 rounded-lg object-cover"
-                />
-              ) : (
-                <div className="size-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-lg font-bold text-primary">
-                  {group.name[0]}
-                </div>
-              )}
-              <div className="min-w-0">
-                <p className="text-sm font-semibold group-hover:text-primary transition-colors">
-                  {group.name}
-                </p>
+              <ItemMedia variant="image">
+                <Avatar className="size-10 rounded-sm">
+                  {group.cover_url && (
+                    <AvatarImage src={group.cover_url} alt={group.name} />
+                  )}
+                  <AvatarFallback className="rounded-sm">
+                    {group.name[0]}
+                  </AvatarFallback>
+                </Avatar>
+              </ItemMedia>
+              <ItemContent>
+                <ItemTitle>{group.name}</ItemTitle>
                 {group.name_ko && group.name_ko !== group.name && (
-                  <p className="text-xs text-muted-foreground">{group.name_ko}</p>
+                  <ItemDescription>{group.name_ko}</ItemDescription>
                 )}
                 {group.description && (
-                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                    {group.description}
-                  </p>
+                  <ItemDescription>{group.description}</ItemDescription>
                 )}
-              </div>
-            </Link>
+              </ItemContent>
+            </Item>
           ))}
         </div>
       )}

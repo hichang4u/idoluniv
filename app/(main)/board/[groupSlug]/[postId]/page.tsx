@@ -105,7 +105,6 @@ export default async function PostDetailPage({ params }: Props) {
         <div className="flex items-center justify-between pt-2">
           <PostActions
             postId={typedPost.id}
-            groupSlug={groupSlug}
             initialLikeCount={typedPost.like_count}
             initialLiked={reactions.liked}
             initialScrapped={reactions.scrapped}

@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 
 interface PostActionsProps {
   postId: string;
-  groupSlug: string;
   initialLikeCount: number;
   initialLiked?: boolean;
   initialScrapped?: boolean;
@@ -15,7 +14,6 @@ interface PostActionsProps {
 
 export function PostActions({
   postId,
-  groupSlug,
   initialLikeCount,
   initialLiked = false,
   initialScrapped = false,

@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { useRouter } from "next/navigation";
 import { createPost, updatePost } from "@/app/actions/post";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

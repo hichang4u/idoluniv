@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { createClient } from "@/lib/supabase/server";
 
 export async function Header() {
@@ -9,33 +11,31 @@ export async function Header() {
   } = await supabase.auth.getUser();
 
   return (
-    <header className="sticky top-0 z-50 h-14 border-b border-border bg-background/80 backdrop-blur-sm">
-      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4">
-        {/* 로고 */}
-        <Link
-          href="/"
-          className="text-lg font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"
-        >
-          IdolUniv
-        </Link>
+    <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background/80 px-4 backdrop-blur-sm">
+      <SidebarTrigger className="-ml-1" />
+      <Separator orientation="vertical" className="mr-1 h-4" />
 
-        {/* 우측 액션 */}
-        <div className="flex items-center gap-2">
-          {user ? (
-            <form action="/auth/signout" method="POST">
-              <Button variant="ghost" size="sm" type="submit">
-                로그아웃
-              </Button>
-            </form>
-          ) : (
-            <Link
-              href="/login"
-              className="inline-flex items-center justify-center rounded-[min(var(--radius-md),12px)] px-2.5 h-7 text-[0.8rem] font-medium bg-primary text-primary-foreground hover:bg-primary/80 transition-colors"
-            >
-              로그인
-            </Link>
-          )}
-        </div>
+      <Link
+        href="/"
+        className="bg-gradient-to-r from-primary to-accent bg-clip-text text-lg font-extrabold text-transparent"
+      >
+        IdolUniv
+      </Link>
+
+      <div className="ml-auto flex items-center gap-2">
+        {user ? (
+          <form action="/auth/signout" method="POST">
+            <Button variant="ghost" size="sm" type="submit">
+              로그아웃
+            </Button>
+          </form>
+        ) : (
+          <Button
+            size="sm"
+            nativeButton={false}
+            render={<Link href="/login">로그인</Link>}
+          />
+        )}
       </div>
     </header>
   );

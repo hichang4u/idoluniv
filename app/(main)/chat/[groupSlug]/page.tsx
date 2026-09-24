@@ -40,16 +40,16 @@ export default async function ChatRoomPage({ params }: Props) {
 
   if (!roomId) notFound();
 
-  // 최근 메시지 50개 (오래된 순)
+  // 최근 메시지 50개: 최신순으로 50개를 가져온 뒤 오래된→최신 순으로 뒤집는다
   const { data: messages } = await supabase
     .from("chat_messages")
     .select("id, room_id, author_id, session_id, nickname, content, is_hidden, created_at")
     .eq("room_id", roomId)
     .eq("is_hidden", false)
-    .order("created_at", { ascending: true })
+    .order("created_at", { ascending: false })
     .limit(50);
 
-  const initialMessages = (messages ?? []) as ChatMessage[];
+  const initialMessages = ((messages ?? []) as ChatMessage[]).reverse();
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col" style={{ height: "calc(100vh - 9rem)" }}>

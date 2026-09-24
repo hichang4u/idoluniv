@@ -1,3 +1,6 @@
+// 렌더 중 Math.random() 은 순수하지 않으므로(react-hooks/purity) 고정 폭을 쓴다
+const LINE_WIDTHS = [92, 78, 97, 71, 88, 74];
+
 export default function PostDetailLoading() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -12,8 +15,8 @@ export default function PostDetailLoading() {
         </div>
         <hr className="border-border" />
         <div className="space-y-2">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-4 rounded-md bg-muted animate-pulse" style={{ width: `${70 + Math.random() * 30}%` }} />
+          {LINE_WIDTHS.map((width, i) => (
+            <div key={i} className="h-4 rounded-md bg-muted animate-pulse" style={{ width: `${width}%` }} />
           ))}
         </div>
       </div>

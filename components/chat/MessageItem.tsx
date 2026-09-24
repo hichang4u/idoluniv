@@ -1,7 +1,16 @@
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Bubble, BubbleContent } from "@/components/ui/bubble";
+import {
+  Message,
+  MessageAvatar,
+  MessageContent,
+  MessageHeader,
+} from "@/components/ui/message";
 import type { ChatMessage } from "@/types/database";
 
 interface Props {
   message: ChatMessage;
+  align?: "start" | "end";
 }
 
 function formatTime(iso: string) {
@@ -11,21 +20,29 @@ function formatTime(iso: string) {
   });
 }
 
-export function MessageItem({ message }: Props) {
+export function MessageItem({ message, align = "start" }: Props) {
   const initial = message.nickname ? message.nickname[0].toUpperCase() : "?";
 
   return (
-    <div className="flex items-start gap-2.5">
-      <div className="size-7 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-xs font-semibold text-primary shrink-0 mt-0.5">
-        {initial}
-      </div>
-      <div className="space-y-0.5 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-foreground">{message.nickname}</span>
-          <span className="text-xs text-muted-foreground">{formatTime(message.created_at)}</span>
-        </div>
-        <p className="text-sm text-foreground leading-relaxed break-words">{message.content}</p>
-      </div>
-    </div>
+    <Message align={align}>
+      <MessageAvatar>
+        <Avatar className="size-8">
+          <AvatarFallback>{initial}</AvatarFallback>
+        </Avatar>
+      </MessageAvatar>
+
+      <MessageContent>
+        <MessageHeader>
+          <span>{message.nickname}</span>
+          <span className="ml-2 font-normal">
+            {formatTime(message.created_at)}
+          </span>
+        </MessageHeader>
+
+        <Bubble variant={align === "end" ? "default" : "muted"} align={align}>
+          <BubbleContent>{message.content}</BubbleContent>
+        </Bubble>
+      </MessageContent>
+    </Message>
   );
 }

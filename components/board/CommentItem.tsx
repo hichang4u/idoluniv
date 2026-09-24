@@ -4,7 +4,6 @@ import { useState } from "react";
 import { MessageCircle, Trash2 } from "lucide-react";
 import { deleteComment } from "@/app/actions/comment";
 import { CommentForm } from "@/components/board/CommentForm";
-import { Button } from "@/components/ui/button";
 import type { Comment } from "@/types/database";
 
 function formatDate(iso: string) {

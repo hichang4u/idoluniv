@@ -1,3 +1,6 @@
+// 렌더 중 Math.random() 은 순수하지 않으므로(react-hooks/purity) 고정 폭을 쓴다
+const MESSAGE_WIDTHS = [62, 45, 78, 53, 70, 41, 66, 57];
+
 export default function ChatRoomLoading() {
   return (
     <div className="max-w-3xl mx-auto flex flex-col" style={{ height: "calc(100vh - 9rem)" }}>
@@ -12,7 +15,7 @@ export default function ChatRoomLoading() {
 
       {/* 메시지 영역 스켈레톤 */}
       <div className="flex-1 rounded-xl border border-border bg-card p-4 space-y-4 animate-pulse overflow-hidden">
-        {Array.from({ length: 8 }).map((_, i) => (
+        {MESSAGE_WIDTHS.map((width, i) => (
           <div key={i} className="flex items-start gap-2">
             <div className="size-7 rounded-full bg-muted shrink-0" />
             <div className="space-y-1.5">
@@ -22,7 +25,7 @@ export default function ChatRoomLoading() {
               </div>
               <div
                 className="h-4 rounded bg-muted"
-                style={{ width: `${Math.random() * 40 + 40}%` }}
+                style={{ width: `${width}%` }}
               />
             </div>
           </div>

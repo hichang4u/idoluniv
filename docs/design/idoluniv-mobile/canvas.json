@@ -1,0 +1,18 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "title": "홈 피드", "x": 0, "y": 0, "w": 390, "h": 844 },
+    { "file": "Board.dc.html", "title": "그룹 게시판", "x": 470, "y": 0, "w": 390, "h": 844 },
+    { "file": "Chat.dc.html", "title": "실시간 채팅", "x": 940, "y": 0, "w": 390, "h": 844 },
+    { "file": "Profile.dc.html", "title": "팬 프로필", "x": 1410, "y": 0, "w": 390, "h": 844 }
+  ],
+  "annotations": [
+    {
+      "id": "token-source",
+      "x": 0,
+      "y": -180,
+      "w": 560,
+      "text": "app/globals.css 의 .dark 토큰을 그대로 사용: primary oklch(0.627 0.265 293.6), accent oklch(0.656 0.241 3.8), card oklch(0.155 0.022 270), border oklch(1 0 0 / 8%), radius 10/14px, Geist.\nPostCard · MessageItem · Button 의 수치(패딩·폰트·아이콘 크기)는 실제 컴포넌트에서 옮겼음.\n\n새로 추가한 것: 하단 탭바(데스크톱 Sidebar 의 5개 항목을 그대로 이동), 44px 터치 타깃, 채팅 화면의 탭바 제거."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

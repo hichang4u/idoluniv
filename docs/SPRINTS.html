@@ -597,6 +597,57 @@
 
     .card p { font-size: 0.82rem; margin: 0; }
 
+    /* ── 2026-09-24 진척 표시 (PM 갱신) ── */
+    .badge-danger { background: rgba(239,68,68,0.2); color: #fecaca; border: 1px solid rgba(239,68,68,0.3); }
+    .badge-muted  { background: rgba(100,116,139,0.2); color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }
+    .info-box.danger { background: rgba(239,68,68,0.08); border-color: var(--danger); color: #fecaca; }
+
+    .st {
+      flex-shrink: 0;
+      padding: 1px 7px;
+      border-radius: 6px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .st-done    { background: rgba(34,197,94,0.18);  color: #86efac; }
+    .st-partial { background: rgba(245,158,11,0.18); color: #fde68a; }
+    .st-todo    { background: rgba(100,116,139,0.2); color: #94a3b8; }
+    .st-unver   { background: rgba(59,130,246,0.18); color: #93c5fd; }
+
+    .task-item.is-done    { border-color: rgba(34,197,94,0.35); }
+    .task-item.is-partial { border-color: rgba(245,158,11,0.35); }
+
+    .ev {
+      display: block;
+      margin-top: 3px;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+    .ev code, td code, .card code, .info-box code {
+      font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+      font-size: 0.92em;
+      background: var(--surface3);
+      padding: 0 4px;
+      border-radius: 4px;
+      color: var(--text-muted);
+    }
+    .wt { color: #fde68a; font-weight: 600; }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    .changelog li { padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.82rem; color: var(--text-muted); list-style: none; }
+    .changelog li:last-child { border-bottom: none; }
+
     @media (max-width: 900px) {
       .sidebar { display: none; }
       .main { margin-left: 0; }
@@ -618,11 +669,12 @@
   <div class="sidebar-logo">
     <span class="brand">✦ IdolUniv</span>
     <span class="doc-type">Sprint Plan · Phase 1 MVP</span>
-    <span class="version-badge">v1.0.0 · 2026.05</span>
+    <span class="version-badge">v1.1.0 · 2026.09.24 진척 갱신</span>
   </div>
 
   <nav>
     <div class="nav-section-title">개요</div>
+    <a href="#status-0924"><span class="nav-icon">📍</span> 2026-09-24 현황</a>
     <a href="#overview"><span class="nav-icon">📋</span> Sprint 개요</a>
     <a href="#timeline"><span class="nav-icon">🗓️</span> 타임라인</a>
     <a href="#principles"><span class="nav-icon">📌</span> 운영 원칙</a>
@@ -635,12 +687,14 @@
 
     <div class="nav-section-title">이후 단계</div>
     <a href="#next"><span class="nav-icon">🔮</span> Phase 2~4 예고</a>
+    <a href="#changelog"><span class="nav-icon">🧾</span> 변경 이력</a>
   </nav>
 
   <div class="sidebar-footer">
     Phase: <span style="color:var(--success)">1 · MVP</span><br/>
-    목표: <span style="color:var(--primary-light)">2026 Q2 출시</span><br/>
-    Last updated: 2026-05-31
+    목표: <span style="color:var(--primary-light)">2026 Q2 출시</span> <span style="color:var(--danger)">→ 미달</span><br/>
+    재일정: <code>docs/BACKLOG.md</code> (초안)<br/>
+    Last updated: 2026-09-24 (원안 2026-05-31)
   </div>
 </aside>
 
@@ -656,6 +710,7 @@
       <span class="badge badge-success">Phase 1 · MVP</span>
       <span class="badge badge-info">2026 Q2</span>
       <span class="badge badge-warning">8주 / 4 Sprints</span>
+      <span class="badge badge-danger">2026-09-24 기준 · 계획 종료(07-27) 대비 59일 지연</span>
     </div>
     <h1>
       <span class="gradient">IdolUniv</span><br/>
@@ -689,6 +744,97 @@
   <div class="content">
 
     <!-- ══════════════════════════════════════════
+         0. 2026-09-24 현황 (PM 갱신 — 2026-09-24 추가)
+         사유: 문서가 "Sprint 1 진행 중 (25%)" 에서 갱신되지 않아
+               실제 코드/git 이력과 어긋남. 진척을 코드 근거로 재측정.
+    ══════════════════════════════════════════ -->
+    <section id="status-0924">
+      <div class="section-header">
+        <div class="section-number" style="background:linear-gradient(135deg,#b91c1c,#f59e0b)">00</div>
+        <h2>2026-09-24 현황 <span class="sub">Status vs. Plan · 코드·git 이력 기준 재측정</span></h2>
+      </div>
+
+      <div class="info-box danger">
+        <strong>결론</strong> — 계획상 MVP 종료일(2026-07-27)을 <strong>59일</strong> 넘겼고, 마지막 커밋(2026-06-12) 이후
+        <strong>104일간 커밋이 없다</strong>. Must Have 29개 중 완료 10 · 부분 11 · 미착수 8, 가중 진행률 약 <strong>53%</strong>
+        (완료=1, 부분=0.5로 셈한 추정치). 게시판·채팅의 뼈대는 있으나 <strong>신고·관리자·CI·배포 등 출시 조건은 전부 미착수</strong>이고,
+        식별 체계 혼재로 인한 보안 이슈가 미해결이다.
+      </div>
+
+      <div class="legend">
+        <span>표기:</span>
+        <span class="st st-done">완료</span> 코드 존재·동작 경로 확인
+        <span class="st st-partial">부분</span> 일부만 구현 또는 결함 있음
+        <span class="st st-todo">미착수</span> 코드 없음
+        <span class="st st-unver">외부 미확인</span> 코드는 있으나 Supabase/OAuth/Vercel 설정을 저장소에서 확인 불가
+        <span class="wt">[작업 트리]</span> = 미커밋 변경 기준
+      </div>
+
+      <h3>Sprint 별 상태</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Sprint</th><th>계획 기간</th><th>Must Have</th><th>상태</th><th>핵심 근거</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-primary">Sprint 1</span></td>
+              <td>06.02 ~ 06.15</td>
+              <td>완료 5 · 부분 3 / 8</td>
+              <td><span class="badge badge-info">코드 완료 · 외부 미확인</span></td>
+              <td>커밋 <code>c4b837c</code>(06-03). OAuth 3종은 코드만 있고 공급자 설정 미확인. 로그인 후 <code>/profile</code>(미존재)로 리다이렉트</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-accent">Sprint 2</span></td>
+              <td>06.16 ~ 06.29</td>
+              <td>완료 4 · 부분 4 / 8</td>
+              <td><span class="badge badge-warning">부분 완료</span></td>
+              <td>커밋 <code>eaf24c5</code>(06-12, Sprint 2·3 코드를 한 커밋에 포함). Markdown 렌더링·댓글 좋아요 UI·스크랩 목록 없음</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-info">Sprint 3</span></td>
+              <td>06.30 ~ 07.13</td>
+              <td>완료 1 · 부분 3 · 미착수 2 / 6</td>
+              <td><span class="badge badge-warning">부분 착수</span></td>
+              <td><code>0003_chat.sql</code> + <code>ChatRoom.tsx</code> Realtime 구독. 이미지 업로드·신고 없음</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-success">Sprint 4</span></td>
+              <td>07.14 ~ 07.27</td>
+              <td>부분 1 · 미착수 6 / 7</td>
+              <td><span class="badge badge-danger">미착수</span></td>
+              <td>관리자·CMS·sitemap/robots·<code>.github/workflows</code>·Sentry·Production 배포 흔적 없음</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>일정 대비 지연 근거</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>항목</th><th>사실</th><th>근거</th></tr></thead>
+          <tbody>
+            <tr><td>계획 종료일 경과</td><td>07-27 → 09-24, 59일(약 8.4주) 초과</td><td>본 문서 타임라인</td></tr>
+            <tr><td>커밋 공백</td><td>06-12 이후 104일간 커밋 0건</td><td><code>git log</code> 마지막 <code>14c161a</code> 2026-06-12</td></tr>
+            <tr><td>미커밋 작업 누적</td><td>수정 13개 + 신규 다수 (shadcn UI 25개, <code>hooks/use-mobile.ts</code>, 0004·0005 마이그레이션, <code>docs/PRD.md</code>)</td><td><code>git status</code>. 파일 mtime상 08-16 ~ 09-24 사이 작업으로 보임 (mtime 기반 추정)</td></tr>
+            <tr><td>품질 게이트</td><td><code>tsc --noEmit</code> 통과, <code>eslint</code> <strong>오류 2건</strong> (<code>react-hooks/purity</code>: <code>loading.tsx</code> 2곳의 <code>Math.random()</code>) — CI 도입 시 즉시 실패</td><td>2026-09-24 작업 트리에서 실행. <code>next build</code> 는 미실행</td></tr>
+            <tr><td>DB 원격 상태</td><td>0004·0005 원격 적용 여부 알 수 없음. <code>supabase/config.toml</code> 없음(로컬 CLI 미연결)</td><td>외부 미확인</td></tr>
+            <tr><td>미해결 보안 이슈</td><td><code>toggle_post_like</code> 등 RPC가 호출자가 준 <code>p_session_id</code> 를 그대로 신뢰, <code>reactions</code> public read 로 <code>session_id</code> 노출 → 타인 반응 취소 가능, <code>increment_view_count</code> 무제한 호출, 채팅 닉네임 사칭·rate limit 없음</td><td><code>0002_community.sql</code>, <code>0004_rls_hardening.sql</code> §4, <code>app/actions/chat.ts</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warning">
+        <strong>원인 추정</strong> — (1) Sprint 1~3 코드를 초반 2주에 몰아서 만든 뒤 출시 조건(Sprint 4)으로 넘어가지 못함,
+        (2) 보안 하드닝과 UI 리디자인이 커밋 없이 작업 트리에 쌓임,
+        (3) 식별 체계(auth.uid / 쿠키 <code>session_id</code> / 쿠키 <code>sid</code>) 결정이 미뤄져 반응·채팅 보안 수정이 막힘.
+        세 가지 모두 git 이력과 코드로 뒷받침되지만, 작업 중단 사유 자체는 저장소로 확인할 수 없다.
+      </div>
+
+      <p>남은 범위의 우선순위, MVP 축소안, 주 단위 재일정 초안은 <code>docs/BACKLOG.md</code> 참고 (추정치).</p>
+    </section>
+
+    <!-- ══════════════════════════════════════════
          1. Sprint 개요
     ══════════════════════════════════════════ -->
     <section id="overview">
@@ -718,33 +864,34 @@
               <td><span class="badge badge-primary">Sprint 1</span></td>
               <td>Week 1–2</td>
               <td><strong>Foundation Setup</strong> — 프로젝트 초기화 + 인증</td>
-              <td>Next.js · Supabase Auth · shadcn/ui</td>
-              <td><span class="badge badge-warning">진행 중</span></td>
+              <td>Next.js 16 · Supabase Auth · shadcn/ui</td>
+              <td><span class="badge badge-info">코드 완료 · 외부 미확인</span></td>
             </tr>
             <tr>
               <td><span class="badge badge-accent">Sprint 2</span></td>
               <td>Week 3–4</td>
               <td><strong>Community Core</strong> — 게시판 + 댓글 + 반응</td>
               <td>Supabase DB · RLS · React Query</td>
-              <td><span class="badge" style="background:rgba(100,116,139,0.2);color:#94a3b8;border:1px solid rgba(100,116,139,0.3)">대기</span></td>
+              <td><span class="badge badge-warning">부분 완료</span></td>
             </tr>
             <tr>
               <td><span class="badge badge-info">Sprint 3</span></td>
               <td>Week 5–6</td>
               <td><strong>Realtime & Media</strong> — 채팅 + 업로드 + 반응형</td>
               <td>Supabase Realtime · Storage · Tailwind</td>
-              <td><span class="badge" style="background:rgba(100,116,139,0.2);color:#94a3b8;border:1px solid rgba(100,116,139,0.3)">대기</span></td>
+              <td><span class="badge badge-warning">부분 착수</span></td>
             </tr>
             <tr>
               <td><span class="badge badge-success">Sprint 4</span></td>
               <td>Week 7–8</td>
               <td><strong>Admin & Launch</strong> — 관리자 + SEO + 배포</td>
               <td>Vercel · GitHub Actions · Sentry</td>
-              <td><span class="badge" style="background:rgba(100,116,139,0.2);color:#94a3b8;border:1px solid rgba(100,116,139,0.3)">대기</span></td>
+              <td><span class="badge badge-danger">미착수</span></td>
             </tr>
           </tbody>
         </table>
       </div>
+      <p style="font-size:0.78rem;color:var(--text-dim)">상태 열: 2026-09-24 코드·git 이력 기준으로 갱신 (원안은 Sprint 1 "진행 중", 나머지 "대기"). 주요 기술의 "Next.js" 는 실제 설치 버전(<code>next@16.2.6</code>)에 맞춰 "Next.js 16" 으로 정정. 실사용 여부: React Query·Zustand 는 <code>package.json</code> 에만 있고 코드에서 import 하지 않음.</p>
     </section>
 
     <!-- ══════════════════════════════════════════
@@ -781,13 +928,26 @@
 
       <div class="progress-wrap">
         <div class="progress-label">
-          <span>전체 진행률</span>
-          <span>Sprint 1 진행 중 (25%)</span>
+          <span>전체 진행률 (Must Have 가중, 2026-09-24)</span>
+          <span>약 53% — 완료 10 · 부분 11 · 미착수 8 / 29</span>
         </div>
         <div class="progress-bar">
-          <div class="progress-fill" style="width: 8%"></div>
+          <div class="progress-fill" style="width: 53%"></div>
         </div>
       </div>
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>계획 일정 경과</span>
+          <span>100% + 59일 초과 (07-27 종료 예정)</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 100%; background: linear-gradient(90deg, var(--warning), var(--danger));"></div>
+        </div>
+      </div>
+      <p style="font-size:0.78rem;color:var(--text-dim)">
+        2026-09-24 갱신: 원안 표기 "Sprint 1 진행 중 (25%)" / 막대 8% 는 06월 초 상태에서 멈춰 있었음.
+        진행률 = (완료 + 0.5×부분) ÷ Must Have 29개 로 계산한 추정치이며, 외부 미확인 항목은 "부분"으로 셈했다.
+      </p>
     </section>
 
     <!-- ══════════════════════════════════════════
@@ -848,7 +1008,7 @@
             </div>
           </div>
           <div class="sprint-meta">
-            <span class="badge badge-warning">진행 중</span>
+            <span class="badge badge-info">코드 완료 · 외부 미확인 (09-24)</span>
             <span class="sprint-period">06.02 ~ 06.15</span>
             <span class="badge badge-primary">Week 1–2</span>
           </div>
@@ -859,44 +1019,52 @@
           <div class="task-group">
             <div class="task-group-title">✅ Must Have</div>
             <ul class="task-list">
-              <li class="task-item">
+              <li class="task-item is-done">
                 <span class="task-icon">🏗️</span>
-                <span class="task-text">Next.js 14 App Router 프로젝트 생성 + TypeScript 설정</span>
+                <span class="task-text">Next.js <s>14</s> 16 App Router 프로젝트 생성 + TypeScript 설정<span class="ev"><code>next@16.2.6</code>, React 19.2.4, <code>tsconfig.json</code>. 미들웨어는 Next 16 규약에 따라 <code>proxy.ts</code> (<code>00a4acc</code>). [정정 2026-09-24: 원안 "Next.js 14" → 실제 16]</span></span>
+                <span class="st st-done">완료</span>
                 <span class="task-tag tag-fe">FE</span>
               </li>
-              <li class="task-item">
+              <li class="task-item is-done">
                 <span class="task-icon">🎨</span>
-                <span class="task-text">Tailwind CSS + shadcn/ui 셋업 + 기본 테마 (다크모드 기본)</span>
+                <span class="task-text">Tailwind CSS + shadcn/ui 셋업 + 기본 테마 (다크모드 기본)<span class="ev">Tailwind v4, <code>components.json</code>, <code>app/layout.tsx</code> 의 <code>dark</code> 클래스. shadcn 컴포넌트 25개 추가는 <span class="wt">[작업 트리]</span></span></span>
+                <span class="st st-done">완료</span>
                 <span class="task-tag tag-ux">UX</span>
               </li>
-              <li class="task-item">
+              <li class="task-item is-done">
                 <span class="task-icon">🗃️</span>
-                <span class="task-text">Supabase 프로젝트 생성 + 클라이언트 연동 (SSR 지원)</span>
+                <span class="task-text">Supabase 프로젝트 생성 + 클라이언트 연동 (SSR 지원)<span class="ev"><code>lib/supabase/{client,server,middleware}.ts</code> (@supabase/ssr). 원격 프로젝트 상태·환경변수는 외부 미확인, <code>.env.example</code> 없음</span></span>
+                <span class="st st-done">완료</span>
                 <span class="task-tag tag-be">BE</span>
               </li>
-              <li class="task-item">
+              <li class="task-item is-done">
                 <span class="task-icon">🗄️</span>
-                <span class="task-text">초기 DB 마이그레이션 — users, fan_profiles, idol_groups</span>
+                <span class="task-text">초기 DB 마이그레이션 — users, fan_profiles, idol_groups<span class="ev"><code>0001_initial.sql</code> (+ members, 가입 트리거). 원격 적용 외부 미확인. idol_groups 시드 데이터 없음</span></span>
+                <span class="st st-done">완료</span>
                 <span class="task-tag tag-db">DB</span>
               </li>
-              <li class="task-item">
+              <li class="task-item is-partial">
                 <span class="task-icon">🔐</span>
-                <span class="task-text">소셜 로그인 — Google OAuth 연동</span>
+                <span class="task-text">소셜 로그인 — Google OAuth 연동<span class="ev"><code>LoginForm.tsx</code> <code>signInWithOAuth</code> + <code>auth/callback/route.ts</code>. Supabase 공급자 설정 외부 미확인. 콜백 기본 경로가 존재하지 않는 <code>/profile</code> (<code>14c161a</code>) → 로그인 직후 404</span></span>
+                <span class="st st-unver">외부 미확인</span>
                 <span class="task-tag tag-be">BE</span>
               </li>
-              <li class="task-item">
+              <li class="task-item is-partial">
                 <span class="task-icon">🔐</span>
-                <span class="task-text">소셜 로그인 — Kakao OAuth 연동</span>
+                <span class="task-text">소셜 로그인 — Kakao OAuth 연동<span class="ev"><code>LoginForm.tsx</code> <code>signInWithOAuth</code> + <code>auth/callback/route.ts</code>. Supabase 공급자 설정 외부 미확인. 콜백 기본 경로가 존재하지 않는 <code>/profile</code> (<code>14c161a</code>) → 로그인 직후 404</span></span>
+                <span class="st st-unver">외부 미확인</span>
                 <span class="task-tag tag-be">BE</span>
               </li>
-              <li class="task-item">
+              <li class="task-item is-partial">
                 <span class="task-icon">🔐</span>
-                <span class="task-text">소셜 로그인 — Twitter/X OAuth 연동</span>
+                <span class="task-text">소셜 로그인 — Twitter/X OAuth 연동<span class="ev"><code>LoginForm.tsx</code> <code>signInWithOAuth</code> + <code>auth/callback/route.ts</code>. Supabase 공급자 설정 외부 미확인. 콜백 기본 경로가 존재하지 않는 <code>/profile</code> (<code>14c161a</code>) → 로그인 직후 404</span></span>
+                <span class="st st-unver">외부 미확인</span>
                 <span class="task-tag tag-be">BE</span>
               </li>
-              <li class="task-item">
+              <li class="task-item is-done">
                 <span class="task-icon">📐</span>
-                <span class="task-text">기본 레이아웃 — 헤더, 사이드바, 푸터 컴포넌트</span>
+                <span class="task-text">기본 레이아웃 — 헤더, 사이드바, 푸터 컴포넌트<span class="ev"><code>components/layout/{Header,Sidebar,Footer}.tsx</code>. shadcn Sidebar 기반 개편은 <span class="wt">[작업 트리]</span></span></span>
+                <span class="st st-done">완료</span>
                 <span class="task-tag tag-fe">FE</span>
               </li>
             </ul>
@@ -967,7 +1135,7 @@
             </div>
           </div>
           <div class="sprint-meta">
-            <span class="badge" style="background:rgba(100,116,139,0.2);color:#94a3b8;border:1px solid rgba(100,116,139,0.3)">대기</span>
+            <span class="badge badge-warning">부분 완료 · 완료 4/8 (09-24)</span>
             <span class="sprint-period">06.16 ~ 06.29</span>
             <span class="badge badge-accent">Week 3–4</span>
           </div>
@@ -977,44 +1145,52 @@
           <div class="task-group">
             <div class="task-group-title">✅ Must Have</div>
             <ul class="task-list">
-              <li class="task-item">
+              <li class="task-item is-done">
                 <span class="task-icon">🗄️</span>
-                <span class="task-text">DB 마이그레이션 — posts, comments, reactions 테이블</span>
+                <span class="task-text">DB 마이그레이션 — posts, comments, reactions 테이블<span class="ev"><code>0002_community.sql</code>. anon 전체 허용 정책을 교체하는 <code>0004</code>·<code>0005</code> 는 <span class="wt">[작업 트리]</span>, 원격 적용 외부 미확인</span></span>
+                <span class="st st-done">완료</span>
                 <span class="task-tag tag-db">DB</span>
               </li>
-              <li class="task-item">
+              <li class="task-item is-done">
                 <span class="task-icon">🏠</span>
-                <span class="task-text">아이돌 그룹 목록 페이지 + 그룹별 라우팅</span>
+                <span class="task-text">아이돌 그룹 목록 페이지 + 그룹별 라우팅<span class="ev"><code>app/(main)/board/page.tsx</code>, <code>board/[groupSlug]/page.tsx</code> (20개 페이지네이션). 그룹 데이터 입력 수단(시드/CMS) 없음</span></span>
+                <span class="st st-done">완료</span>
                 <span class="task-tag tag-fe">FE</span>
               </li>
-              <li class="task-item">
+              <li class="task-item is-partial">
                 <span class="task-icon">📝</span>
-                <span class="task-text">게시글 작성 폼 (텍스트 + Markdown 지원)</span>
+                <span class="task-text">게시글 작성 폼 (텍스트 + Markdown 지원)<span class="ev"><code>PostForm.tsx</code> 존재. Markdown 은 placeholder 문구뿐, 상세는 <code>whitespace-pre-wrap</code> 평문 렌더. 글 유형 라디오 선택 표시 결함(<code>peer</code> 클래스 누락)</span></span>
+                <span class="st st-partial">부분</span>
                 <span class="task-tag tag-fe">FE</span>
               </li>
-              <li class="task-item">
+              <li class="task-item is-done">
                 <span class="task-icon">📋</span>
-                <span class="task-text">게시판 목록 + 게시글 상세 페이지</span>
+                <span class="task-text">게시판 목록 + 게시글 상세 페이지<span class="ev"><code>board/[groupSlug]/page.tsx</code>, <code>[postId]/page.tsx</code> + <code>loading.tsx</code></span></span>
+                <span class="st st-done">완료</span>
                 <span class="task-tag tag-fe">FE</span>
               </li>
-              <li class="task-item">
+              <li class="task-item is-partial">
                 <span class="task-icon">✏️</span>
-                <span class="task-text">게시글 수정 / 삭제 (작성자 본인만)</span>
+                <span class="task-text">게시글 수정 / 삭제 (작성자 본인만)<span class="ev">서버: <code>.eq("author_id", userId)</code> (<code>eaf24c5</code>) + RLS <code>0004</code> <span class="wt">[작업 트리]</span>. UI 가 수정/삭제 버튼을 모든 방문자에게 노출하고, 수정 페이지에 소유자 확인 없음</span></span>
+                <span class="st st-partial">부분</span>
                 <span class="task-tag tag-be">BE</span>
               </li>
-              <li class="task-item">
+              <li class="task-item is-done">
                 <span class="task-icon">💬</span>
-                <span class="task-text">댓글 & 대댓글 작성 / 삭제</span>
+                <span class="task-text">댓글 & 대댓글 작성 / 삭제<span class="ev"><code>app/actions/comment.ts</code>, <code>CommentSection/CommentItem/CommentForm.tsx</code> (대댓글 1단계)</span></span>
+                <span class="st st-done">완료</span>
                 <span class="task-tag tag-fe">FE</span>
               </li>
-              <li class="task-item">
+              <li class="task-item is-partial">
                 <span class="task-icon">❤️</span>
-                <span class="task-text">좋아요 토글 (게시글 / 댓글)</span>
+                <span class="task-text">좋아요 토글 (게시글 / 댓글)<span class="ev">게시글만 (<code>togglePostLike</code>). <code>toggle_comment_like</code> RPC 는 있으나 호출 코드·UI 없음. <code>p_session_id</code> 신뢰로 카운트 조작 가능(QA 미해결)</span></span>
+                <span class="st st-partial">부분</span>
                 <span class="task-tag tag-be">BE</span>
               </li>
-              <li class="task-item">
+              <li class="task-item is-partial">
                 <span class="task-icon">🔖</span>
-                <span class="task-text">스크랩 기능 + 마이페이지 스크랩 목록</span>
+                <span class="task-text">스크랩 기능 + 마이페이지 스크랩 목록<span class="ev">스크랩 토글만 (<code>togglePostScrap</code>, 쿠키 <code>session_id</code> 기준). <code>/profile</code> 라우트·스크랩 목록 없음 — Sidebar 의 "마이페이지" 링크는 404</span></span>
+                <span class="st st-partial">부분</span>
                 <span class="task-tag tag-fe">FE</span>
               </li>
             </ul>
@@ -1085,7 +1261,7 @@
             </div>
           </div>
           <div class="sprint-meta">
-            <span class="badge" style="background:rgba(100,116,139,0.2);color:#94a3b8;border:1px solid rgba(100,116,139,0.3)">대기</span>
+            <span class="badge badge-warning">부분 착수 · 완료 1/6 (09-24)</span>
             <span class="sprint-period">06.30 ~ 07.13</span>
             <span class="badge badge-info">Week 5–6</span>
           </div>
@@ -1095,34 +1271,40 @@
           <div class="task-group">
             <div class="task-group-title">✅ Must Have</div>
             <ul class="task-list">
-              <li class="task-item">
+              <li class="task-item is-partial">
                 <span class="task-icon">🗄️</span>
-                <span class="task-text">DB 마이그레이션 — chat_rooms, messages, chat_members</span>
+                <span class="task-text">DB 마이그레이션 — chat_rooms, messages, chat_members<span class="ev"><code>0003_chat.sql</code>: chat_rooms, chat_messages. <strong>chat_members 테이블 없음</strong>. Realtime publication 원격 적용 외부 미확인</span></span>
+                <span class="st st-partial">부분</span>
                 <span class="task-tag tag-db">DB</span>
               </li>
-              <li class="task-item">
+              <li class="task-item is-done">
                 <span class="task-icon">💬</span>
-                <span class="task-text">아이돌 그룹별 채팅 라운지 (Supabase Realtime)</span>
+                <span class="task-text">아이돌 그룹별 채팅 라운지 (Supabase Realtime)<span class="ev"><code>chat/[groupSlug]/page.tsx</code>, <code>ChatRoom.tsx</code> <code>postgres_changes</code> 구독. 방 생성은 <code>get_or_create_chat_room</code> RPC(<code>0004</code>, <span class="wt">[작업 트리]</span>)</span></span>
+                <span class="st st-done">완료</span>
                 <span class="task-tag tag-be">BE</span>
               </li>
-              <li class="task-item">
+              <li class="task-item is-partial">
                 <span class="task-icon">⌨️</span>
-                <span class="task-text">실시간 메시지 수신 + 타이핑 인디케이터</span>
+                <span class="task-text">실시간 메시지 수신 + 타이핑 인디케이터<span class="ev">수신만 구현. presence/broadcast 코드 없음. 초기 로드가 "최근 50개"가 아니라 오래된 순 50개(<code>ascending: true</code> + <code>limit(50)</code>)</span></span>
+                <span class="st st-partial">부분</span>
                 <span class="task-tag tag-fe">FE</span>
               </li>
               <li class="task-item">
                 <span class="task-icon">🖼️</span>
-                <span class="task-text">이미지 업로드 (Supabase Storage + Vercel 최적화)</span>
+                <span class="task-text">이미지 업로드 (Supabase Storage + Vercel 최적화)<span class="ev">Storage 버킷·업로드 코드 없음</span></span>
+                <span class="st st-todo">미착수</span>
                 <span class="task-tag tag-be">BE</span>
               </li>
-              <li class="task-item">
+              <li class="task-item is-partial">
                 <span class="task-icon">📱</span>
-                <span class="task-text">반응형 UI 완성 — 모바일 레이아웃 전체 점검</span>
+                <span class="task-text">반응형 UI 완성 — 모바일 레이아웃 전체 점검<span class="ev">shadcn Sidebar(Sheet) + <code>hooks/use-mobile.ts</code> <span class="wt">[작업 트리]</span>. 전체 화면 모바일 점검 기록 없음</span></span>
+                <span class="st st-partial">부분</span>
                 <span class="task-tag tag-ux">UX</span>
               </li>
               <li class="task-item">
                 <span class="task-icon">🚩</span>
-                <span class="task-text">콘텐츠 신고 시스템 (게시글 / 댓글 / 메시지)</span>
+                <span class="task-text">콘텐츠 신고 시스템 (게시글 / 댓글 / 메시지)<span class="ev">reports 테이블·UI 없음. <code>is_hidden</code> 컬럼만 존재</span></span>
+                <span class="st st-todo">미착수</span>
                 <span class="task-tag tag-fe">FE</span>
               </li>
             </ul>
@@ -1193,7 +1375,7 @@
             </div>
           </div>
           <div class="sprint-meta">
-            <span class="badge" style="background:rgba(100,116,139,0.2);color:#94a3b8;border:1px solid rgba(100,116,139,0.3)">대기</span>
+            <span class="badge badge-danger">미착수 · 완료 0/7 (09-24)</span>
             <span class="sprint-period">07.14 ~ 07.27</span>
             <span class="badge badge-success">Week 7–8</span>
           </div>
@@ -1205,37 +1387,44 @@
             <ul class="task-list">
               <li class="task-item">
                 <span class="task-icon">🛡️</span>
-                <span class="task-text">관리자 대시보드 — 신고 목록 + 처리 (숨김/삭제/경고)</span>
+                <span class="task-text">관리자 대시보드 — 신고 목록 + 처리 (숨김/삭제/경고)<span class="ev">admin 라우트·역할(role) 컬럼·숨김 RPC 없음</span></span>
+                <span class="st st-todo">미착수</span>
                 <span class="task-tag tag-fe">FE</span>
               </li>
               <li class="task-item">
                 <span class="task-icon">🎛️</span>
-                <span class="task-text">아이돌 그룹 관리 CMS (추가/수정/비활성화)</span>
+                <span class="task-text">아이돌 그룹 관리 CMS (추가/수정/비활성화)<span class="ev">없음. idol_groups 쓰기 정책도 없음</span></span>
+                <span class="st st-todo">미착수</span>
                 <span class="task-tag tag-fe">FE</span>
               </li>
-              <li class="task-item">
+              <li class="task-item is-partial">
                 <span class="task-icon">🔍</span>
-                <span class="task-text">SEO — Next.js generateMetadata + OG 이미지</span>
+                <span class="task-text">SEO — Next.js generateMetadata + OG 이미지<span class="ev"><code>generateMetadata</code> 3곳(title 만). OG 이미지·<code>openGraph</code> 없음</span></span>
+                <span class="st st-partial">부분</span>
                 <span class="task-tag tag-fe">FE</span>
               </li>
               <li class="task-item">
                 <span class="task-icon">🗺️</span>
-                <span class="task-text">sitemap.xml + robots.txt 자동 생성</span>
+                <span class="task-text">sitemap.xml + robots.txt 자동 생성<span class="ev"><code>app/sitemap.ts</code>·<code>robots.ts</code> 없음</span></span>
+                <span class="st st-todo">미착수</span>
                 <span class="task-tag tag-ops">OPS</span>
               </li>
               <li class="task-item">
                 <span class="task-icon">⚙️</span>
-                <span class="task-text">GitHub Actions CI — lint + type-check + build</span>
+                <span class="task-text">GitHub Actions CI — lint + type-check + build<span class="ev"><code>.github/</code> 없음. <code>typecheck</code> 스크립트는 <span class="wt">[작업 트리]</span>에 추가됨. 현재 <code>eslint</code> 오류 2건</span></span>
+                <span class="st st-todo">미착수</span>
                 <span class="task-tag tag-ops">OPS</span>
               </li>
               <li class="task-item">
                 <span class="task-icon">🚨</span>
-                <span class="task-text">Sentry 에러 모니터링 연동 (FE + Edge Functions)</span>
+                <span class="task-text">Sentry 에러 모니터링 연동 (FE + Edge Functions)<span class="ev">의존성·설정 없음</span></span>
+                <span class="st st-todo">미착수</span>
                 <span class="task-tag tag-ops">OPS</span>
               </li>
               <li class="task-item">
                 <span class="task-icon">🚀</span>
-                <span class="task-text">Vercel Production 배포 + 커스텀 도메인 연결</span>
+                <span class="task-text">Vercel Production 배포 + 커스텀 도메인 연결<span class="ev">저장소에 <code>vercel.json</code>/<code>.vercel</code> 없음. 배포 여부 외부 미확인</span></span>
+                <span class="st st-todo">미착수</span>
                 <span class="task-tag tag-ops">OPS</span>
               </li>
             </ul>
@@ -1332,6 +1521,24 @@
           </tbody>
         </table>
       </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         변경 이력 (2026-09-24 추가)
+    ══════════════════════════════════════════ -->
+    <section id="changelog">
+      <div class="section-header">
+        <div class="section-number">06</div>
+        <h2>변경 이력 <span class="sub">Changelog</span></h2>
+      </div>
+      <ul class="changelog">
+        <li><strong>2026-09-24 · v1.1.0 (PM)</strong> — 진척을 코드·git 이력 기준으로 재측정.
+          사유: 문서가 "Sprint 1 진행 중 (25%)" 에서 갱신되지 않은 채 계획 종료일(07-27)을 넘김.
+          변경: "2026-09-24 현황" 섹션 추가, Sprint 상태 배지·전체 진행률(8% → 약 53%) 정정, Must Have 29개 항목별 상태·근거 표기,
+          "Next.js 14" → "Next.js 16"(<code>next@16.2.6</code>) 정정, 사이드바 버전/갱신일 수정.
+          계획(기간·Must Have 목록)은 원안 그대로 두었고, 재일정·범위 축소 제안은 <code>docs/BACKLOG.md</code> 로 분리.</li>
+        <li><strong>2026-05-31 · v1.0.0</strong> — 최초 작성.</li>
+      </ul>
     </section>
 
   </div><!-- /content -->

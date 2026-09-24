@@ -20,21 +20,13 @@ async function getOrCreateSessionId(): Promise<string> {
 export async function getOrCreateChatRoom(groupId: string): Promise<string | null> {
   const supabase = await createClient();
 
-  const { data: existing } = await supabase
-    .from("chat_rooms")
-    .select("id")
-    .eq("group_id", groupId)
-    .single();
+  // chat_rooms 직접 insert 는 RLS 로 차단되어 있다 (0004_rls_hardening.sql)
+  const { data, error } = await supabase.rpc("get_or_create_chat_room", {
+    p_group_id: groupId,
+  });
 
-  if (existing) return existing.id;
-
-  const { data: room } = await supabase
-    .from("chat_rooms")
-    .insert({ group_id: groupId })
-    .select("id")
-    .single();
-
-  return room?.id ?? null;
+  if (error) return null;
+  return (data as string | null) ?? null;
 }
 
 export async function sendMessage(formData: FormData): Promise<{ error: string | null }> {

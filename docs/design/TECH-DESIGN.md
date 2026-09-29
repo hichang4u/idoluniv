@@ -335,6 +335,37 @@ grant  update (name, name_ko, agency, debut_date, cover_url, description, is_act
   on public.idol_groups to authenticated;
 ```
 
+#### 0011 — 출시 그룹 시드 (D-10, 2026-09-30)
+
+클로즈드 베타는 **5개 그룹으로 시작**한다(소수 집중 — 베타 20~50명 규모에서 게시판이 비어 보이지 않게). 목록은 목업 예시 5개. 추가·비활성화는 출시 후 `/admin/groups` 에서.
+
+| slug (변경 불가) | name | name_ko | color_key 🟡 | agency | debut_date ○ | 비고 |
+|---|---|---|---|---|---|---|
+| `blackpink` | BLACKPINK | 블랙핑크 | `pink` | YG엔터테인먼트 | 2016-08-08 | 2026-02 완전체 앨범 *Deadline* ([Wikipedia](https://en.wikipedia.org/wiki/Blackpink)) |
+| `newjeans` | NewJeans | 뉴진스 | `sky` | 어도어 | 2022-07-22 | 2025 "NJZ" 독자 활동 → 법원이 어도어 측 인정 → 2026 어도어 소속 4인 컴백 신호 ([Billboard Korea](https://www.billboard.co.kr/editorial/news/article/newjeans-2/), [allkpop](https://www.allkpop.com/video/2026/07/newjeans-present-2026-summer-of-newjeans-signaling-a-long-awaited-comeback)). **표기는 NewJeans**. 멤버 거취 논쟁이 게시판·라운지로 번질 수 있어 모더레이션 주의 ○ |
+| `seventeen` | SEVENTEEN | 세븐틴 | `peach` | 플레디스엔터테인먼트 | 2015-05-26 | 2026 현황 미확인 ❓ |
+| `ive` | IVE | 아이브 | `lilac` | 스타쉽엔터테인먼트 | 2021-12-01 | 2026 정규 2집 *Revive+* ([Wikipedia](https://en.wikipedia.org/wiki/Ive_(group))) |
+| `aespa` | aespa | 에스파 | `mint` | SM엔터테인먼트 | 2020-11-17 | 표기는 소문자 `aespa` |
+
+- `description` 은 `"{agency} · {데뷔 연도}년 데뷔"` 형식만 쓴다. 멤버 수·근황처럼 자주 바뀌는 정보는 넣지 않는다(관리 부담·오류 위험).
+- `color_key` 는 5개가 서로 다른 계열이 되게 고른 **제안값**이다. 팬덤 공식색 재현이 아니며(TOKENS §3.2) 관리자 화면에서 바꿀 수 있다.
+- 로고·공식 사진(`cover_url`)은 넣지 않는다(D-22). `cover_url` 은 null.
+- 데뷔일은 알려진 날짜를 옮겼고 이번에 출처로 재확인하지 않았다 ○ → 시드 작성 시(T10) 확인.
+- 소속사·활동명은 2026-09-30 웹 검색 기준(2차 출처) ○. 시드 적용 직전에 한 번 더 확인한다.
+- 초안 SQL:
+
+```sql
+insert into public.idol_groups (slug, name, name_ko, color_key, agency, debut_date, description, is_active) values
+  ('blackpink', 'BLACKPINK', '블랙핑크', 'pink',  'YG엔터테인먼트',       '2016-08-08', 'YG엔터테인먼트 · 2016년 데뷔', true),
+  ('newjeans',  'NewJeans',  '뉴진스',   'sky',   '어도어',              '2022-07-22', '어도어 · 2022년 데뷔', true),
+  ('seventeen', 'SEVENTEEN', '세븐틴',   'peach', '플레디스엔터테인먼트', '2015-05-26', '플레디스엔터테인먼트 · 2015년 데뷔', true),
+  ('ive',       'IVE',       '아이브',   'lilac', '스타쉽엔터테인먼트',   '2021-12-01', '스타쉽엔터테인먼트 · 2021년 데뷔', true),
+  ('aespa',     'aespa',     '에스파',   'mint',  'SM엔터테인먼트',       '2020-11-17', 'SM엔터테인먼트 · 2020년 데뷔', true)
+on conflict (slug) do nothing;
+```
+
+- 원격 DB 에 이미 그룹 행이 있을 수 있다 ❓(T0 에서 확인). 같은 slug 가 있으면 `do nothing` 이라 기존 값이 남으므로, T0 결과를 보고 필요하면 `update` 로 맞춘다.
+
 ---
 
 ## 4. DB 함수 · 트리거 명세
@@ -670,7 +701,7 @@ proxy 는 요청마다 `getUser()`(Auth 서버 왕복)를 호출한다. `getClai
 | 3 게시글·댓글 | M 0008a → C → M 0008b | 0008a: 길이 CHECK, `deleted_at`, 트리거, `delete_comment` 추가, 정책 교체(추가만). C: 폼·길이 검사, `updated_at` 전송 중단, 댓글 삭제를 RPC 로. 0008b: `updated_at` UPDATE GRANT 회수, comments DELETE 회수 | 현재 `updatePost` 가 `updated_at` 을 보내므로(`post.ts:83`) 0008b 를 C 보다 먼저 적용하면 수정이 깨진다 |
 | 4 채팅 | C → M 0009 | C: `sendMessage` 가 `room_id, content` 만 전송, select 에서 `session_id` 제거, 비로그인 입력 차단 UI | 구 DB 에서도 새 코드 동작(닉네임은 기본값 '익명') ✅ → C 먼저가 안전 |
 | 5 모더레이션 | M 0010 → C | 테이블·RPC·정책 추가 후 신고 UI·`/admin` | 추가만 → 호환 |
-| 6 시드 | M 0011 | 출시 그룹 `insert … on conflict (slug) do nothing` 🔷 D-10 | — |
+| 6 시드 | M 0011 | 출시 그룹 5개 `insert … on conflict (slug) do nothing` (§3.2 0011, D-10) | — |
 
 - 출시 전이고 실사용자가 없다면 2·3 단계의 a/b 분할을 합쳐도 된다. 원격 DB 에 실데이터가 있는지 ❓ → 8.1-3 에서 판단.
 - 각 M 이후 `supabase gen types typescript --linked > types/supabase.ts` 를 같은 커밋에 포함.
@@ -773,7 +804,7 @@ PRD F1~F9 수용 기준표를 그대로 체크리스트로 쓴다(`qa-reviewer`)
 | T7 | 단계 4: 채팅 (0009) + 연결 관리·재연결 보정 | 둘 다 | T4 | 2 | F6-1~F6-6, S13·S14 |
 | T8 | 단계 5: 신고 (0010 일부) + 신고 UI | 둘 다 | T6, T7 | 2~3 | F7, S17·S18 |
 | T9 | `/admin` 3화면 + 모더레이션 RPC + 채팅 숨김 전파 | 둘 다 | T8 | 3 | F8, F6-7, S19~S21 |
-| T10 | 시드 (0011) | supabase-backend | D-10 | 0.5 | 새 환경에서 목록 표시 |
+| T10 | 시드 (0011) — 그룹 5개, 적용 직전 표기·소속 재확인 | supabase-backend | T9(0010 의 `color_key`) | 0.5 | 새 환경에서 목록 표시 |
 | T11 | 셸·디자인 P0 (하단 탭바·44px·오류/404 화면, 디자인 S1~S4, S10) | frontend-dev | T3 | 2~3 | 디자인 리뷰 P0 항목 |
 | T12 | 법적 페이지·sitemap·robots·메타데이터·오류 수집 | frontend-dev | D-5, D-6 | 1.5 | F9-1~F9-4, F9-6 |
 | T13 | Production 배포·OAuth Redirect URL·공급자 노출 | 사용자 + frontend-dev | T1, D-2 | 1 | Production 에서 로그인→쓰기 동선 |
@@ -786,7 +817,7 @@ T0 ─┬─ T3 ─┬─ T4 ─┬─ T5
     │      └─ T11
 T1 ─┴──────────────────────────────── T13 ─ T14
 T2 (D-9: D+C축소) ── T4 부터 마이그레이션마다 pgTAP 테스트를 같은 PR 에 추가
-T10 (D-10), T12 (D-5·D-6) 는 병렬
+T10 (0010 이후), T12 (D-5·D-6) 는 병렬
 ```
 
 합계 약 22~28 실작업일(추정). BACKLOG §5 의 W1~W6 배정과 대체로 맞지만, **T2(테스트 환경)와 T3(공통 모듈)가 새로 생겨** 1주 정도 밀릴 수 있다 — BACKLOG 재조정은 PM 몫.
@@ -807,7 +838,7 @@ T10 (D-10), T12 (D-5·D-6) 는 병렬
 | D-6 | 운영 주체·연락처·약관 문안 | 사용자 작성 | T12, 온보딩 약관 링크 |
 | **D-8** | 기존 쿠키 기반 좋아요·스크랩 데이터 | 폐기 + 카운터 0 재계산 (이관 불가능 — 로그인 사용자와 연결 정보 없음) | T5 |
 | **D-9** | 테스트 환경 | **D(CI pgTAP 자동) + C 축소판(운영 스모크)으로 결정 (2026-09-30)** — §9.1 | — |
-| **D-10** | 출시 시 그룹 목록 | 사용자 결정 (slug 는 이후 변경 불가) | T10 |
+| **D-10** | 출시 시 그룹 목록 | **5개로 결정 (2026-09-30)**: BLACKPINK · NewJeans · SEVENTEEN · IVE · aespa — §3.2 0011 | — |
 | **D-11** | 닉네임 규칙 | 2~20자, 한글 완성형·영문·숫자·`_`, 대소문자 무시 유일, 30일 1회 변경(온보딩 직후 30일 포함), 금지어 목록 | T4 |
 | ~~D-12~~ | ~~하단 탭 4칸 vs 5칸~~ | D-16(그룹 중심, 3칸)으로 대체 (2026-09-30) | — |
 | **D-13** | 좋아요도 온보딩 완료 필요? | 예 (약관 동의 전 활동 기록 없음) | T5 |

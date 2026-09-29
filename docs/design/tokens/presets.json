@@ -1,0 +1,698 @@
+{
+ "cherry": {
+  "name": "체리블라썸",
+  "hue": 355,
+  "light": {
+   "solid": "#fdc8db",
+   "text": "#793b55",
+   "soft": "#ffeff4",
+   "soft-strong": "#ffdbe8"
+  },
+  "dark": {
+   "solid": "#f6c2d5",
+   "text": "#f1c2d3",
+   "soft": "#3e262f",
+   "soft-strong": "#53313e"
+  },
+  "min": 7.33,
+  "c": {
+   "L ink/solid": 12.07,
+   "L ink/soft-strong": 13.81,
+   "L text/surface-1": 8.17,
+   "L text/surface-0": 7.61,
+   "L text/soft": 7.33,
+   "D surface-0/solid": 11.93,
+   "D text/surface-1": 10.2,
+   "D text/soft": 8.85,
+   "D text-strong/soft-strong": 9.65
+  },
+  "clamped": []
+ },
+ "rose": {
+  "name": "로즈",
+  "hue": 8,
+  "light": {
+   "solid": "#fda9b8",
+   "text": "#833447",
+   "soft": "#ffeff1",
+   "soft-strong": "#ffdce1"
+  },
+  "dark": {
+   "solid": "#f6a3b1",
+   "text": "#febdc7",
+   "soft": "#412429",
+   "soft-strong": "#582f37"
+  },
+  "min": 7.41,
+  "c": {
+   "L ink/solid": 9.62,
+   "L ink/soft-strong": 13.83,
+   "L text/surface-1": 8.25,
+   "L text/surface-0": 7.68,
+   "L text/soft": 7.41,
+   "D surface-0/solid": 9.46,
+   "D text/surface-1": 10.13,
+   "D text/soft": 8.81,
+   "D text-strong/soft-strong": 9.68
+  },
+  "clamped": []
+ },
+ "coral": {
+  "name": "코랄",
+  "hue": 32,
+  "light": {
+   "solid": "#fda896",
+   "text": "#843729",
+   "soft": "#fff0ec",
+   "soft-strong": "#ffded7"
+  },
+  "dark": {
+   "solid": "#f6a190",
+   "text": "#fec0b3",
+   "soft": "#42251f",
+   "soft-strong": "#583129"
+  },
+  "min": 7.36,
+  "c": {
+   "L ink/solid": 9.34,
+   "L ink/soft-strong": 13.87,
+   "L text/surface-1": 8.19,
+   "L text/surface-0": 7.62,
+   "L text/soft": 7.36,
+   "D surface-0/solid": 9.19,
+   "D text/surface-1": 10.19,
+   "D text/soft": 8.83,
+   "D text-strong/soft-strong": 9.64
+  },
+  "clamped": []
+ },
+ "peach": {
+  "name": "피치",
+  "hue": 52,
+  "light": {
+   "solid": "#fdc7a7",
+   "text": "#7d3f11",
+   "soft": "#fff0e8",
+   "soft-strong": "#ffdfcd"
+  },
+  "dark": {
+   "solid": "#f6c1a1",
+   "text": "#f6c5a9",
+   "soft": "#402718",
+   "soft-strong": "#56341e"
+  },
+  "min": 7.26,
+  "c": {
+   "L ink/solid": 11.61,
+   "L ink/soft-strong": 13.91,
+   "L text/surface-1": 8.07,
+   "L text/surface-0": 7.5,
+   "L text/soft": 7.26,
+   "D surface-0/solid": 11.47,
+   "D text/surface-1": 10.28,
+   "D text/soft": 8.88,
+   "D text-strong/soft-strong": 9.57
+  },
+  "clamped": []
+ },
+ "apricot": {
+  "name": "살구",
+  "hue": 68,
+  "light": {
+   "solid": "#f6be82",
+   "text": "#744704",
+   "soft": "#fff1e3",
+   "soft-strong": "#fde1c3"
+  },
+  "dark": {
+   "solid": "#efb87c",
+   "text": "#f9c691",
+   "soft": "#3d2913",
+   "soft-strong": "#523717"
+  },
+  "min": 7.16,
+  "c": {
+   "L ink/solid": 10.55,
+   "L ink/soft-strong": 13.95,
+   "L text/surface-1": 7.95,
+   "L text/surface-0": 7.4,
+   "L text/soft": 7.16,
+   "D surface-0/solid": 10.41,
+   "D text/surface-1": 10.31,
+   "D text/soft": 8.86,
+   "D text-strong/soft-strong": 9.51
+  },
+  "clamped": []
+ },
+ "mango": {
+  "name": "망고",
+  "hue": 82,
+  "light": {
+   "solid": "#fccd73",
+   "text": "#6b4d04",
+   "soft": "#fef2dd",
+   "soft-strong": "#f7e4c1"
+  },
+  "dark": {
+   "solid": "#f5c66d",
+   "text": "#f4ca7c",
+   "soft": "#392b11",
+   "soft-strong": "#4d3a13"
+  },
+  "min": 7.08,
+  "c": {
+   "L ink/solid": 11.73,
+   "L ink/soft-strong": 14.01,
+   "L text/surface-1": 7.85,
+   "L text/surface-0": 7.3,
+   "L text/soft": 7.08,
+   "D surface-0/solid": 11.59,
+   "D text/surface-1": 10.38,
+   "D text/soft": 8.88,
+   "D text-strong/soft-strong": 9.44
+  },
+  "clamped": []
+ },
+ "butter": {
+  "name": "버터",
+  "hue": 96,
+  "light": {
+   "solid": "#fae798",
+   "text": "#615204",
+   "soft": "#f9f4dd",
+   "soft-strong": "#f0e7c1"
+  },
+  "dark": {
+   "solid": "#f3e092",
+   "text": "#e2d18c",
+   "soft": "#342e11",
+   "soft-strong": "#463d13"
+  },
+  "min": 7.02,
+  "c": {
+   "L ink/solid": 14.1,
+   "L ink/soft-strong": 14.08,
+   "L text/surface-1": 7.75,
+   "L text/surface-0": 7.21,
+   "L text/soft": 7.02,
+   "D surface-0/solid": 13.97,
+   "D text/surface-1": 10.5,
+   "D text/soft": 8.93,
+   "D text-strong/soft-strong": 9.37
+  },
+  "clamped": []
+ },
+ "lemon": {
+  "name": "레몬",
+  "hue": 108,
+  "light": {
+   "solid": "#f5f488",
+   "text": "#585604",
+   "soft": "#f5f5df",
+   "soft-strong": "#e9e9c3"
+  },
+  "dark": {
+   "solid": "#eeed82",
+   "text": "#d8d779",
+   "soft": "#302f13",
+   "soft-strong": "#403f16"
+  },
+  "min": 6.96,
+  "c": {
+   "L ink/solid": 15.13,
+   "L ink/soft-strong": 14.14,
+   "L text/surface-1": 7.67,
+   "L text/surface-0": 7.14,
+   "L text/soft": 6.96,
+   "D surface-0/solid": 15.02,
+   "D text/surface-1": 10.6,
+   "D text/soft": 8.99,
+   "D text-strong/soft-strong": 9.31
+  },
+  "clamped": []
+ },
+ "lime": {
+  "name": "라임",
+  "hue": 125,
+  "light": {
+   "solid": "#ccef8d",
+   "text": "#455c04",
+   "soft": "#eff7e2",
+   "soft-strong": "#deedc9"
+  },
+  "dark": {
+   "solid": "#c5e886",
+   "text": "#bfdf88",
+   "soft": "#293218",
+   "soft-strong": "#36431e"
+  },
+  "min": 6.85,
+  "c": {
+   "L ink/solid": 13.59,
+   "L ink/soft-strong": 14.21,
+   "L text/surface-1": 7.53,
+   "L text/surface-0": 7.01,
+   "L text/soft": 6.85,
+   "D surface-0/solid": 13.46,
+   "D text/surface-1": 10.75,
+   "D text/soft": 9.05,
+   "D text-strong/soft-strong": 9.23
+  },
+  "clamped": []
+ },
+ "pistachio": {
+  "name": "피스타치오",
+  "hue": 138,
+  "light": {
+   "solid": "#b4dda7",
+   "text": "#31601e",
+   "soft": "#eaf9e5",
+   "soft-strong": "#d6efcf"
+  },
+  "dark": {
+   "solid": "#aed7a1",
+   "text": "#b9dead",
+   "soft": "#22331d",
+   "soft-strong": "#2d4525"
+  },
+  "min": 6.78,
+  "c": {
+   "L ink/solid": 11.57,
+   "L ink/soft-strong": 14.25,
+   "L text/surface-1": 7.44,
+   "L text/surface-0": 6.92,
+   "L text/soft": 6.78,
+   "D surface-0/solid": 11.43,
+   "D text/surface-1": 10.71,
+   "D text/soft": 8.99,
+   "D text-strong/soft-strong": 9.18
+  },
+  "clamped": []
+ },
+ "sage": {
+  "name": "세이지",
+  "hue": 150,
+  "light": {
+   "solid": "#a8c7ad",
+   "text": "#315e3c",
+   "soft": "#e9f8ec",
+   "soft-strong": "#d7edda"
+  },
+  "dark": {
+   "solid": "#a1c1a7",
+   "text": "#bddac2",
+   "soft": "#233226",
+   "soft-strong": "#2e4332"
+  },
+  "min": 6.82,
+  "c": {
+   "L ink/solid": 9.56,
+   "L ink/soft-strong": 14.21,
+   "L text/surface-1": 7.49,
+   "L text/surface-0": 6.97,
+   "L text/soft": 6.82,
+   "D surface-0/solid": 9.41,
+   "D text/surface-1": 10.63,
+   "D text/soft": 8.95,
+   "D text-strong/soft-strong": 9.22
+  },
+  "clamped": []
+ },
+ "mint": {
+  "name": "민트",
+  "hue": 162,
+  "light": {
+   "solid": "#a6ebc8",
+   "text": "#056242",
+   "soft": "#e3faed",
+   "soft-strong": "#caf1dc"
+  },
+  "dark": {
+   "solid": "#9fe5c2",
+   "text": "#a4e1c2",
+   "soft": "#163527",
+   "soft-strong": "#1b4733"
+  },
+  "min": 6.75,
+  "c": {
+   "L ink/solid": 12.81,
+   "L ink/soft-strong": 14.3,
+   "L text/surface-1": 7.39,
+   "L text/surface-0": 6.88,
+   "L text/soft": 6.75,
+   "D surface-0/solid": 12.68,
+   "D text/surface-1": 10.77,
+   "D text/soft": 9.01,
+   "D text-strong/soft-strong": 9.12
+  },
+  "clamped": []
+ },
+ "aqua": {
+  "name": "아쿠아",
+  "hue": 185,
+  "light": {
+   "solid": "#a0eadf",
+   "text": "#056058",
+   "soft": "#defbf6",
+   "soft-strong": "#c2f2ea"
+  },
+  "dark": {
+   "solid": "#99e3d9",
+   "text": "#9ee0d7",
+   "soft": "#0c3531",
+   "soft-strong": "#084741"
+  },
+  "min": 6.81,
+  "c": {
+   "L ink/solid": 12.77,
+   "L ink/soft-strong": 14.31,
+   "L text/surface-1": 7.46,
+   "L text/surface-0": 6.94,
+   "L text/soft": 6.81,
+   "D surface-0/solid": 12.63,
+   "D text/surface-1": 10.74,
+   "D text/soft": 8.98,
+   "D text-strong/soft-strong": 9.11
+  },
+  "clamped": []
+ },
+ "teal": {
+  "name": "틸",
+  "hue": 196,
+  "light": {
+   "solid": "#80cccc",
+   "text": "#055f60",
+   "soft": "#ddfafa",
+   "soft-strong": "#c0f1f1"
+  },
+  "dark": {
+   "solid": "#7ac5c5",
+   "text": "#9cdfdf",
+   "soft": "#0a3535",
+   "soft-strong": "#034747"
+  },
+  "min": 6.84,
+  "c": {
+   "L ink/solid": 9.5,
+   "L ink/soft-strong": 14.29,
+   "L text/surface-1": 7.49,
+   "L text/surface-0": 6.97,
+   "L text/soft": 6.84,
+   "D surface-0/solid": 9.35,
+   "D text/surface-1": 10.72,
+   "D text/soft": 8.97,
+   "D text-strong/soft-strong": 9.13
+  },
+  "clamped": []
+ },
+ "sky": {
+  "name": "스카이",
+  "hue": 225,
+  "light": {
+   "solid": "#a8e0f6",
+   "text": "#055b74",
+   "soft": "#e5f7ff",
+   "soft-strong": "#c7edfd"
+  },
+  "dark": {
+   "solid": "#a2d9f0",
+   "text": "#a8daee",
+   "soft": "#16323d",
+   "soft-strong": "#1a4352"
+  },
+  "min": 6.89,
+  "c": {
+   "L ink/solid": 12.2,
+   "L ink/soft-strong": 14.19,
+   "L text/surface-1": 7.58,
+   "L text/surface-0": 7.06,
+   "L text/soft": 6.89,
+   "D surface-0/solid": 12.06,
+   "D text/surface-1": 10.6,
+   "D text/soft": 8.95,
+   "D text-strong/soft-strong": 9.25
+  },
+  "clamped": []
+ },
+ "baby": {
+  "name": "베이비블루",
+  "hue": 240,
+  "light": {
+   "solid": "#97cff7",
+   "text": "#055883",
+   "soft": "#e9f5ff",
+   "soft-strong": "#cfeaff"
+  },
+  "dark": {
+   "solid": "#91c8f0",
+   "text": "#a6d8fc",
+   "soft": "#173142",
+   "soft-strong": "#1c4159"
+  },
+  "min": 6.95,
+  "c": {
+   "L ink/solid": 10.49,
+   "L ink/soft-strong": 14.12,
+   "L text/surface-1": 7.67,
+   "L text/surface-0": 7.13,
+   "L text/soft": 6.95,
+   "D surface-0/solid": 10.35,
+   "D text/surface-1": 10.56,
+   "D text/soft": 8.95,
+   "D text-strong/soft-strong": 9.31
+  },
+  "clamped": []
+ },
+ "cobalt": {
+  "name": "코발트",
+  "hue": 258,
+  "light": {
+   "solid": "#89b3f1",
+   "text": "#28528e",
+   "soft": "#edf4ff",
+   "soft-strong": "#d8e8ff"
+  },
+  "dark": {
+   "solid": "#83adea",
+   "text": "#b6d3fe",
+   "soft": "#1f2e44",
+   "soft-strong": "#293e5c"
+  },
+  "min": 7.08,
+  "c": {
+   "L ink/solid": 8.15,
+   "L ink/soft-strong": 14.05,
+   "L text/surface-1": 7.83,
+   "L text/surface-0": 7.29,
+   "L text/soft": 7.08,
+   "D surface-0/solid": 8.0,
+   "D text/surface-1": 10.46,
+   "D text/soft": 8.92,
+   "D text-strong/soft-strong": 9.4
+  },
+  "clamped": []
+ },
+ "periwinkle": {
+  "name": "페리윙클",
+  "hue": 272,
+  "light": {
+   "solid": "#b1c1fc",
+   "text": "#3e4c8f",
+   "soft": "#eff3ff",
+   "soft-strong": "#dee5ff"
+  },
+  "dark": {
+   "solid": "#aabbf5",
+   "text": "#c1cffe",
+   "soft": "#262c45",
+   "soft-strong": "#323b5d"
+  },
+  "min": 7.18,
+  "c": {
+   "L ink/solid": 9.95,
+   "L ink/soft-strong": 14.0,
+   "L text/surface-1": 7.95,
+   "L text/surface-0": 7.4,
+   "L text/soft": 7.18,
+   "D surface-0/solid": 9.8,
+   "D text/surface-1": 10.39,
+   "D text/soft": 8.91,
+   "D text-strong/soft-strong": 9.48
+  },
+  "clamped": []
+ },
+ "lavender": {
+  "name": "라벤더",
+  "hue": 292,
+  "light": {
+   "solid": "#cec6fc",
+   "text": "#544686",
+   "soft": "#f3f2ff",
+   "soft-strong": "#e6e2ff"
+  },
+  "dark": {
+   "solid": "#c8bff5",
+   "text": "#d1cafa",
+   "soft": "#2e2a43",
+   "soft-strong": "#3e375a"
+  },
+  "min": 7.26,
+  "c": {
+   "L ink/solid": 10.89,
+   "L ink/soft-strong": 13.93,
+   "L text/surface-1": 8.07,
+   "L text/surface-0": 7.5,
+   "L text/soft": 7.26,
+   "D surface-0/solid": 10.75,
+   "D text/surface-1": 10.3,
+   "D text/soft": 8.88,
+   "D text-strong/soft-strong": 9.57
+  },
+  "clamped": []
+ },
+ "lilac": {
+  "name": "라일락",
+  "hue": 306,
+  "light": {
+   "solid": "#ceadf1",
+   "text": "#624082",
+   "soft": "#f7f0ff",
+   "soft-strong": "#eddfff"
+  },
+  "dark": {
+   "solid": "#c7a7ea",
+   "text": "#dfc3fe",
+   "soft": "#332840",
+   "soft-strong": "#453556"
+  },
+  "min": 7.34,
+  "c": {
+   "L ink/solid": 9.07,
+   "L ink/soft-strong": 13.87,
+   "L text/surface-1": 8.17,
+   "L text/surface-0": 7.6,
+   "L text/soft": 7.34,
+   "D surface-0/solid": 8.92,
+   "D text/surface-1": 10.19,
+   "D text/soft": 8.82,
+   "D text-strong/soft-strong": 9.61
+  },
+  "clamped": []
+ },
+ "orchid": {
+  "name": "오키드",
+  "hue": 322,
+  "light": {
+   "solid": "#e3afeb",
+   "text": "#6e3b76",
+   "soft": "#fdeeff",
+   "soft-strong": "#f7dcfb"
+  },
+  "dark": {
+   "solid": "#dca8e4",
+   "text": "#edbef4",
+   "soft": "#38263b",
+   "soft-strong": "#4c3250"
+  },
+  "min": 7.37,
+  "c": {
+   "L ink/solid": 9.65,
+   "L ink/soft-strong": 13.8,
+   "L text/surface-1": 8.23,
+   "L text/surface-0": 7.65,
+   "L text/soft": 7.37,
+   "D surface-0/solid": 9.5,
+   "D text/surface-1": 10.11,
+   "D text/soft": 8.78,
+   "D text-strong/soft-strong": 9.66
+  },
+  "clamped": []
+ },
+ "pink": {
+  "name": "핑크",
+  "hue": 342,
+  "light": {
+   "solid": "#f6b5dd",
+   "text": "#7a3663",
+   "soft": "#ffeef8",
+   "soft-strong": "#ffdaef"
+  },
+  "dark": {
+   "solid": "#efafd6",
+   "text": "#f7bce0",
+   "soft": "#3d2534",
+   "soft-strong": "#533046"
+  },
+  "min": 7.4,
+  "c": {
+   "L ink/solid": 10.5,
+   "L ink/soft-strong": 13.77,
+   "L text/surface-1": 8.26,
+   "L text/surface-0": 7.68,
+   "L text/soft": 7.4,
+   "D surface-0/solid": 10.35,
+   "D text/surface-1": 10.11,
+   "D text/soft": 8.79,
+   "D text-strong/soft-strong": 9.68
+  },
+  "clamped": []
+ },
+ "mauve": {
+  "name": "모브",
+  "hue": 335,
+  "light": {
+   "solid": "#bf96b5",
+   "text": "#713e66",
+   "soft": "#ffeefa",
+   "soft-strong": "#fadbf2"
+  },
+  "dark": {
+   "solid": "#b990af",
+   "text": "#eac3e0",
+   "soft": "#3a2636",
+   "soft-strong": "#4e3348"
+  },
+  "min": 6.71,
+  "c": {
+   "L ink/solid": 6.86,
+   "L ink/soft-strong": 13.8,
+   "L text/surface-1": 8.16,
+   "L text/surface-0": 7.6,
+   "L text/soft": 7.31,
+   "D surface-0/solid": 6.71,
+   "D text/surface-1": 10.21,
+   "D text/soft": 8.85,
+   "D text-strong/soft-strong": 9.64
+  },
+  "clamped": []
+ },
+ "greige": {
+  "name": "그레이지",
+  "hue": 70,
+  "light": {
+   "solid": "#d2c9be",
+   "text": "#614f3a",
+   "soft": "#f7f3ee",
+   "soft-strong": "#ece5dd"
+  },
+  "dark": {
+   "solid": "#ccc2b8",
+   "text": "#d8cfc6",
+   "soft": "#312d28",
+   "soft-strong": "#423c35"
+  },
+  "min": 7.06,
+  "c": {
+   "L ink/solid": 10.7,
+   "L ink/soft-strong": 14.02,
+   "L text/surface-1": 7.82,
+   "L text/surface-0": 7.28,
+   "L text/soft": 7.06,
+   "D surface-0/solid": 10.55,
+   "D text/surface-1": 10.43,
+   "D text/soft": 8.91,
+   "D text-strong/soft-strong": 9.41
+  },
+  "clamped": []
+ }
+}

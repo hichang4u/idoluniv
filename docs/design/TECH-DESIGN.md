@@ -115,7 +115,7 @@ P0-1 근거 전부(`p_session_id` 신뢰, `reactions` public read, 조회수 무
 | AD-5 | 채팅 발신자 `author_id`·`nickname` 은 트리거가 `auth.uid()`·`users.nickname` 으로 **덮어쓴다**(스냅샷) | 조회 시 조인: Realtime payload 에 조인 결과가 없어 클라이언트가 추가 조회해야 함 |
 | AD-6 | 좋아요 토글은 "delete … 성공 여부로 분기" + 대상 행 `for update` 잠금 | 현재 exists→insert 방식: N10 경쟁 조건 |
 | AD-7 | 조회수는 `post_views(post_id, viewer_key)` 로 24시간 중복 제거. 로그인은 `u:<uid>`(함수가 직접 결정), 비로그인은 `s:<vid 쿠키>` | 비로그인 미집계: 베타 초기 조회수가 거의 0. 비로그인 경로는 조작 가능함을 수용 — 조회수는 정렬·보상에 쓰지 않는다 |
-| AD-8 | 관리자 판별은 `admins` 테이블 + `private.is_admin()` 🔷 D-3 | `users.role`: `users` 에 UPDATE 권한이 생기는 순간 실수로 열릴 위험 |
+| AD-8 | 관리자 판별은 `admins` 테이블 + `private.is_admin()` — D-3 결정 (2026-09-30) | `users.role`: `users` 에 UPDATE 권한이 생기는 순간 실수로 열릴 위험 |
 | AD-9 | 신고는 RPC `submit_report` 전용. 신고 시점 **대상 스냅샷**을 저장 | 직접 insert + RLS: 대상 존재·본인 글 여부·자동 숨김 판단을 정책으로 표현하기 어렵고, 작성자가 글을 지우면 증거가 사라짐 |
 | AD-10 | 신고자 본인 화면 가림(F7-4)은 보안이 아니라 UX → RLS 가 아닌 **조회 후 표시 단계**에서 "신고한 콘텐츠" 자리표시로 대체 | RLS 로 행 제외: 보안 정책에 UX 규칙이 섞이고, 페이지당 개수가 줄어 페이지네이션이 흔들림 |
 | AD-11 | 댓글 삭제는 RPC `delete_comment`: 대댓글이 있으면 tombstone(`deleted_at`, 본문 비움), 없으면 실제 삭제 | cascade 유지: F4-3 위반 |
@@ -679,17 +679,42 @@ proxy 는 요청마다 `getUser()`(Auth 서버 왕복)를 호출한다. `getClai
 
 ## 9. 검증 계획
 
-### 9.1 테스트 환경 — 🔷 D-9
+### 9.1 테스트 환경 — D-9: D(CI 자동) + C 축소판(운영 스모크)으로 결정 (2026-09-30)
 
-로컬에 Docker 가 없어 `supabase start`·`supabase test db`(pgTAP)를 쓸 수 없다 ✅. 선택지:
+로컬에 Docker 가 없어 이 PC 에서는 `supabase start`·`supabase test db` 를 쓸 수 없다 ✅. 그래서 **DB 보안 규칙 검증은 GitHub Actions 러너(Docker 있음)에서 자동으로**, 운영에서는 **짧은 스모크 확인만** 한다.
 
-| 안 | 내용 | 장점 | 단점 |
-|---|---|---|---|
-| A 🟡 | Docker Desktop 설치 → 로컬 Supabase + pgTAP 로 RLS·RPC 테스트, CI 에서도 실행 | 운영 DB 를 건드리지 않고 반복 실행. 마이그레이션 자체도 매번 새로 적용해 검증 | 설치·리소스 부담, CI 시간 증가 |
-| B | 별도 Supabase 프로젝트(dev) + Node 스크립트로 PostgREST 직접 호출 | Docker 불필요 | 무료 프로젝트 수 한도 ❓, 테스트 계정(이메일 로그인) 준비 필요, 상태가 누적됨 |
-| C | 운영 프로젝트에서 수동 체크리스트만 | 준비 없음 | 회귀를 못 잡음. 운영 데이터 오염 |
+검토한 안: A 로컬 Docker + pgTAP / B 개발용 Supabase 프로젝트 + Node 스크립트 / C 운영 수동 체크리스트 / **D CI 에서만 pgTAP ✔** + **C 축소판 ✔**. (C 단독을 한때 골랐다가 같은 날 이 조합으로 바꿨다 — 테스트 계정 5개·운영 데이터 오염·회귀 미검출 부담 때문.)
 
-### 9.2 보안 테스트 매트릭스 (자동화 대상)
+#### D — CI 자동 테스트 (pgTAP)
+
+| 항목 | 내용 |
+|---|---|
+| 위치 | `supabase/tests/*.sql`. 영역별 파일: `00_helpers.sql`(테스트 사용자·역할 전환 헬퍼), `10_users_onboarding.sql`, `20_posts_comments.sql`, `30_reactions_views.sql`, `40_chat.sql`, `50_reports_admin.sql`, `90_function_acl.sql`(S22) |
+| 형식 | 파일마다 `begin; select plan(n); … select * from finish(); rollback;` — 트랜잭션을 되돌려 테스트끼리 영향이 없게 한다 ○ |
+| 사용자 흉내 | 테스트 안에서 `auth.users` 에 가짜 사용자(U0·U1·U2·U3·ADM)를 만들고, `set local role authenticated` + `set local request.jwt.claims = '{"sub":"<uuid>","role":"authenticated"}'` 로 전환해 `auth.uid()` 를 바꾼다 ○(Supabase RLS 테스트의 일반 패턴 — T2 에서 첫 테스트로 동작 확인). anon 은 `set local role anon`. **Google 계정이 필요 없다** |
+| 범위 | §9.2 의 S1~S22 전부(HTTP 가 아닌 SQL 수준 — RLS·컬럼 GRANT·EXECUTE 는 SQL 에서도 같은 규칙으로 강제되므로 PostgREST 직접 호출과 같은 결과) ○. S23(오픈 리다이렉트)은 `safeNext` 의 단위 테스트로 따로 |
+| 실행 | CI 잡 `db-test`: Supabase CLI 설치 → `supabase db start`(DB 만) 또는 `supabase start` → 저장소의 마이그레이션 0001~최신을 **빈 DB 에 처음부터 적용** → `supabase test db`. 어느 시작 명령이 필요한지는 T2 에서 확인 ○ |
+| 덤 | 마이그레이션이 빈 DB 에 처음부터 적용되는지 매 PR 검증된다(현재 원격 이력과 무관) |
+| 규칙 | 새 마이그레이션 PR 에는 **그 마이그레이션이 막는 공격의 테스트를 같은 PR 에** 넣는다. `db-test` 실패 시 머지 금지 |
+| 전제 | `supabase init` 으로 `supabase/config.toml` 생성(`auto_expose_new_tables = false`, §4.1) |
+| 못 잡는 것 | 실제 OAuth 로그인, Realtime 전달(§12-R1), 운영 DB 에만 있는 설정 차이(대시보드에서 바꾼 권한 등) → C 축소판이 맡는다 |
+| 비용 | GitHub Actions 사용 시간. 공개 저장소면 무료, 비공개면 월 무료 한도 안에서 가능할 것 ○(저장소 공개 여부·요금제 ❓) |
+
+#### C 축소판 — 운영 스모크
+
+운영에 마이그레이션을 적용한 **직후마다** 10분 안팎으로 확인한다.
+
+| 순서 | 내용 |
+|---|---|
+| 1 | 적용 전 백업(`supabase db dump`) |
+| 2 | 읽기 전용 확인 (데이터가 생기지 않음): S22(함수 EXECUTE 권한 조회 SQL), S21(anon 으로 숨김 글 안 보임), S2(anon 으로 `reactions` 조회 거부) |
+| 3 | 실제 로그인 → 글 1개 작성 → 좋아요 → 삭제, 라운지 메시지 1개 (실제 OAuth·Realtime 확인) |
+| 4 | 결과를 `docs/qa/smoke-log.md` 에 날짜·마이그레이션 번호와 함께 한 줄 기록 |
+
+- 계정: **운영자 본인 계정 1개 + 필요하면 테스트 계정 1개**. 이메일 로그인은 켜지 않는다.
+- 쓰기는 3번의 글 하나·메시지 하나뿐이고 바로 지운다. 신고·자동 숨김·빈도 제한 같은 무거운 시나리오는 운영에서 돌리지 않는다(D 가 맡음).
+
+### 9.2 보안 테스트 매트릭스 (CI pgTAP 로 자동 실행, D-9)
 
 역할: `anon`(키만), `U1`(온보딩 완료), `U2`(온보딩 완료, 타인), `U0`(로그인, 온보딩 전), `ADM`(관리자). 전부 **PostgREST 직접 호출**로 수행한다(앱 우회 공격 가정).
 
@@ -725,7 +750,10 @@ PRD F1~F9 수용 기준표를 그대로 체크리스트로 쓴다(`qa-reviewer`)
 
 ### 9.4 CI (BACKLOG P0-4)
 
-`.github/workflows/ci.yml`: `npm ci` → `npm run lint` → `npm run typecheck` → `npm run build`(더미 `NEXT_PUBLIC_SUPABASE_*`, `NEXT_PUBLIC_SITE_URL`). 현재 lint 오류 0 ✅ 이므로 바로 녹색 가능 ○(build 는 미실행). D-9 가 A 면 `supabase start` + `supabase test db` 잡을 추가.
+`.github/workflows/ci.yml` 잡 두 개:
+
+- `app`: `npm ci` → `npm run lint` → `npm run typecheck` → `npm run build`(더미 `NEXT_PUBLIC_SUPABASE_*`, `NEXT_PUBLIC_SITE_URL`). 현재 lint 오류 0 ✅ 이므로 바로 녹색 가능 ○(build 는 미실행).
+- `db-test`: Supabase CLI → 로컬 DB 기동 → 마이그레이션 전체 적용 → `supabase test db` (§9.1 D). `supabase/` 또는 `supabase/tests/` 가 바뀐 PR 에서만 돌려 시간을 아낀다 ○.
 
 ---
 
@@ -737,7 +765,7 @@ PRD F1~F9 수용 기준표를 그대로 체크리스트로 쓴다(`qa-reviewer`)
 |---|---|---|---|---|---|
 | T0 | 원격 DB 연결·이력 정합·백업·0004/0005 적용 (§8.1) | 사용자 + supabase-backend | — | 0.5~1 | P0-3 체크리스트 통과 |
 | T1 | CI 워크플로 + `.env.example` + `.gitignore` 예외 | frontend-dev | — | 0.5 | PR 에서 녹색 |
-| T2 | 테스트 환경 구축 (D-9) + §9.2 하네스 뼈대 | supabase-backend | D-9 | 1~2 | S22 1건이라도 자동 실행 |
+| T2 | `supabase init` + pgTAP 헬퍼(`00_helpers.sql`) + S22 테스트 1개 + CI `db-test` 잡 + 운영 스모크 절차(`docs/qa/smoke-log.md`) | supabase-backend | T1 | 1~1.5 | PR 에서 `db-test` 가 S22 를 실행해 녹색 |
 | T3 | 공통 모듈 (§6.1) + 타입 생성 연결 | frontend-dev | T0 | 1 | `as unknown as` 캐스트 제거, typecheck 통과 |
 | T4 | 단계 1: 0006 + 온보딩·로그인 흐름·`/me` 최소판·라우트 이전(§6.5)·proxy | 둘 다 | T0, T3 | 2~3 | F1-1~F1-5, S4~S6, S23 |
 | T5 | 단계 2: 반응·조회수 (0007a/b) | 둘 다 | T4 | 1.5 | F5, F3-7, S1·S2·S15·S16 |
@@ -757,7 +785,7 @@ T0 ─┬─ T3 ─┬─ T4 ─┬─ T5
     │      │      └─ T7 ─┴─ T8 ─ T9
     │      └─ T11
 T1 ─┴──────────────────────────────── T13 ─ T14
-T2 (D-9) ── §9.2 테스트를 T4 부터 누적
+T2 (D-9: D+C축소) ── T4 부터 마이그레이션마다 pgTAP 테스트를 같은 PR 에 추가
 T10 (D-10), T12 (D-5·D-6) 는 병렬
 ```
 
@@ -773,12 +801,12 @@ T10 (D-10), T12 (D-5·D-6) 는 병렬
 |---|---|---|---|
 | D-1 | 식별 체계 | **A 로 결정됨 (2026-09-29)** | — |
 | D-2 | 출시 로그인 공급자 | 설정·검수 완료된 것만. 최소 Google. Kakao 는 이메일을 받으려면 비즈 앱 전환 필요(아니면 "이메일 없는 사용자 허용"). X 는 `twitter`(1.0a) 대신 `x`(OAuth 2.0)로 설정 | T13 |
-| D-3 | 관리자 판별 | `admins` 테이블 | T4(0006) |
+| D-3 | 관리자 판별 | **`admins` 테이블로 결정 (2026-09-30)** | — |
 | D-4 | 자동 임시 숨김 | 켬, 서로 다른 신고자 3명 | T8 |
 | D-5 | 오류 수집처·요금제 | 베타는 Vercel 로그 + 구조화 `console.error`, 공개 전 Sentry 재검토 | T12 |
 | D-6 | 운영 주체·연락처·약관 문안 | 사용자 작성 | T12, 온보딩 약관 링크 |
 | **D-8** | 기존 쿠키 기반 좋아요·스크랩 데이터 | 폐기 + 카운터 0 재계산 (이관 불가능 — 로그인 사용자와 연결 정보 없음) | T5 |
-| **D-9** | 테스트 환경 | A: Docker + 로컬 Supabase + pgTAP | T2 |
+| **D-9** | 테스트 환경 | **D(CI pgTAP 자동) + C 축소판(운영 스모크)으로 결정 (2026-09-30)** — §9.1 | — |
 | **D-10** | 출시 시 그룹 목록 | 사용자 결정 (slug 는 이후 변경 불가) | T10 |
 | **D-11** | 닉네임 규칙 | 2~20자, 한글 완성형·영문·숫자·`_`, 대소문자 무시 유일, 30일 1회 변경(온보딩 직후 30일 포함), 금지어 목록 | T4 |
 | ~~D-12~~ | ~~하단 탭 4칸 vs 5칸~~ | D-16(그룹 중심, 3칸)으로 대체 (2026-09-30) | — |
@@ -804,4 +832,5 @@ T10 (D-10), T12 (D-5·D-6) 는 병렬
 | R11 | 채팅 동시 구독자 수가 `postgres_changes` 한계(~3,000/변경)에 닿는 시점 | 컴백 시간대 지연·누락 | 요금제별 동시 연결 한도(D-5)와 함께 관찰. 넘으면 Broadcast 전환 | ○ |
 | R12 | `private` 스키마가 PostgREST 노출 목록에 포함되지 않았는지 | 헬퍼가 API 로 노출 | 대시보드 API 설정 확인 | ❓ |
 | R13 | 컬럼 단위 INSERT 권한은 INSERT 문에 **명시된 컬럼만** 검사하고, BEFORE 트리거가 채운 `author_id`·`nickname` 은 검사하지 않는다는 가정 | 채팅 insert 가 권한 오류로 전부 실패 | S13 과 정상 전송 테스트 | ○ |
+| R15 | CI 테스트는 빈 DB 기준이라 **운영 DB 에만 있는 차이**(대시보드에서 직접 바꾼 권한·정책, 0001~0003 적용 방식)는 못 잡음 | CI 녹색인데 운영은 열려 있을 수 있음 | T0 에서 원격 스키마 덤프와 마이그레이션 결과를 한 번 대조 + 운영 스모크의 S22·S21 | ○ |
 | R14 | BEFORE 트리거 이후에 RLS `WITH CHECK` 가 평가된다는 가정 | 트리거가 채운 `author_id` 가 정책에서 null 로 보임 | 정상 전송 테스트 | ○ |

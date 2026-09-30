@@ -675,7 +675,7 @@ proxy 는 요청마다 `getUser()`(Auth 서버 왕복)를 호출한다. `getClai
 | `app/robots.ts` | `/admin`, `/auth`, `/onboarding`, `/me`, `/g/*/write`, `/g/*/posts/*/edit` 차단, sitemap URL | — |
 | `NEXT_PUBLIC_SITE_URL` | sitemap·robots·OAuth `redirectTo` 의 기준 URL. `window.location.origin` 의존 제거 | Production 도메인 ❓ |
 | `not-found.tsx`, `error.tsx`, `global-error.tsx` | 디자인 S10. `error.tsx` 는 client, `unstable_retry`/`reset` prop (Next 16 문서 ✅) | — |
-| 오류 수집 (F9-6) | `instrumentation.ts` 의 `onRequestError`(서버) + `instrumentation-client.ts` 의 `window` error/unhandledrejection(클라이언트). 수집처는 🔷 D-5: Sentry 면 SDK, 아니면 Vercel 로그로 `console.error` 구조화 출력 | D-5 |
+| 오류 수집 (F9-6) | `instrumentation.ts` 의 `onRequestError`(서버) + `instrumentation-client.ts` 의 `window` error/unhandledrejection(클라이언트). 수집처는 **Vercel 로그**(D-5 결정): `console.error` 로 `{ level, digest, route, message }` 구조화 출력. Hobby 플랜의 로그 보존 기간은 짧다고 알고 있음 ❓ — 베타 중 오류는 발견 즉시 기록해 둔다. Sentry 는 공개 출시 전 재검토 | — |
 | 하단 탭바 (F9-5) | **3칸(홈·그룹·마이)** — D-16 그룹 중심 결정으로 D-12(4칸 대 5칸)는 폐기. 라운지 화면에서는 숨김 | — |
 | 홈 `/` | 현재 환영 카드. MVP 에서는 "전체 그룹 최신 글 10개 + 그룹 바로가기" 🟡 (PRD §9 IA). 팔로우 기반 피드는 2단계 | — |
 
@@ -806,7 +806,7 @@ PRD F1~F9 수용 기준표를 그대로 체크리스트로 쓴다(`qa-reviewer`)
 | T9 | `/admin` 3화면 + 모더레이션 RPC + 채팅 숨김 전파 | 둘 다 | T8 | 3 | F8, F6-7, S19~S21 |
 | T10 | 시드 (0011) — 그룹 5개, 적용 직전 표기·소속 재확인 | supabase-backend | T9(0010 의 `color_key`) | 0.5 | 새 환경에서 목록 표시 |
 | T11 | 셸·디자인 P0 (하단 탭바·44px·오류/404 화면, 디자인 S1~S4, S10) | frontend-dev | T3 | 2~3 | 디자인 리뷰 P0 항목 |
-| T12 | 법적 페이지·sitemap·robots·메타데이터·오류 수집 | frontend-dev | D-5, D-6 | 1.5 | F9-1~F9-4, F9-6 |
+| T12 | 법적 페이지·sitemap·robots·메타데이터·오류 수집 | frontend-dev | D-6 | 1.5 | F9-1~F9-4, F9-6 |
 | T13 | Production 배포·Google OAuth 클라이언트·Redirect URL 등록 | 사용자 + frontend-dev | T1 | 1 | Production 에서 로그인→쓰기 동선 |
 | T14 | 전체 QA (§9.2 전 항목 + PRD 수용 기준) | qa-reviewer | T4~T13 | 1~2 | 차단 이슈 0 |
 
@@ -817,7 +817,7 @@ T0 ─┬─ T3 ─┬─ T4 ─┬─ T5
     │      └─ T11
 T1 ─┴──────────────────────────────── T13 ─ T14
 T2 (D-9: D+C축소) ── T4 부터 마이그레이션마다 pgTAP 테스트를 같은 PR 에 추가
-T10 (0010 이후), T12 (D-5·D-6) 는 병렬
+T10 (0010 이후), T12 (D-6) 는 병렬
 ```
 
 합계 약 22~28 실작업일(추정). BACKLOG §5 의 W1~W6 배정과 대체로 맞지만, **T2(테스트 환경)와 T3(공통 모듈)가 새로 생겨** 1주 정도 밀릴 수 있다 — BACKLOG 재조정은 PM 몫.
@@ -834,7 +834,7 @@ T10 (0010 이후), T12 (D-5·D-6) 는 병렬
 | D-2 | 출시 로그인 공급자 | **Google 만으로 결정 (2026-09-30)**. 추가 시 참고: 카카오는 이메일을 받으려면 비즈 앱 전환 필요(아니면 "이메일 없는 사용자 허용" + 공급자 간 계정 중복 대비), X 는 `twitter`(1.0a) 대신 `x`(OAuth 2.0) | — |
 | D-3 | 관리자 판별 | **`admins` 테이블로 결정 (2026-09-30)** | — |
 | D-4 | 자동 임시 숨김 | **결정 (2026-09-30, 권장안 채택)**: 켬, 서로 다른 신고자 3명 | — |
-| D-5 | 오류 수집처·요금제 | 베타는 Vercel 로그 + 구조화 `console.error`, 공개 전 Sentry 재검토 | T12 |
+| D-5 | 오류 수집처·요금제 | **둘 다 무료로 결정 (2026-09-30)**: Supabase Free + Vercel Hobby, 오류는 Vercel 로그 + 구조화 `console.error`. 공개 출시 전 재검토 | — |
 | D-6 | 운영 주체·연락처·약관 문안 | 사용자 작성 | T12, 온보딩 약관 링크 |
 | **D-8** | 기존 쿠키 기반 좋아요·스크랩 데이터 | **결정 (2026-09-30, 권장안 채택)**: 폐기 + 카운터 0 재계산 (이관 불가능 — 로그인 사용자와 연결 정보 없음) | — |
 | **D-9** | 테스트 환경 | **D(CI pgTAP 자동) + C 축소판(운영 스모크)으로 결정 (2026-09-30)** — §9.1 | — |
@@ -863,5 +863,8 @@ T10 (0010 이후), T12 (D-5·D-6) 는 병렬
 | R11 | 채팅 동시 구독자 수가 `postgres_changes` 한계(~3,000/변경)에 닿는 시점 | 컴백 시간대 지연·누락 | 요금제별 동시 연결 한도(D-5)와 함께 관찰. 넘으면 Broadcast 전환 | ○ |
 | R12 | `private` 스키마가 PostgREST 노출 목록에 포함되지 않았는지 | 헬퍼가 API 로 노출 | 대시보드 API 설정 확인 | ❓ |
 | R13 | 컬럼 단위 INSERT 권한은 INSERT 문에 **명시된 컬럼만** 검사하고, BEFORE 트리거가 채운 `author_id`·`nickname` 은 검사하지 않는다는 가정 | 채팅 insert 가 권한 오류로 전부 실패 | S13 과 정상 전송 테스트 | ○ |
+| R16 | Supabase 무료 플랜 일시 정지(1주 비활성) | 베타 중 조용한 주가 지나면 서비스가 멈춤 | 운영자가 주 1회 접속·스모크 확인. 정지 시 대시보드에서 수동 복구(1년 안 복구 가능 ✅). 1주 이상 비는 기간이 예상되면 Pro($25/월) 전환 | ✅ 문서 |
+| R17 | Vercel Hobby 비상업 조건 | 광고·결제·후원·제휴 링크를 넣으면 계정 정지 사례 있음 ○ | 베타 동안 수익 요소 없음. 넣기 전에 Pro 전환 | ✅ 문서 |
+| R18 | 무료 플랜의 자동 백업 범위 ❓ | 사고 시 복구 불가 | 마이그레이션 전 수동 `supabase db dump` 규칙(§9.1) 유지, 베타 중 주 1회 수동 덤프 ○ | ❓ |
 | R15 | CI 테스트는 빈 DB 기준이라 **운영 DB 에만 있는 차이**(대시보드에서 직접 바꾼 권한·정책, 0001~0003 적용 방식)는 못 잡음 | CI 녹색인데 운영은 열려 있을 수 있음 | T0 에서 원격 스키마 덤프와 마이그레이션 결과를 한 번 대조 + 운영 스모크의 S22·S21 | ○ |
 | R14 | BEFORE 트리거 이후에 RLS `WITH CHECK` 가 평가된다는 가정 | 트리거가 채운 `author_id` 가 정책에서 null 로 보임 | 정상 전송 테스트 | ○ |

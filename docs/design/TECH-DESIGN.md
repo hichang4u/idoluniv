@@ -815,7 +815,7 @@ PRD F1~F9 수용 기준표를 그대로 체크리스트로 쓴다(`qa-reviewer`)
 | ID | 작업 | 담당 | 선행 | 공수(추정) | 완료 기준 |
 |---|---|---|---|---|---|
 | T0 | 원격 DB 연결·이력 정합·백업·0004/0005 적용 (§8.1) | 사용자 + supabase-backend | — | 0.5~1 | P0-3 체크리스트 통과 |
-| T1 | CI 워크플로 + `.env.example` + `.gitignore` 예외 | frontend-dev | — | 0.5 | PR 에서 녹색 |
+| T1 | CI 워크플로 + `.env.example` + `.gitignore` 예외 — **작성됨 (2026-09-30)**: `.github/workflows/ci.yml` `app` 잡(Node 22, `npm ci` → lint → typecheck → 더미 env build). 로컬에서 같은 단계 통과 ✅, GitHub 에서의 첫 실행은 푸시 후 확인 ❓. `.env.example` 은 `feat/legal-pages` 에서 추가 | frontend-dev | — | 0.5 | PR 에서 녹색 |
 | T2 | `supabase init` + pgTAP 헬퍼(`00_helpers.sql`) + S22 테스트 1개 + CI `db-test` 잡 + 운영 스모크 절차(`docs/qa/smoke-log.md`) | supabase-backend | T1 | 1~1.5 | PR 에서 `db-test` 가 S22 를 실행해 녹색 |
 | T3 | 공통 모듈 (§6.1) + 타입 생성 연결 | frontend-dev | T0 | 1 | `as unknown as` 캐스트 제거, typecheck 통과 |
 | T4 | 단계 1: 0006 + 온보딩·로그인 흐름·`/me` 최소판·라우트 이전(§6.5)·proxy | 둘 다 | T0, T3 | 2~3 | F1-1~F1-5, S4~S6, S23 |

@@ -450,7 +450,7 @@ button.pill { font: inherit; font-size: 13px; background: transparent; cursor: p
     <ul>
       <li>Pretendard를 이 페이지에서 불러올 수 없어 Noto Sans KR로 대신 표시합니다.</li>
       <li>그룹·사용자 이름과 글 내용은 모두 가상의 예시입니다. 사용자 아바타 색은 닉네임으로 팔레트에서 정해집니다.</li>
-      <li>로그인 버튼의 Google·카카오 표시는 자리표시입니다. 실제 구현은 각 사의 로고·버튼 가이드를 따릅니다. 노출할 공급자는 아직 결정 전(D-2)입니다.</li>
+      <li>로그인은 Google 하나로 시작합니다(D-2). 버튼 모양은 자리표시이고, 실제 구현은 Google 로그인 버튼 가이드를 따릅니다.</li>
       <li>팔로우 피드, 레벨·배지, 접속자 수, 이미지 업로드처럼 MVP 밖의 기능은 그리지 않았습니다.</li>
     </ul>
   </div>
@@ -566,7 +566,7 @@ button.pill { font: inherit; font-size: 13px; background: transparent; cursor: p
       <div class="word">idoluniv<em>그룹을 넘나드는 팬 커뮤니티</em></div>
       <ul class="feats"><li>${chip("list", "baby")}그룹별 게시판에서 정보 나누기</li><li>${chip("chats", "mint")}라운지에서 실시간으로 수다</li><li>${chip("feather", "peach")}팬픽 쓰고 읽기</li></ul>
       <p class="unof">${ic("tag", "s14")}공식 서비스가 아닌, 팬이 운영하는 커뮤니티예요</p></div>
-      <div class="auth"><span class="btn g"><span class="mark">G</span>Google로 계속하기</span><span class="btn k"><span class="mark">K</span>카카오로 계속하기</span>
+      <div class="auth"><span class="btn g"><span class="mark">G</span>Google로 계속하기</span>
       <small>둘러보기는 로그인 없이 할 수 있어요</small></div></div>`;
 
   S.onboarding = () => status +
@@ -611,7 +611,7 @@ button.pill { font: inherit; font-size: 13px; background: transparent; cursor: p
     ["detail", "02", "게시글 상세 · 댓글", "/g/[slug]/posts/[id]", true, ["수정·삭제·신고는 오른쪽 위 더보기 메뉴", "대댓글은 1단계, 답글은 @닉네임으로", "대댓글이 있는 삭제 댓글은 자리만 남김 (F4-3)", "좋아요는 진한 톤으로 채운 하트 — 눌러 보세요"]],
     ["lounge", "03", "라운지 · 참여 중", "/g/[slug]/lounge", true, ["탭바 없이 입력창이 바닥에", "닉네임은 계정 것만 (입력칸 없음)", "가려진 메시지·도배 안내 상태 포함", "내 메시지는 '나' 표시"]],
     ["loungeGuest", "04", "라운지 · 비로그인", "/g/[slug]/lounge", true, ["읽기는 누구나, 입력창 대신 참여 유도", "로그인 후 이 화면으로 돌아옴 (next)"]],
-    ["login", "05", "로그인", "/login", false, ["그룹 색 24개로 만든 응원봉 줄 (천천히 흔들림, 동작 줄이기 설정 존중)", "기능 세 가지를 아이콘 칩으로", "'비공식 팬 커뮤니티'를 첫 화면에 명시", "검증된 공급자만 노출 (D-2)"]],
+    ["login", "05", "로그인", "/login", false, ["그룹 색 24개로 만든 응원봉 줄 (천천히 흔들림, 동작 줄이기 설정 존중)", "기능 세 가지를 아이콘 칩으로", "'비공식 팬 커뮤니티'를 첫 화면에 명시", "베타는 Google 로그인 하나 (D-2)"]],
     ["onboarding", "06", "온보딩", "/onboarding", false, ["닉네임 + 만 14세 + 약관, 한 화면", "오류 상태: 닉네임 중복", "조건을 다 채우기 전엔 시작하기 비활성"]],
     ["report", "07", "신고 시트", "상세 위 오버레이", true, ["사유마다 파스텔 아이콘 칩, 선택은 오른쪽 라디오", "긴급 사유에 '우선 처리' 표시 (PRD 6.2)", "접수 버튼은 그룹 색이 아닌 잉크"]],
     ["my", "08", "마이", "/me", false, ["MVP 최소판: 닉네임, 최근 방문 그룹(기기 저장), 설정", "설정 항목마다 파스텔 아이콘 칩", "레벨·배지·통계는 그리지 않음 (2단계)", "화면 모드: 시스템 / 라이트 / 다크"]],

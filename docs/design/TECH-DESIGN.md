@@ -568,7 +568,7 @@ proxy 는 요청마다 `getUser()`(Auth 서버 왕복)를 호출한다. `getClai
 ```
 
 - `/login`: 이미 로그인 상태면 `safeNext(next)` 로 리다이렉트. `?error=` 가 있으면 안내 문구.
-- `LoginForm`: 공급자 목록을 `NEXT_PUBLIC_AUTH_PROVIDERS`(예: `google,kakao`)에서 읽어 **검증된 공급자만** 렌더(F1-1, 🔷 D-2). `signInWithOAuth` 의 `error` 를 표시.
+- `LoginForm`: 공급자 목록을 `NEXT_PUBLIC_AUTH_PROVIDERS`에서 읽어 **검증된 공급자만** 렌더(F1-1). 베타 값은 **`google`** 하나(D-2) — 현재 하드코딩된 카카오·X(`twitter`) 버튼은 제거된다. 나중에 추가할 때는 환경변수에 넣기만 하면 되게 목록 구조는 유지(X 는 `x` 공급자, 카카오 이메일은 비즈 앱 전환 필요 — §1.4). `signInWithOAuth` 의 `error` 를 표시.
 - `redirectTo` 허용 규칙 ✅(§1.4): Production 은 `redirectTo` 의 host 가 Site URL 과 같으므로 `?next=` 가 그대로 통과한다. Vercel Preview 도메인은 Site URL 과 host 가 달라 **쿼리까지 포함해 glob 매칭**되므로 `https://<preview-pattern>/auth/callback**` 형태로 등록해야 한다(`*` 는 `/` 를 넘지 못함 ○). 매칭 실패 시 오류 없이 Site URL 로 떨어지므로, Preview 에서 로그인 후 Production 으로 튀면 이 설정을 의심한다.
 - callback 은 Supabase 공식 예제처럼 `x-forwarded-host` 를 고려해 origin 을 정하되, `next` 검사는 예제의 `startsWith('/')` 만으로는 `//evil.com` 을 못 막으므로 `safeNext` 를 쓴다.
 - 온보딩 화면의 닉네임 입력은 제출 시 서버 검증만 한다(실시간 중복 확인 API 는 만들지 않는다 🟡 — 열거 공격 표면 축소).
@@ -807,7 +807,7 @@ PRD F1~F9 수용 기준표를 그대로 체크리스트로 쓴다(`qa-reviewer`)
 | T10 | 시드 (0011) — 그룹 5개, 적용 직전 표기·소속 재확인 | supabase-backend | T9(0010 의 `color_key`) | 0.5 | 새 환경에서 목록 표시 |
 | T11 | 셸·디자인 P0 (하단 탭바·44px·오류/404 화면, 디자인 S1~S4, S10) | frontend-dev | T3 | 2~3 | 디자인 리뷰 P0 항목 |
 | T12 | 법적 페이지·sitemap·robots·메타데이터·오류 수집 | frontend-dev | D-5, D-6 | 1.5 | F9-1~F9-4, F9-6 |
-| T13 | Production 배포·OAuth Redirect URL·공급자 노출 | 사용자 + frontend-dev | T1, D-2 | 1 | Production 에서 로그인→쓰기 동선 |
+| T13 | Production 배포·Google OAuth 클라이언트·Redirect URL 등록 | 사용자 + frontend-dev | T1 | 1 | Production 에서 로그인→쓰기 동선 |
 | T14 | 전체 QA (§9.2 전 항목 + PRD 수용 기준) | qa-reviewer | T4~T13 | 1~2 | 차단 이슈 0 |
 
 ```
@@ -831,7 +831,7 @@ T10 (0010 이후), T12 (D-5·D-6) 는 병렬
 | ID | 질문 | 권장 🟡 | 막는 작업 |
 |---|---|---|---|
 | D-1 | 식별 체계 | **A 로 결정됨 (2026-09-29)** | — |
-| D-2 | 출시 로그인 공급자 | 설정·검수 완료된 것만. 최소 Google. Kakao 는 이메일을 받으려면 비즈 앱 전환 필요(아니면 "이메일 없는 사용자 허용"). X 는 `twitter`(1.0a) 대신 `x`(OAuth 2.0)로 설정 | T13 |
+| D-2 | 출시 로그인 공급자 | **Google 만으로 결정 (2026-09-30)**. 추가 시 참고: 카카오는 이메일을 받으려면 비즈 앱 전환 필요(아니면 "이메일 없는 사용자 허용" + 공급자 간 계정 중복 대비), X 는 `twitter`(1.0a) 대신 `x`(OAuth 2.0) | — |
 | D-3 | 관리자 판별 | **`admins` 테이블로 결정 (2026-09-30)** | — |
 | D-4 | 자동 임시 숨김 | 켬, 서로 다른 신고자 3명 | T8 |
 | D-5 | 오류 수집처·요금제 | 베타는 Vercel 로그 + 구조화 `console.error`, 공개 전 Sentry 재검토 | T12 |

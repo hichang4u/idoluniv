@@ -134,7 +134,7 @@ P0-1 근거 전부(`p_session_id` 신뢰, `reactions` public read, 조회수 무
 | `users` | + `onboarded_at`, `nickname_changed_at`, `terms_version`. 닉네임 형식 CHECK, `lower(nickname)` 유일 인덱스. UPDATE 권한 전면 회수 | 0006 |
 | `admins` (신규) | `user_id` PK | 0006 |
 | `reserved_nicknames` (신규) | 금지어 | 0006 |
-| `reactions` | − `session_id`, `user_id` NOT NULL, 유일키 `(user_id, target_type, target_id, reaction_type)`. 기존 행 폐기 🔷 D-8 | 0007 |
+| `reactions` | − `session_id`, `user_id` NOT NULL, 유일키 `(user_id, target_type, target_id, reaction_type)`. 기존 행 폐기 D-8 결정 | 0007 |
 | `post_views` (신규) | 조회수 중복 제거 | 0007 |
 | `posts` | 제목·본문 길이 CHECK, `updated_at` 트리거, insert 정책에 활성 그룹·유형·`can_write()` | 0008 |
 | `comments` | 길이 CHECK, + `deleted_at`, 부모 검증 트리거, 삭제 RPC 전용 | 0008 |
@@ -160,7 +160,7 @@ alter table public.users
 
 alter table public.users
   add constraint users_nickname_format
-  check (nickname is null or nickname ~ '^[가-힣A-Za-z0-9_]{2,20}$');   -- 🔷 D-11
+  check (nickname is null or nickname ~ '^[가-힣A-Za-z0-9_]{2,20}$');   -- D-11 결정
 
 create unique index users_nickname_lower_key on public.users (lower(nickname));
 alter table public.users drop constraint if exists users_nickname_key;  -- 0001 의 unique (이름은 기본 명명 규칙 ○)
@@ -191,7 +191,7 @@ revoke all on public.admins from anon, authenticated;
 #### 0007 — 반응·조회수
 
 ```sql
--- 🔷 D-8: 쿠키 기반 반응은 로그인 사용자로 이관할 수 없다(연결 정보 없음). 폐기 후 카운터 재계산.
+-- D-8 결정: 쿠키 기반 반응은 로그인 사용자로 이관할 수 없다(연결 정보 없음). 폐기 후 카운터 재계산.
 delete from public.reactions;
 update public.posts    set like_count = 0;
 update public.comments set like_count = 0;
@@ -404,7 +404,7 @@ on conflict (slug) do nothing;
 | `toggle_comment_like` | `(p_comment_id uuid)` → `table(liked, like_count)` | 동일 | UI 는 P2. 함수는 구 시그니처 제거와 함께 같이 바꾼다 | 동일 | authenticated |
 | `record_post_view` | `(p_post_id uuid, p_anon_key uuid default null)` → void | 없음 | viewer_key = uid 있으면 `u:<uid>` (인자 무시), 없으면 `s:<p_anon_key>`, 둘 다 없으면 종료. `insert … on conflict (post_id, viewer_key) do update set viewed_at = now() where post_views.viewed_at < now() - interval '24 hours'` 가 행을 반환했을 때만 `view_count + 1`. 숨김 글이면 무시 | — | anon, authenticated |
 | `delete_comment` | `(p_comment_id uuid)` → text(`'deleted'｜'tombstoned'`) | 작성자 본인 | 자식 존재 → `deleted_at = now(), content = ''`. 없으면 실제 삭제. 부모가 tombstone 이고 이 삭제로 자식이 0 이 되면 부모도 삭제 | `AUTH_REQUIRED` `NOT_FOUND` `FORBIDDEN` | authenticated |
-| `submit_report` | `(p_target_type text, p_target_id uuid, p_reason text, p_detail text)` → uuid | `can_write` | ① 대상 조회(definer 라 RLS 무시) — 없거나 이미 숨김이면 `NOT_FOUND` ② 본인 콘텐츠면 `CANNOT_REPORT_OWN` ③ 빈도 제한 10분 10건 🟡 ④ 스냅샷과 함께 insert, 유일키 위반 → `ALREADY_REPORTED` ⑤ `open` 신고의 서로 다른 신고자 수 ≥ 임계값(🔷 D-4, 기본 3)이면 `is_hidden = true` + `moderation_actions('auto_hide', actor null)` + 채팅이면 숨김 이벤트 | 위 + `RATE_LIMITED` | authenticated |
+| `submit_report` | `(p_target_type text, p_target_id uuid, p_reason text, p_detail text)` → uuid | `can_write` | ① 대상 조회(definer 라 RLS 무시) — 없거나 이미 숨김이면 `NOT_FOUND` ② 본인 콘텐츠면 `CANNOT_REPORT_OWN` ③ 빈도 제한 10분 10건 🟡 ④ 스냅샷과 함께 insert, 유일키 위반 → `ALREADY_REPORTED` ⑤ `open` 신고의 서로 다른 신고자 수 ≥ 임계값(D-4 결정, 기본 3)이면 `is_hidden = true` + `moderation_actions('auto_hide', actor null)` + 채팅이면 숨김 이벤트 | 위 + `RATE_LIMITED` | authenticated |
 | `admin_moderate` | `(p_target_type text, p_target_id uuid, p_action text, p_note text)` → void | `is_admin` | `hide`: `is_hidden = true`, 해당 대상 `open` 신고 → `actioned`. `unhide`: `is_hidden = false`, `open` 신고 → `dismissed`. 신고 없이도 실행 가능(발견 즉시 숨김, PRD 6.1). 감사 로그 기록. 채팅이면 이벤트 | `FORBIDDEN` `NOT_FOUND` `INVALID_ACTION` | authenticated |
 | `admin_dismiss_reports` | `(p_target_type, p_target_id, p_note)` → int(처리 건수) | `is_admin` | 대상은 그대로 두고 `open` 신고만 `dismissed` | `FORBIDDEN` | authenticated |
 | `admin_report_queue` | `(p_status text default 'open', p_limit int, p_offset int)` → table | `is_admin` | 대상별 묶음: `target_type, target_id, open_count, reasons text[], urgent bool(privacy·sexual 포함), first_at, last_at, is_hidden, latest_snapshot`. 정렬: urgent desc, first_at asc | `FORBIDDEN` | authenticated |
@@ -650,7 +650,7 @@ proxy 는 요청마다 `getUser()`(Auth 서버 왕복)를 호출한다. `getClai
   - 게시판 목록: 페이지의 글 id 20개로 `reports` 조회 1회.
   - 상세: 글 1 + 댓글 id 목록으로 1회.
   - 채팅: 입장 시 최근 50개 id 로 1회, 이후 신고분은 클라이언트 상태.
-- **자동 임시 숨김(F7-5)**: `submit_report` 안에서 처리(§4.3). 임계값은 🔷 D-4.
+- **자동 임시 숨김(F7-5)**: `submit_report` 안에서 처리(§4.3). 임계값은 서로 다른 신고자 3명(D-4 결정).
 - 신고 사유 코드는 `lib/report-reasons.ts` 한 곳에 정의하고 DB CHECK 와 같은 목록을 쓴다.
 
 ### 7.8 F8 최소 관리자 (`/admin`)
@@ -833,16 +833,16 @@ T10 (0010 이후), T12 (D-5·D-6) 는 병렬
 | D-1 | 식별 체계 | **A 로 결정됨 (2026-09-29)** | — |
 | D-2 | 출시 로그인 공급자 | **Google 만으로 결정 (2026-09-30)**. 추가 시 참고: 카카오는 이메일을 받으려면 비즈 앱 전환 필요(아니면 "이메일 없는 사용자 허용" + 공급자 간 계정 중복 대비), X 는 `twitter`(1.0a) 대신 `x`(OAuth 2.0) | — |
 | D-3 | 관리자 판별 | **`admins` 테이블로 결정 (2026-09-30)** | — |
-| D-4 | 자동 임시 숨김 | 켬, 서로 다른 신고자 3명 | T8 |
+| D-4 | 자동 임시 숨김 | **결정 (2026-09-30, 권장안 채택)**: 켬, 서로 다른 신고자 3명 | — |
 | D-5 | 오류 수집처·요금제 | 베타는 Vercel 로그 + 구조화 `console.error`, 공개 전 Sentry 재검토 | T12 |
 | D-6 | 운영 주체·연락처·약관 문안 | 사용자 작성 | T12, 온보딩 약관 링크 |
-| **D-8** | 기존 쿠키 기반 좋아요·스크랩 데이터 | 폐기 + 카운터 0 재계산 (이관 불가능 — 로그인 사용자와 연결 정보 없음) | T5 |
+| **D-8** | 기존 쿠키 기반 좋아요·스크랩 데이터 | **결정 (2026-09-30, 권장안 채택)**: 폐기 + 카운터 0 재계산 (이관 불가능 — 로그인 사용자와 연결 정보 없음) | — |
 | **D-9** | 테스트 환경 | **D(CI pgTAP 자동) + C 축소판(운영 스모크)으로 결정 (2026-09-30)** — §9.1 | — |
 | **D-10** | 출시 시 그룹 목록 | **5개로 결정 (2026-09-30)**: BLACKPINK · NewJeans · SEVENTEEN · IVE · aespa — §3.2 0011 | — |
-| **D-11** | 닉네임 규칙 | 2~20자, 한글 완성형·영문·숫자·`_`, 대소문자 무시 유일, 30일 1회 변경(온보딩 직후 30일 포함), 금지어 목록 | T4 |
+| **D-11** | 닉네임 규칙 | **결정 (2026-09-30, 권장안 채택)**: 2~20자, 한글 완성형·영문·숫자·`_`, 대소문자 무시 유일, 30일 1회 변경(온보딩 직후 30일 포함), 금지어 목록 | — |
 | ~~D-12~~ | ~~하단 탭 4칸 vs 5칸~~ | D-16(그룹 중심, 3칸)으로 대체 (2026-09-30) | — |
-| **D-13** | 좋아요도 온보딩 완료 필요? | 예 (약관 동의 전 활동 기록 없음) | T5 |
-| **D-14** | 인기순 정의 | "최근 7일 작성 글의 좋아요 순" (7일간 받은 좋아요 아님) | T6 |
+| **D-13** | 좋아요도 온보딩 완료 필요? | **결정 (2026-09-30, 권장안 채택)**: 예 (약관 동의 전 활동 기록 없음) | — |
+| **D-14** | 인기순 정의 | **결정 (2026-09-30, 권장안 채택)**: "최근 7일 작성 글의 좋아요 순" (7일간 받은 좋아요 아님) | — |
 
 ---
 

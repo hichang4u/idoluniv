@@ -1,0 +1,45 @@
+name: DB security tests
+
+# supabase/ 아래(마이그레이션·테스트·설정)가 바뀐 경우에만 돈다.
+on:
+  push:
+    branches: [main]
+    paths: ["supabase/**", ".github/workflows/db.yml"]
+  pull_request:
+    paths: ["supabase/**", ".github/workflows/db.yml"]
+
+concurrency:
+  group: db-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  db-test:
+    name: pgTAP (RLS · GRANT · RPC)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Supabase CLI 는 devDependency(package.json)의 버전을 쓴다
+      - run: npm ci
+
+      # Postgres 만 띄우고 supabase/migrations 를 빈 DB 에 처음부터 적용한다
+      - name: Start local database
+        run: >-
+          npx supabase start
+          -x gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Applied migrations
+        run: npx supabase migration list --local
+
+      - name: Run pgTAP tests
+        run: npx supabase test db
+
+      - name: Stop
+        if: always()
+        run: npx supabase stop --no-backup

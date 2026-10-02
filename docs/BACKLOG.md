@@ -116,7 +116,7 @@
 
 ### P0-6. 식별 체계 결정에 따른 보안 수정 구현
 
-- **설명**: P0-1 에서 고른 안대로 `toggle_*` RPC, `increment_view_count`, `reactions` 읽기 권한, 채팅 insert 경로를 고친다. 새 마이그레이션(`0006_...`)으로 추적한다.
+- **설명**: P0-1 에서 고른 안대로 `toggle_*` RPC, `increment_view_count`, `reactions` 읽기 권한, 채팅 insert 경로를 고친다. 새 마이그레이션(`0007_...`)으로 추적한다.
 - **근거**: P0-1 근거 참고. QA 리뷰 미해결 항목.
 - **담당 후보**: `supabase-backend`(마이그레이션), `frontend-dev`(`app/actions/reaction.ts`, `chat.ts`, 채팅 UI), `qa-reviewer`(재검증)
 - **선행 조건**: P0-1 결정, P0-3 완료.

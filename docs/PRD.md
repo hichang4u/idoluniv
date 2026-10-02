@@ -637,7 +637,7 @@ v1.0 스키마 대비 실제 차이:
 
 ### 12.2 MVP 에 추가할 스키마 🟡
 
-설계 초안이다. 확정은 `supabase-backend` 가 D-1 결과를 반영해 마이그레이션(`0006_...`)으로 한다.
+설계 초안이다. 확정은 `supabase-backend` 가 D-1 결과를 반영해 마이그레이션(`0007_...`)으로 한다.
 
 #### `reports`
 
@@ -662,7 +662,7 @@ RLS: 신고자는 본인 신고 insert·select 만. 관리자는 전체 select. 
 | 안 | 내용 |
 |---|---|
 | `users.role` 컬럼 | 단순. 단 `users` 는 본인이 update 할 수 있으므로 `role` 은 GRANT 대상에서 반드시 제외 |
-| `admins` 테이블 | 권한 부여 경로가 분리되어 실수 여지가 적음. **채택** — 설계는 `docs/design/TECH-DESIGN.md` §3.2(0006)·§4.2 |
+| `admins` 테이블 | 권한 부여 경로가 분리되어 실수 여지가 적음. **채택** — 설계는 `docs/design/TECH-DESIGN.md` §3.2(0007)·§4.2 |
 
 #### `moderation_actions` (감사 로그)
 

@@ -69,6 +69,7 @@ SQL 은 전부 **초안**이다. 문법·동작을 실제 DB 에서 실행해 �
 | N15 | 대댓글에 답글 버튼이 없음(`!isReply`). F4-2 의 "대댓글에 답하면 같은 부모 아래 + `@닉네임`" 동선이 없음 | `CommentItem.tsx:49` | 기능 누락 | ✅ |
 | N16 | 삭제 버튼이 모두에게 보이고, 남의 댓글 삭제 시 0행 삭제인데 성공처럼 끝남 | `CommentItem.tsx:59`, `comment.ts:69-77` | F3-5 와 같은 유형 | ✅ |
 | N17 | X 로그인이 `provider: "twitter"`(OAuth 1.0a) — Supabase 문서는 1.0a 를 "will be deprecated" 로 표시하고 OAuth 2.0 공급자 `"x"` 를 권장 | `LoginForm.tsx:7,12` | 공급자 설정도 `x` 기준으로 다시 해야 할 수 있음 | 코드 ✅ / 문서 ✅ ([auth-twitter](https://supabase.com/docs/guides/auth/social-login/auth-twitter)) |
+| N18 | 0001~0003 이 테이블 SELECT·함수 EXECUTE 를 **GRANT 없이** Supabase 자동 부여에 기댐. 로컬·새 프로젝트(그리고 2026-10-30 이후 새로 만드는 객체)는 자동 부여가 없어 **새 환경에서는 게시판 읽기조차 안 된다** | `supabase/config.toml` `auto_expose_new_tables` 주석, 마이그레이션 0001~0003 | 원격과 새 환경의 권한이 달라 테스트가 원격을 대표하지 못함 → **0006 으로 명시** | ✅ (2026-10-03, T2 중 발견) |
 
 ### 1.3 이미 문서에 있고 설계에서 해소할 결함 (요약)
 
@@ -131,22 +132,23 @@ P0-1 근거 전부(`p_session_id` 신뢰, `reactions` public read, 조회수 무
 
 | 테이블 | 변경 | 마이그레이션 |
 |---|---|---|
-| `users` | + `onboarded_at`, `nickname_changed_at`, `terms_version`. 닉네임 형식 CHECK, `lower(nickname)` 유일 인덱스. UPDATE 권한 전면 회수 | 0006 |
-| `admins` (신규) | `user_id` PK | 0006 |
-| `reserved_nicknames` (신규) | 금지어 | 0006 |
-| `reactions` | − `session_id`, `user_id` NOT NULL, 유일키 `(user_id, target_type, target_id, reaction_type)`. 기존 행 폐기 D-8 결정 | 0007 |
-| `post_views` (신규) | 조회수 중복 제거 | 0007 |
-| `posts` | 제목·본문 길이 CHECK, `updated_at` 트리거, insert 정책에 활성 그룹·유형·`can_write()` | 0008 |
-| `comments` | 길이 CHECK, + `deleted_at`, 부모 검증 트리거, 삭제 RPC 전용 | 0008 |
-| `chat_messages` | − `session_id`, 발신자 덮어쓰기·빈도 제한 트리거, insert 는 `room_id, content` 컬럼만 | 0009 |
-| `chat_moderation_events` (신규) | 숨김 전파용 (F6-7) | 0009 |
-| `reports`, `moderation_actions` (신규) | 신고·감사 로그 | 0010 |
-| `idol_groups` | 관리자 insert/update 정책, `slug` UPDATE 불가. + `color_key text not null default 'baby' check (color_key in (…24개 key…))` — 그룹 색 파스텔 팔레트(`docs/design/TOKENS.md` §3.2, key 원본 `docs/design/tokens/presets.json`, D-18). 관리자 insert/update 컬럼 GRANT 에 포함 | 0010 |
+| 기존 테이블 전체 | **0006 (작성됨)**: 원격이 이미 가진 SELECT·EXECUTE 권한을 명시(N18). 알려진 구멍(`toggle_*` EXECUTE)도 원격 재현을 위해 포함 — 0008 에서 회수 | 0006 |
+| `users` | + `onboarded_at`, `nickname_changed_at`, `terms_version`. 닉네임 형식 CHECK, `lower(nickname)` 유일 인덱스. UPDATE 권한 전면 회수 | 0007 |
+| `admins` (신규) | `user_id` PK | 0007 |
+| `reserved_nicknames` (신규) | 금지어 | 0007 |
+| `reactions` | − `session_id`, `user_id` NOT NULL, 유일키 `(user_id, target_type, target_id, reaction_type)`. 기존 행 폐기 D-8 결정 | 0008 |
+| `post_views` (신규) | 조회수 중복 제거 | 0008 |
+| `posts` | 제목·본문 길이 CHECK, `updated_at` 트리거, insert 정책에 활성 그룹·유형·`can_write()` | 0009 |
+| `comments` | 길이 CHECK, + `deleted_at`, 부모 검증 트리거, 삭제 RPC 전용 | 0009 |
+| `chat_messages` | − `session_id`, 발신자 덮어쓰기·빈도 제한 트리거, insert 는 `room_id, content` 컬럼만 | 0010 |
+| `chat_moderation_events` (신규) | 숨김 전파용 (F6-7) | 0010 |
+| `reports`, `moderation_actions` (신규) | 신고·감사 로그 | 0011 |
+| `idol_groups` | 관리자 insert/update 정책, `slug` UPDATE 불가. + `color_key text not null default 'baby' check (color_key in (…24개 key…))` — 그룹 색 파스텔 팔레트(`docs/design/TOKENS.md` §3.2, key 원본 `docs/design/tokens/presets.json`, D-18). 관리자 insert/update 컬럼 GRANT 에 포함 | 0011 |
 | 인덱스 | `posts(idol_group_id, created_at desc)`, `chat_messages(author_id, created_at desc)`, `comments(author_id, created_at desc)`, `reports(status, created_at)` | 각 단계 |
 
 ### 3.2 DDL 초안
 
-#### 0006 — 온보딩·관리자 기반
+#### 0007 — 온보딩·관리자 기반
 
 ```sql
 -- 사전 점검 (적용 전 수동 실행): 형식 위반·대소문자 중복 닉네임이 있으면 먼저 정리
@@ -188,7 +190,7 @@ revoke all on public.admins from anon, authenticated;
 -- 관리자 지정은 SQL 에디터에서만: insert into public.admins (user_id) values ('<uuid>');
 ```
 
-#### 0007 — 반응·조회수
+#### 0008 — 반응·조회수
 
 ```sql
 -- D-8 결정: 쿠키 기반 반응은 로그인 사용자로 이관할 수 없다(연결 정보 없음). 폐기 후 카운터 재계산.
@@ -218,7 +220,7 @@ alter table public.post_views enable row level security;
 revoke all on public.post_views from anon, authenticated;
 ```
 
-#### 0008 — 게시글·댓글 무결성
+#### 0009 — 게시글·댓글 무결성
 
 ```sql
 -- 기존 데이터가 위반하면 validate 에서 실패한다 → not valid 로 먼저 걸고 점검 후 validate
@@ -246,7 +248,7 @@ create index idx_comments_author_created on public.comments (author_id, created_
 create index idx_posts_author_created    on public.posts (author_id, created_at desc);
 ```
 
-#### 0009 — 채팅
+#### 0010 — 채팅
 
 ```sql
 alter table public.chat_messages drop column session_id;
@@ -279,7 +281,7 @@ grant  select on public.chat_moderation_events to anon, authenticated;
 -- Realtime 전파 방식은 §7.6 참고 (postgres_changes vs broadcast — Supabase 확인 결과에 따라 확정)
 ```
 
-#### 0010 — 신고·모더레이션
+#### 0011 — 신고·모더레이션
 
 ```sql
 create table public.reports (
@@ -335,7 +337,7 @@ grant  update (name, name_ko, agency, debut_date, cover_url, description, is_act
   on public.idol_groups to authenticated;
 ```
 
-#### 0011 — 출시 그룹 시드 (D-10, 2026-09-30)
+#### 0012 — 출시 그룹 시드 (D-10, 2026-09-30)
 
 클로즈드 베타는 **5개 그룹으로 시작**한다(소수 집중 — 베타 20~50명 규모에서 게시판이 비어 보이지 않게). 목록은 목업 예시 5개. 추가·비활성화는 출시 후 `/admin/groups` 에서.
 
@@ -624,7 +626,7 @@ proxy 는 요청마다 `getUser()`(Auth 서버 왕복)를 호출한다. `getClai
 
 ### 7.6 F6 그룹 라운지 (채팅)
 
-- **입장**: 그룹 활성 확인 → `get_or_create_chat_room` → 최근 50개(현재 방식 유지 ✅). select 컬럼에서 `session_id` 제거(0009 에서 컬럼 삭제 전 코드 먼저 배포, §8).
+- **입장**: 그룹 활성 확인 → `get_or_create_chat_room` → 최근 50개(현재 방식 유지 ✅). select 컬럼에서 `session_id` 제거(0010 에서 컬럼 삭제 전 코드 먼저 배포, §8).
 - **입력 영역**
   - 비로그인: 입력창 대신 "로그인하고 대화에 참여하세요" 버튼.
   - 온보딩 미완료: "닉네임을 정하고 참여하세요" 버튼.
@@ -716,12 +718,13 @@ proxy 는 요청마다 `getUser()`(Auth 서버 왕복)를 호출한다. `getClai
 
 | 단계 | 순서 | 내용 | 구 코드 호환 |
 |---|---|---|---|
-| 1 온보딩 | M 0006 → C | 컬럼·`admins`·헬퍼·온보딩 RPC 추가, `users` UPDATE 회수. 코드: `safeNext`, callback, `/login?next`, `/onboarding`, `/me` 최소판, 라우트 이전(§6.5), proxy 경로 | 현재 코드는 `users` 를 update 하지 않음 ✅ → 호환 |
-| 2 반응·조회수 | M 0007a → C → M 0007b | 0007a: 새 1-인자 `toggle_*`, `record_post_view`, `post_views` 추가(구 함수 유지). C: `reaction.ts`·상세 페이지 교체. 0007b: 구 함수 drop, `reactions` 데이터 폐기·`session_id` 삭제, `increment_view_count` drop | 0007a 동안 구 코드 동작 ✅ |
-| 3 게시글·댓글 | M 0008a → C → M 0008b | 0008a: 길이 CHECK, `deleted_at`, 트리거, `delete_comment` 추가, 정책 교체(추가만). C: 폼·길이 검사, `updated_at` 전송 중단, 댓글 삭제를 RPC 로. 0008b: `updated_at` UPDATE GRANT 회수, comments DELETE 회수 | 현재 `updatePost` 가 `updated_at` 을 보내므로(`post.ts:83`) 0008b 를 C 보다 먼저 적용하면 수정이 깨진다 |
-| 4 채팅 | C → M 0009 | C: `sendMessage` 가 `room_id, content` 만 전송, select 에서 `session_id` 제거, 비로그인 입력 차단 UI | 구 DB 에서도 새 코드 동작(닉네임은 기본값 '익명') ✅ → C 먼저가 안전 |
-| 5 모더레이션 | M 0010 → C | 테이블·RPC·정책 추가 후 신고 UI·`/admin` | 추가만 → 호환 |
-| 6 시드 | M 0011 | 출시 그룹 5개 `insert … on conflict (slug) do nothing` (§3.2 0011, D-10) | — |
+| 0 권한 명시 | M 0006 | 0001~0003 의 암묵 권한을 명시(N18). 원격에는 효과 없음 | 호환 ✅ |
+| 1 온보딩 | M 0007 → C | 컬럼·`admins`·헬퍼·온보딩 RPC 추가, `users` UPDATE 회수. 코드: `safeNext`, callback, `/login?next`, `/onboarding`, `/me` 최소판, 라우트 이전(§6.5), proxy 경로 | 현재 코드는 `users` 를 update 하지 않음 ✅ → 호환 |
+| 2 반응·조회수 | M 0008a → C → M 0008b | 0008a: 새 1-인자 `toggle_*`, `record_post_view`, `post_views` 추가(구 함수 유지). C: `reaction.ts`·상세 페이지 교체. 0008b: 구 함수 drop, `reactions` 데이터 폐기·`session_id` 삭제, `increment_view_count` drop | 0008a 동안 구 코드 동작 ✅ |
+| 3 게시글·댓글 | M 0009a → C → M 0009b | 0009a: 길이 CHECK, `deleted_at`, 트리거, `delete_comment` 추가, 정책 교체(추가만). C: 폼·길이 검사, `updated_at` 전송 중단, 댓글 삭제를 RPC 로. 0009b: `updated_at` UPDATE GRANT 회수, comments DELETE 회수 | 현재 `updatePost` 가 `updated_at` 을 보내므로(`post.ts:83`) 0009b 를 C 보다 먼저 적용하면 수정이 깨진다 |
+| 4 채팅 | C → M 0010 | C: `sendMessage` 가 `room_id, content` 만 전송, select 에서 `session_id` 제거, 비로그인 입력 차단 UI | 구 DB 에서도 새 코드 동작(닉네임은 기본값 '익명') ✅ → C 먼저가 안전 |
+| 5 모더레이션 | M 0011 → C | 테이블·RPC·정책 추가 후 신고 UI·`/admin` | 추가만 → 호환 |
+| 6 시드 | M 0012 | 출시 그룹 5개 `insert … on conflict (slug) do nothing` (§3.2 0012, D-10) | — |
 
 - 출시 전이고 실사용자가 없다면 2·3 단계의 a/b 분할을 합쳐도 된다. 원격 DB 에 실데이터가 있는지 ❓ → 8.1-3 에서 판단.
 - 각 M 이후 `supabase gen types typescript --linked > types/supabase.ts` 를 같은 커밋에 포함.
@@ -816,15 +819,15 @@ PRD F1~F9 수용 기준표를 그대로 체크리스트로 쓴다(`qa-reviewer`)
 |---|---|---|---|---|---|
 | T0 | 원격 DB 연결·이력 정합·백업·0004/0005 적용 (§8.1) | 사용자 + supabase-backend | — | 0.5~1 | P0-3 체크리스트 통과 |
 | T1 | CI 워크플로 + `.env.example` + `.gitignore` 예외 — **작성됨 (2026-09-30)**: `.github/workflows/ci.yml` `app` 잡(Node 22, `npm ci` → lint → typecheck → 더미 env build). 로컬에서 같은 단계 통과 ✅, GitHub 에서의 첫 실행은 푸시 후 확인 ❓. `.env.example` 은 `feat/legal-pages` 에서 추가 | frontend-dev | — | 0.5 | PR 에서 녹색 |
-| T2 | `supabase init` + pgTAP 헬퍼(`00_helpers.sql`) + S22 테스트 1개 + CI `db-test` 잡 + 운영 스모크 절차(`docs/qa/smoke-log.md`) | supabase-backend | T1 | 1~1.5 | PR 에서 `db-test` 가 S22 를 실행해 녹색 |
+| T2 | `supabase init` + pgTAP 테스트 + CI `db-test` 잡 + 운영 스모크 절차 — **작성됨 (2026-10-03, 브랜치 `test/db-security`)**: `supabase/config.toml`, `supabase/migrations/0006_explicit_base_grants.sql`(N18), `supabase/tests/01_rls_grants.sql`·`90_function_acl.sql`(현 0001~0006 보장 검증 + 미수정 구멍은 `todo`), `.github/workflows/db.yml`, `docs/qa/smoke-log.md`. 헬퍼 `pg_temp.act(role, uid, sql)` 로 역할을 바꿔 실행하고 결과(`ok:<행 수>` 또는 SQLSTATE)를 postgres 로 단언 | supabase-backend | T1 | 1~1.5 | PR 에서 `db-test` 녹색 |
 | T3 | 공통 모듈 (§6.1) + 타입 생성 연결 | frontend-dev | T0 | 1 | `as unknown as` 캐스트 제거, typecheck 통과 |
-| T4 | 단계 1: 0006 + 온보딩·로그인 흐름·`/me` 최소판·라우트 이전(§6.5)·proxy | 둘 다 | T0, T3 | 2~3 | F1-1~F1-5, S4~S6, S23 |
-| T5 | 단계 2: 반응·조회수 (0007a/b) | 둘 다 | T4 | 1.5 | F5, F3-7, S1·S2·S15·S16 |
-| T6 | 단계 3: 게시글·댓글 무결성 (0008a/b) + 소유자 UI + 상세 개선(N2~N5, N15, N16) | 둘 다 | T4 | 3 | F2·F3·F4, S7~S12 |
-| T7 | 단계 4: 채팅 (0009) + 연결 관리·재연결 보정 | 둘 다 | T4 | 2 | F6-1~F6-6, S13·S14 |
-| T8 | 단계 5: 신고 (0010 일부) + 신고 UI | 둘 다 | T6, T7 | 2~3 | F7, S17·S18 |
+| T4 | 단계 1: 0007 + 온보딩·로그인 흐름·`/me` 최소판·라우트 이전(§6.5)·proxy | 둘 다 | T0, T3 | 2~3 | F1-1~F1-5, S4~S6, S23 |
+| T5 | 단계 2: 반응·조회수 (0008a/b) | 둘 다 | T4 | 1.5 | F5, F3-7, S1·S2·S15·S16 |
+| T6 | 단계 3: 게시글·댓글 무결성 (0009a/b) + 소유자 UI + 상세 개선(N2~N5, N15, N16) | 둘 다 | T4 | 3 | F2·F3·F4, S7~S12 |
+| T7 | 단계 4: 채팅 (0010) + 연결 관리·재연결 보정 | 둘 다 | T4 | 2 | F6-1~F6-6, S13·S14 |
+| T8 | 단계 5: 신고 (0011 일부) + 신고 UI | 둘 다 | T6, T7 | 2~3 | F7, S17·S18 |
 | T9 | `/admin` 3화면 + 모더레이션 RPC + 채팅 숨김 전파 | 둘 다 | T8 | 3 | F8, F6-7, S19~S21 |
-| T10 | 시드 (0011) — 그룹 5개, 적용 직전 표기·소속 재확인 | supabase-backend | T9(0010 의 `color_key`) | 0.5 | 새 환경에서 목록 표시 |
+| T10 | 시드 (0012) — 그룹 5개, 적용 직전 표기·소속 재확인 | supabase-backend | T9(0011 의 `color_key`) | 0.5 | 새 환경에서 목록 표시 |
 | T11 | 셸·디자인 P0 (하단 탭바·44px·오류/404 화면, 디자인 S1~S4, S10) | frontend-dev | T3 | 2~3 | 디자인 리뷰 P0 항목 |
 | T12 | 법적 페이지(초안 구현됨 — 값 설정·검토만)·sitemap·robots·메타데이터·오류 수집 | frontend-dev | D-6 | 1.5 | F9-1~F9-4, F9-6 |
 | T13 | Production 배포·Google OAuth 클라이언트·Redirect URL 등록 | 사용자 + frontend-dev | T1 | 1 | Production 에서 로그인→쓰기 동선 |
@@ -837,7 +840,7 @@ T0 ─┬─ T3 ─┬─ T4 ─┬─ T5
     │      └─ T11
 T1 ─┴──────────────────────────────── T13 ─ T14
 T2 (D-9: D+C축소) ── T4 부터 마이그레이션마다 pgTAP 테스트를 같은 PR 에 추가
-T10 (0010 이후), T12 (D-6) 는 병렬
+T10 (0011 이후), T12 (D-6) 는 병렬
 ```
 
 합계 약 22~28 실작업일(추정). BACKLOG §5 의 W1~W6 배정과 대체로 맞지만, **T2(테스트 환경)와 T3(공통 모듈)가 새로 생겨** 1주 정도 밀릴 수 있다 — BACKLOG 재조정은 PM 몫.
@@ -858,7 +861,7 @@ T10 (0010 이후), T12 (D-6) 는 병렬
 | D-6 | 운영 주체·연락처·약관 문안 | 문안 초안 작성됨(§7.9.1 검토 항목). 운영자 정보는 **`LEGAL_*` 환경변수로 입력** — 사용자가 `.env.local`·Vercel 에 설정 | T12, 온보딩 약관 링크 |
 | **D-8** | 기존 쿠키 기반 좋아요·스크랩 데이터 | **결정 (2026-09-30, 권장안 채택)**: 폐기 + 카운터 0 재계산 (이관 불가능 — 로그인 사용자와 연결 정보 없음) | — |
 | **D-9** | 테스트 환경 | **D(CI pgTAP 자동) + C 축소판(운영 스모크)으로 결정 (2026-09-30)** — §9.1 | — |
-| **D-10** | 출시 시 그룹 목록 | **5개로 결정 (2026-09-30)**: BLACKPINK · NewJeans · SEVENTEEN · IVE · aespa — §3.2 0011 | — |
+| **D-10** | 출시 시 그룹 목록 | **5개로 결정 (2026-09-30)**: BLACKPINK · NewJeans · SEVENTEEN · IVE · aespa — §3.2 0012 | — |
 | **D-11** | 닉네임 규칙 | **결정 (2026-09-30, 권장안 채택)**: 2~20자, 한글 완성형·영문·숫자·`_`, 대소문자 무시 유일, 30일 1회 변경(온보딩 직후 30일 포함), 금지어 목록 | — |
 | ~~D-12~~ | ~~하단 탭 4칸 vs 5칸~~ | D-16(그룹 중심, 3칸)으로 대체 (2026-09-30) | — |
 | **D-13** | 좋아요도 온보딩 완료 필요? | **결정 (2026-09-30, 권장안 채택)**: 예 (약관 동의 전 활동 기록 없음) | — |

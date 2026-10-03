@@ -12,6 +12,11 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // 온보딩(닉네임·만 14세·약관) 전이면 온보딩을 거쳐 next 로 간다 (F1-3)
+      const { data: viewer } = await supabase.rpc("get_viewer").maybeSingle();
+      if (!viewer?.onboarded) {
+        return NextResponse.redirect(`${origin}/onboarding?next=${encodeURIComponent(next)}`);
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

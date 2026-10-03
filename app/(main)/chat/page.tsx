@@ -16,7 +16,6 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@/components/ui/item";
-import type { IdolGroup } from "@/types/database";
 
 export const metadata: Metadata = { title: "채팅" };
 
@@ -28,7 +27,7 @@ export default async function ChatIndexPage() {
     .eq("is_active", true)
     .order("name");
 
-  const typedGroups = (groups ?? []) as IdolGroup[];
+  const typedGroups = groups ?? [];
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">

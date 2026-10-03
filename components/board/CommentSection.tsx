@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { CommentItem } from "@/components/board/CommentItem";
 import { CommentForm } from "@/components/board/CommentForm";
-import type { Comment } from "@/types/database";
+import type { CommentWithAuthor } from "@/types/database";
 
 interface CommentSectionProps {
   postId: string;
@@ -20,7 +20,7 @@ export async function CommentSection({ postId }: CommentSectionProps) {
     .eq("is_hidden", false)
     .order("created_at", { ascending: true });
 
-  const allComments = (rawComments ?? []) as unknown as Comment[];
+  const allComments: CommentWithAuthor[] = rawComments ?? [];
 
   // 부모/자식 분리 — parent_id가 null인 것이 최상위
   const topLevel = allComments.filter((c) => !c.parent_id);

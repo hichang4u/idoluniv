@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { LIMITS } from "@/lib/limits";
 
 async function requireUserId(supabase: Awaited<ReturnType<typeof createClient>>) {
   const {
@@ -45,7 +46,7 @@ export async function createComment(formData: FormData) {
   const content = (formData.get("content") as string)?.trim();
 
   if (!postId || !content) return { error: "내용을 입력해주세요." };
-  if (content.length > 1000) return { error: "댓글은 1000자 이내로 입력해주세요." };
+  if (content.length > LIMITS.comment) return { error: `댓글은 ${LIMITS.comment}자 이내로 입력해주세요.` };
 
   const { error } = await supabase.from("comments").insert({
     post_id: postId,

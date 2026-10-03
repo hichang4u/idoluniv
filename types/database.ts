@@ -1,92 +1,41 @@
+// 도메인 타입. 테이블 행은 생성된 DB 타입(types/supabase.ts)에서 파생한다.
+// 스키마가 바뀌면 `npx supabase gen types typescript --linked --schema public > types/supabase.ts`
+// 로 다시 생성한다(TECH-DESIGN AD-14).
+import type { Database } from "./supabase";
+
+type Tables = Database["public"]["Tables"];
+export type TableRow<T extends keyof Tables> = Tables[T]["Row"];
+
+// posts.post_type 은 CHECK 제약이 있는 text 컬럼이라 생성 타입은 string 이다.
+// 폼 입력값처럼 값을 좁혀야 하는 곳에서만 이 유니온을 쓴다.
 export type PostType = "text" | "image" | "video" | "fanfic";
 export type ReactionType = "like" | "scrap";
 export type ReactionTarget = "post" | "comment";
 
-export interface IdolGroup {
-  id: string;
-  name: string;
-  name_ko: string | null;
-  slug: string;
-  agency: string | null;
-  debut_date: string | null;
-  cover_url: string | null;
-  description: string | null;
-  is_active: boolean;
-  created_at: string;
-}
+export type IdolGroup = TableRow<"idol_groups">;
+export type Post = TableRow<"posts">;
+export type Comment = TableRow<"comments">;
+export type ChatMessage = TableRow<"chat_messages">;
+export type Reaction = TableRow<"reactions">;
 
-export interface User {
-  id: string;
-  email: string | null;
-  nickname: string | null;
-  avatar_url: string | null;
-  bio: string | null;
-  created_at: string;
-  updated_at: string;
-}
+// users 는 공개 컬럼만 GRANT 되어 있다(0004). email 은 select 하면 권한 오류가 난다.
+export type PublicUser = Pick<TableRow<"users">, "id" | "nickname" | "avatar_url">;
 
-export interface Post {
-  id: string;
-  author_id: string | null;
-  idol_group_id: string | null;
-  title: string;
-  content: string;
-  post_type: PostType;
-  like_count: number;
-  comment_count: number;
-  view_count: number;
-  is_hidden: boolean;
-  created_at: string;
-  updated_at: string;
-  // join
-  author?: Pick<User, "id" | "nickname" | "avatar_url"> | null;
-  idol_group?: Pick<IdolGroup, "id" | "name" | "slug"> | null;
-}
+// ── 조회 결과 모양 ────────────────────────────────────────
+// 쿼리의 select 문자열과 맞지 않으면 대입하는 곳에서 컴파일 오류가 난다(캐스트 금지).
 
-export interface Comment {
-  id: string;
-  post_id: string;
-  author_id: string | null;
-  parent_id: string | null;
-  content: string;
-  like_count: number;
-  is_hidden: boolean;
-  created_at: string;
-  updated_at: string;
-  // join
-  author?: Pick<User, "id" | "nickname" | "avatar_url"> | null;
-  replies?: Comment[];
-}
-
-export interface Reaction {
-  id: string;
-  session_id: string;
-  user_id: string | null;
-  target_type: ReactionTarget;
-  target_id: string;
-  reaction_type: ReactionType;
-  created_at: string;
-}
-
-export interface PostWithRelations extends Post {
-  author: Pick<User, "id" | "nickname" | "avatar_url"> | null;
+export type PostListItem = Pick<
+  Post,
+  "id" | "title" | "content" | "post_type" | "like_count" | "comment_count" | "view_count" | "created_at" | "updated_at"
+> & {
+  author: PublicUser | null;
   idol_group: Pick<IdolGroup, "id" | "name" | "slug"> | null;
-}
+};
 
-export interface ChatRoom {
-  id: string;
-  group_id: string;
-  created_at: string;
-  idol_group?: Pick<IdolGroup, "id" | "name" | "name_ko" | "slug" | "cover_url"> | null;
-}
-
-export interface ChatMessage {
-  id: string;
-  room_id: string;
-  author_id: string | null;
-  session_id: string | null;
-  nickname: string;
-  content: string;
-  is_hidden: boolean;
-  created_at: string;
-}
+export type CommentWithAuthor = Pick<
+  Comment,
+  "id" | "post_id" | "parent_id" | "content" | "like_count" | "is_hidden" | "created_at" | "updated_at"
+> & {
+  author: PublicUser | null;
+  replies?: CommentWithAuthor[];
+};

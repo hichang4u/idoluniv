@@ -68,7 +68,7 @@ export function ChatRoom({ roomId, initialMessages }: Props) {
     const supabase = createClient();
     const channel = supabase
       .channel(`chat_room:${roomId}`)
-      .on(
+      .on<ChatMessage>(
         "postgres_changes",
         {
           event: "INSERT",
@@ -77,7 +77,7 @@ export function ChatRoom({ roomId, initialMessages }: Props) {
           filter: `room_id=eq.${roomId}`,
         },
         (payload) => {
-          const newMsg = payload.new as ChatMessage;
+          const newMsg = payload.new;
           setMessages((prev) =>
             prev.some((m) => m.id === newMsg.id) ? prev : [...prev, newMsg]
           );
@@ -108,8 +108,8 @@ export function ChatRoom({ roomId, initialMessages }: Props) {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
     const trimmed = content.trim();
     if (!trimmed || isPending) return;
 
@@ -137,7 +137,7 @@ export function ChatRoom({ roomId, initialMessages }: Props) {
     if (e.nativeEvent.isComposing || e.keyCode === 229) return;
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e as unknown as React.FormEvent);
+      handleSubmit();
     }
   };
 

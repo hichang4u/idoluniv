@@ -712,6 +712,20 @@ proxy 는 요청마다 `getUser()`(Auth 서버 왕복)를 호출한다. `getClai
 3. 원격 스키마 덤프(`supabase db dump`)로 백업 + 실제 정책·권한 확인 → 이 문서의 가정(§1, §5)과 다르면 설계를 먼저 고친다.
 4. `0004` → `0005` 적용 + BACKLOG P0-3 체크리스트.
 
+**실행 결과 (2026-10-03)** — 프로젝트 ref `ajuvsyjvkhwiahtsnrxj`
+
+| 단계 | 결과 |
+|---|---|
+| 이력 확인 | `migration list --linked`: 원격 이력 **비어 있음**. 그러나 익명 API 로 0001~0003 의 테이블은 존재 확인, 0004 의 `get_or_create_chat_room` 은 없음(PGRST202), `users.email` 익명 조회 200(미회수) → 0001~0003 적용·0004~ 미적용으로 판정 |
+| 위험 상태 | 0002 의 임시 정책(anon 전체 허용)이 운영에 살아 있었음 — 데이터 0행이라 피해 없음 |
+| 백업 | `db dump` 는 Docker 필요로 실패. 콘텐츠 0행 + 0004~0006 은 정책·권한만 바꿈 → 생략 (사용자 승인) |
+| repair | `migration repair --status applied 0001 0002 0003 --linked` |
+| dry-run | 적용 대상 0004·0005·0006, 시드 없음 (예상과 일치) |
+| push | 0004 → 0005 → 0006 적용. 끝의 Docker 경고는 CLI 로컬 카탈로그 캐시 실패로 적용과 무관 ○ |
+| 확인 (익명 API) | `users.email` 401(42501) · 공개 컬럼 200 · RPC 생김(없는 그룹 → `null`) · 익명 글쓰기 401 · `like_count` 수정 401 · 그룹·글·채팅 읽기 200 |
+| 남은 확인 | S22·권한 표(`docs/qa/smoke-log.md` SQL)는 대시보드에서 실행 대기. Realtime 등록은 시드(0012) 후 라운지에서 확인 |
+| 도구 제약 | 이 PC 는 Docker·psql 이 없어 원격 카탈로그를 직접 조회할 수 없다. CLI 의 `migration list`·`repair`·`db push` 는 Docker 없이 동작 ✅ |
+
 ### 8.2 단계별 순서
 
 각 단계는 "확장(DB) → 코드 배포 → 축소(DB)" 순서다. 기호: **M** 마이그레이션, **C** 코드 배포.
@@ -817,7 +831,7 @@ PRD F1~F9 수용 기준표를 그대로 체크리스트로 쓴다(`qa-reviewer`)
 
 | ID | 작업 | 담당 | 선행 | 공수(추정) | 완료 기준 |
 |---|---|---|---|---|---|
-| T0 | 원격 DB 연결·이력 정합·백업·0004/0005 적용 (§8.1) | 사용자 + supabase-backend | — | 0.5~1 | P0-3 체크리스트 통과 |
+| T0 | 원격 DB 연결·이력 정합·백업·0004~0006 적용 (§8.1) — **완료 (2026-10-03)**: 0001~0003 이력 repair → 0004·0005·0006 `db push`. 익명 API 재조사로 효과 확인(§8.1 결과). 백업은 Docker 부재로 생략(콘텐츠 0행). S22·권한 표 SQL 확인은 사용자 대시보드 실행 대기 | 사용자 + supabase-backend | — | 0.5~1 | P0-3 체크리스트 통과 |
 | T1 | CI 워크플로 + `.env.example` + `.gitignore` 예외 — **작성됨 (2026-09-30)**: `.github/workflows/ci.yml` `app` 잡(Node 22, `npm ci` → lint → typecheck → 더미 env build). 로컬에서 같은 단계 통과 ✅, GitHub 에서의 첫 실행은 푸시 후 확인 ❓. `.env.example` 은 `feat/legal-pages` 에서 추가 | frontend-dev | — | 0.5 | PR 에서 녹색 |
 | T2 | `supabase init` + pgTAP 테스트 + CI `db-test` 잡 + 운영 스모크 절차 — **작성됨 (2026-10-03, 브랜치 `test/db-security`)**: `supabase/config.toml`, `supabase/migrations/0006_explicit_base_grants.sql`(N18), `supabase/tests/01_rls_grants.sql`·`90_function_acl.sql`(현 0001~0006 보장 검증 + 미수정 구멍은 `todo`), `.github/workflows/db.yml`, `docs/qa/smoke-log.md`. 헬퍼 `pg_temp.act(role, uid, sql)` 로 역할을 바꿔 실행하고 결과(`ok:<행 수>` 또는 SQLSTATE)를 postgres 로 단언 | supabase-backend | T1 | 1~1.5 | PR 에서 `db-test` 녹색 |
 | T3 | 공통 모듈 (§6.1) + 타입 생성 연결 | frontend-dev | T0 | 1 | `as unknown as` 캐스트 제거, typecheck 통과 |
@@ -876,8 +890,8 @@ T10 (0011 이후), T12 (D-6) 는 병렬
 | R1 | 숨김 UPDATE 이벤트가 전달되지 않는다는 판단 | F6-7 설계 근거 | 소스 기반 추정 → T9 에서 실제 구독으로 1회 확인. 전달되더라도 이벤트 테이블 설계는 그대로 유효 | ○ |
 | R2 | 우리 프로젝트의 현재 기본 권한 상태, 그리고 **2026-10-30 강제 전환** 전후 동작 | 전환 이후 명시 grant 를 빠뜨린 객체는 기능이 깨짐 | §4.1 규약(항상 명시 grant) + S22 쿼리. T5~T9 가 전환일을 걸쳐 진행되므로 전환 직후 회귀 확인 1회 | 문서 ✅ / 프로젝트 상태 ❓ |
 | R3 | Preview 도메인의 Redirect URL 패턴 | Preview 에서 로그인 후 Production 으로 튐 | 규칙은 확인 ✅, 실제 등록값은 T13 에서 | ❓ |
-| R4 | 원격 DB 가 0001~0005 중 어디까지, 어떤 방식으로 적용됐는지 | §8 전체 순서 | T0 | ❓ |
-| R5 | 원격에 실사용자 데이터 존재 여부 | D-8, a/b 분할 필요성 | T0 | ❓ |
+| R4 | 원격 DB 가 0001~0005 중 어디까지, 어떤 방식으로 적용됐는지 | §8 전체 순서 | T0 | ✅ 해소 (2026-10-03): 0001~0003 은 CLI 이력 없이 적용돼 있었고(대시보드 등), 0004·0005 는 미적용이었다 → repair 후 0004~0006 적용 |
+| R5 | 원격에 실사용자 데이터 존재 여부 | D-8, a/b 분할 필요성 | T0 | ✅ 해소 (2026-10-03): 그룹·글·댓글·반응·채팅 0행(0002 의 공개 읽기 정책 상태에서 익명 count). 0008 a/b 분할 불필요. `auth.users` 수는 익명으로 확인 불가 |
 | R6 | advisory lock 기반 빈도 제한의 부하 | 채팅 폭주 시 지연 | 부하 테스트는 MVP 제외. 사용자 단위 잠금이라 사용자 간 경합 없음 ○ | ○ |
 | R7 | `sitemap.ts` 빌드 시 DB 호출 | CI 빌드 실패 | T1 에서 build 실행 | ○ |
 | R8 | `pg_cron` 사용 가능 여부 | F6-8 | 대시보드 확장 목록 | ❓ (베타 비차단) |

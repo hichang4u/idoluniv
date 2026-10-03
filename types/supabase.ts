@@ -14,6 +14,32 @@ export type Database = {
   }
   public: {
     Tables: {
+      admins: {
+        Row: {
+          created_at: string
+          note: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          note?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          note?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           author_id: string | null
@@ -384,6 +410,18 @@ export type Database = {
           },
         ]
       }
+      reserved_nicknames: {
+        Row: {
+          word: string
+        }
+        Insert: {
+          word: string
+        }
+        Update: {
+          word?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           avatar_url: string | null
@@ -392,6 +430,9 @@ export type Database = {
           email: string | null
           id: string
           nickname: string | null
+          nickname_changed_at: string | null
+          onboarded_at: string | null
+          terms_version: string | null
           updated_at: string
         }
         Insert: {
@@ -401,6 +442,9 @@ export type Database = {
           email?: string | null
           id: string
           nickname?: string | null
+          nickname_changed_at?: string | null
+          onboarded_at?: string | null
+          terms_version?: string | null
           updated_at?: string
         }
         Update: {
@@ -410,6 +454,9 @@ export type Database = {
           email?: string | null
           id?: string
           nickname?: string | null
+          nickname_changed_at?: string | null
+          onboarded_at?: string | null
+          terms_version?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -419,7 +466,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      change_nickname: { Args: { p_nickname: string }; Returns: string }
+      complete_onboarding: {
+        Args: {
+          p_age_over_14: boolean
+          p_agree_terms: boolean
+          p_nickname: string
+          p_terms_version: string
+        }
+        Returns: undefined
+      }
       get_or_create_chat_room: { Args: { p_group_id: string }; Returns: string }
+      get_viewer: {
+        Args: never
+        Returns: {
+          id: string
+          is_admin: boolean
+          nickname: string
+          nickname_changed_at: string
+          onboarded: boolean
+        }[]
+      }
       increment_view_count: { Args: { p_post_id: string }; Returns: undefined }
       toggle_comment_like: {
         Args: { p_comment_id: string; p_session_id: string }

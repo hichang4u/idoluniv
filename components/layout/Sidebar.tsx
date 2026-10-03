@@ -19,7 +19,7 @@ const navItems = [
   { href: "/board", label: "게시판", icon: ClipboardList },
   { href: "/groups", label: "아이돌 그룹", icon: Mic },
   { href: "/chat", label: "채팅", icon: Zap },
-  { href: "/profile", label: "마이페이지", icon: User },
+  { href: "/me", label: "마이", icon: User },
 ];
 
 export function Sidebar() {

@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getActiveGroupBySlug } from "@/lib/groups";
 import { PostCard } from "@/components/board/PostCard";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,37 +23,27 @@ import type { PostListItem } from "@/types/database";
 const PAGE_SIZE = 20;
 
 interface Props {
-  params: Promise<{ groupSlug: string }>;
+  params: Promise<{ slug: string }>;
   searchParams: Promise<{ page?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { groupSlug } = await params;
-  const supabase = await createClient();
-  const { data: group } = await supabase
-    .from("idol_groups")
-    .select("name")
-    .eq("slug", groupSlug)
-    .single();
-
+  const { slug } = await params;
+  const group = await getActiveGroupBySlug(slug);
   return { title: group ? `${group.name} 게시판` : "게시판" };
 }
 
 export default async function BoardPage({ params, searchParams }: Props) {
-  const { groupSlug } = await params;
+  const { slug } = await params;
   const { page: pageStr } = await searchParams;
   const page = Math.max(1, Number(pageStr) || 1);
   const from = (page - 1) * PAGE_SIZE;
 
-  const supabase = await createClient();
-
-  const { data: group } = await supabase
-    .from("idol_groups")
-    .select("id, name, slug, description")
-    .eq("slug", groupSlug)
-    .single();
-
+  // 레이아웃이 이미 확인했지만 페이지 단독 렌더에도 안전하도록 다시 확인한다(요청 내 캐시)
+  const group = await getActiveGroupBySlug(slug);
   if (!group) notFound();
+
+  const supabase = await createClient();
 
   const { data: postsData, count: totalCount } = await supabase
     .from("posts")
@@ -72,21 +63,16 @@ export default async function BoardPage({ params, searchParams }: Props) {
   const posts: PostListItem[] = postsData ?? [];
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4">
-      {/* 헤더 */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold">{group.name} 게시판</h1>
-          {group.description && (
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {group.description}
-            </p>
-          )}
-        </div>
+    <div className="space-y-4">
+      {/* 설명 + 글쓰기 (그룹 이름과 탭은 레이아웃) */}
+      <div className="flex items-center justify-between gap-3">
+        <p className="min-w-0 text-sm text-muted-foreground break-keep">
+          {group.description ?? `게시글 ${(totalCount ?? 0).toLocaleString()}개`}
+        </p>
         <Button
           size="sm"
           nativeButton={false}
-          render={<Link href={`/board/${groupSlug}/new`}>글쓰기</Link>}
+          render={<Link href={`/g/${slug}/write`}>글쓰기</Link>}
         />
       </div>
 
@@ -102,14 +88,14 @@ export default async function BoardPage({ params, searchParams }: Props) {
             <Button
               size="sm"
               nativeButton={false}
-              render={<Link href={`/board/${groupSlug}/new`}>첫 글 작성하기</Link>}
+              render={<Link href={`/g/${slug}/write`}>첫 글 작성하기</Link>}
             />
           </EmptyContent>
         </Empty>
       ) : (
         <ItemGroup className="gap-2">
           {posts.map((post) => (
-            <PostCard key={post.id} post={post} groupSlug={groupSlug} />
+            <PostCard key={post.id} post={post} groupSlug={slug} />
           ))}
         </ItemGroup>
       )}
@@ -126,7 +112,7 @@ export default async function BoardPage({ params, searchParams }: Props) {
                   nativeButton={false}
                   render={
                     <Link
-                      href={`/board/${groupSlug}?page=${page - 1}`}
+                      href={`/g/${slug}?page=${page - 1}`}
                       aria-label="이전 페이지"
                     />
                   }
@@ -149,7 +135,7 @@ export default async function BoardPage({ params, searchParams }: Props) {
                   nativeButton={false}
                   render={
                     <Link
-                      href={`/board/${groupSlug}?page=${page + 1}`}
+                      href={`/g/${slug}?page=${page + 1}`}
                       aria-label="다음 페이지"
                     />
                   }

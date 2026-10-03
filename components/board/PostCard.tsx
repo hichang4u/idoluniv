@@ -38,7 +38,7 @@ export function PostCard({ post, groupSlug }: PostCardProps) {
   return (
     <Item
       variant="outline"
-      render={<Link href={`/board/${groupSlug}/${post.id}`} />}
+      render={<Link href={`/g/${groupSlug}/posts/${post.id}`} />}
     >
       <ItemHeader>
         <div className="flex items-center gap-2">

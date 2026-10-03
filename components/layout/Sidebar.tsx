@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ClipboardList, Mic, Zap, User } from "lucide-react";
 
 import {
   Sidebar as SidebarRoot,
@@ -13,14 +12,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { NAV_ITEMS, isNavActive } from "@/lib/nav";
 
-const navItems = [
-  { href: "/", label: "홈", icon: Home },
-  { href: "/board", label: "게시판", icon: ClipboardList },
-  { href: "/groups", label: "아이돌 그룹", icon: Mic },
-  { href: "/chat", label: "채팅", icon: Zap },
-  { href: "/me", label: "마이", icon: User },
-];
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -31,9 +24,8 @@ export function Sidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map(({ href, label, icon: Icon }) => {
-                const isActive =
-                  href === "/" ? pathname === "/" : pathname.startsWith(href);
+              {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+                const isActive = isNavActive(href, pathname);
 
                 return (
                   <SidebarMenuItem key={href}>

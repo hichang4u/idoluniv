@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { LIMITS } from "@/lib/limits";
 
@@ -14,34 +14,11 @@ async function requireUserId(supabase: Awaited<ReturnType<typeof createClient>>)
   return userId;
 }
 
-async function getGroupSlugByPostId(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  postId: string
-) {
-  const { data: post } = await supabase
-    .from("posts")
-    .select("idol_group_id")
-    .eq("id", postId)
-    .single();
-
-  const groupId = post?.idol_group_id;
-  if (!groupId) return null;
-
-  const { data: group } = await supabase
-    .from("idol_groups")
-    .select("slug")
-    .eq("id", groupId)
-    .single();
-
-  return group?.slug ?? null;
-}
-
 export async function createComment(formData: FormData) {
   const supabase = await createClient();
   const userId = await requireUserId(supabase);
 
   const postId = formData.get("postId") as string;
-  const groupSlug = formData.get("groupSlug") as string;
   const parentId = (formData.get("parentId") as string) || null;
   const content = (formData.get("content") as string)?.trim();
 
@@ -57,15 +34,13 @@ export async function createComment(formData: FormData) {
 
   if (error) return { error: "댓글 저장에 실패했습니다." };
 
-  revalidatePath(`/board/${groupSlug}/${postId}`);
+  // 지금 보고 있는 상세 화면을 다시 그린다. 클라이언트가 보낸 slug 로 경로를 만들지 않는다 (N2)
+  refresh();
 }
 
-export async function deleteComment(commentId: string, postId: string) {
+export async function deleteComment(commentId: string) {
   const supabase = await createClient();
   const userId = await requireUserId(supabase);
-
-  const groupSlug = await getGroupSlugByPostId(supabase, postId);
-  if (!groupSlug) return { error: "게시글을 찾을 수 없습니다." };
 
   const { error } = await supabase
     .from("comments")
@@ -75,5 +50,6 @@ export async function deleteComment(commentId: string, postId: string) {
 
   if (error) return { error: "댓글 삭제에 실패했습니다." };
 
-  revalidatePath(`/board/${groupSlug}/${postId}`);
+  // 지금 보고 있는 상세 화면을 다시 그린다. 클라이언트가 보낸 slug 로 경로를 만들지 않는다 (N2)
+  refresh();
 }

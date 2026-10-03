@@ -57,8 +57,8 @@ export async function createPost(_prevState: unknown, formData: FormData) {
   if (error) return { error: "게시글 저장에 실패했습니다." };
   if (!post?.id) return { error: "게시글 저장에 실패했습니다." };
 
-  revalidatePath(`/board/${groupSlug}`);
-  redirect(`/board/${groupSlug}/${post.id}`);
+  revalidatePath(`/g/${groupSlug}`);
+  redirect(`/g/${groupSlug}/posts/${post.id}`);
 }
 
 export async function updatePost(_prevState: unknown, formData: FormData) {
@@ -88,8 +88,8 @@ export async function updatePost(_prevState: unknown, formData: FormData) {
 
   if (error) return { error: "게시글 수정에 실패했습니다." };
 
-  revalidatePath(`/board/${groupSlug}/${postId}`);
-  redirect(`/board/${groupSlug}/${postId}`);
+  revalidatePath(`/g/${groupSlug}/posts/${postId}`);
+  redirect(`/g/${groupSlug}/posts/${postId}`);
 }
 
 export async function deletePost(postId: string, groupSlug: string) {
@@ -104,8 +104,8 @@ export async function deletePost(postId: string, groupSlug: string) {
 
   if (error) return { error: "게시글 삭제에 실패했습니다." };
 
-  revalidatePath(`/board/${groupSlug}`);
-  redirect(`/board/${groupSlug}`);
+  revalidatePath(`/g/${groupSlug}`);
+  redirect(`/g/${groupSlug}`);
 }
 
 export async function incrementViewCount(postId: string) {

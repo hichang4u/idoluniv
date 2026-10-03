@@ -6,9 +6,8 @@ const PROTECTED_PATHS = [
   /^\/me(\/|$)/,
   /^\/onboarding(\/|$)/,
   /^\/admin(\/|$)/,
-  // 라우트 이전(/g/…) 전까지의 글쓰기·수정 경로
-  /^\/board\/[^/]+\/new$/,
-  /^\/board\/[^/]+\/[^/]+\/edit$/,
+  /^\/g\/[^/]+\/write$/,
+  /^\/g\/[^/]+\/posts\/[^/]+\/edit$/,
 ];
 
 export async function updateSession(request: NextRequest) {

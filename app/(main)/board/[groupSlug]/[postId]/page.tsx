@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/server";
 import { CommentSection } from "@/components/board/CommentSection";
 import { PostActions } from "@/components/board/PostActions";
 import { Button } from "@/components/ui/button";
-import type { PostWithRelations } from "@/types/database";
 import { incrementViewCount } from "@/app/actions/post";
 import { getPostReactions } from "@/app/actions/reaction";
 import { ChevronLeft, Pencil, Eye } from "lucide-react";
@@ -54,8 +53,6 @@ export default async function PostDetailPage({ params }: Props) {
 
   if (!post || post.is_hidden) notFound();
 
-  const typedPost = post as unknown as PostWithRelations;
-
   // 조회수 증가 + 반응 상태 (병렬)
   const [reactions] = await Promise.all([
     getPostReactions(postId),
@@ -70,25 +67,25 @@ export default async function PostDetailPage({ params }: Props) {
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         <ChevronLeft className="size-4" />
-        {typedPost.idol_group?.name ?? "게시판"} 목록
+        {post.idol_group?.name ?? "게시판"} 목록
       </Link>
 
       {/* 게시글 본문 */}
       <article className="rounded-xl border border-border bg-card p-6 space-y-4">
         {/* 제목 + 메타 */}
         <div className="space-y-2">
-          <h1 className="text-xl font-bold leading-snug">{typedPost.title}</h1>
+          <h1 className="text-xl font-bold leading-snug">{post.title}</h1>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <div className="flex items-center gap-3">
               <span className="font-medium text-foreground">
-                {typedPost.author?.nickname ?? "익명"}
+                {post.author?.nickname ?? "익명"}
               </span>
-              <span>{formatDate(typedPost.created_at)}</span>
+              <span>{formatDate(post.created_at)}</span>
             </div>
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">
                 <Eye className="size-3" />
-                {typedPost.view_count.toLocaleString()}
+                {post.view_count.toLocaleString()}
               </span>
             </div>
           </div>
@@ -98,14 +95,14 @@ export default async function PostDetailPage({ params }: Props) {
 
         {/* 본문 */}
         <div className="prose prose-sm prose-invert max-w-none whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-          {typedPost.content}
+          {post.content}
         </div>
 
         {/* 반응 + 작성자 액션 */}
         <div className="flex items-center justify-between pt-2">
           <PostActions
-            postId={typedPost.id}
-            initialLikeCount={typedPost.like_count}
+            postId={post.id}
+            initialLikeCount={post.like_count}
             initialLiked={reactions.liked}
             initialScrapped={reactions.scrapped}
           />

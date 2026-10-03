@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { LIMITS } from "@/lib/limits";
 
 async function getOrCreateSessionId(): Promise<string> {
   const cookieStore = await cookies();
@@ -26,7 +27,7 @@ export async function getOrCreateChatRoom(groupId: string): Promise<string | nul
   });
 
   if (error) return null;
-  return (data as string | null) ?? null;
+  return data ?? null;
 }
 
 export async function sendMessage(formData: FormData): Promise<{ error: string | null }> {
@@ -35,7 +36,7 @@ export async function sendMessage(formData: FormData): Promise<{ error: string |
   const nickname = ((formData.get("nickname") as string)?.trim() || "익명").slice(0, 20);
 
   if (!roomId || !content) return { error: "내용을 입력해주세요." };
-  if (content.length > 500) return { error: "500자 이내로 입력해주세요." };
+  if (content.length > LIMITS.chat) return { error: `${LIMITS.chat}자 이내로 입력해주세요.` };
 
   const sessionId = await getOrCreateSessionId();
   const supabase = await createClient();

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { PostType } from "@/types/database";
+import { LIMITS } from "@/lib/limits";
 
 async function requireUserId(supabase: Awaited<ReturnType<typeof createClient>>) {
   const {
@@ -29,8 +30,8 @@ export async function createPost(_prevState: unknown, formData: FormData) {
   if (!groupSlug || !title || !content) {
     return { error: "제목과 내용을 입력해주세요." };
   }
-  if (title.length > 100) {
-    return { error: "제목은 100자 이내로 입력해주세요." };
+  if (title.length > LIMITS.postTitle) {
+    return { error: `제목은 ${LIMITS.postTitle}자 이내로 입력해주세요.` };
   }
 
   const { data: group } = await supabase

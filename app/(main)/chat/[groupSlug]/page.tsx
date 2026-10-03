@@ -5,7 +5,6 @@ import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateChatRoom } from "@/app/actions/chat";
 import { ChatRoom } from "@/components/chat/ChatRoom";
-import type { ChatMessage, IdolGroup } from "@/types/database";
 
 interface Props {
   params: Promise<{ groupSlug: string }>;
@@ -35,8 +34,7 @@ export default async function ChatRoomPage({ params }: Props) {
 
   if (!group) notFound();
 
-  const typedGroup = group as IdolGroup;
-  const roomId = await getOrCreateChatRoom(typedGroup.id);
+  const roomId = await getOrCreateChatRoom(group.id);
 
   if (!roomId) notFound();
 
@@ -49,7 +47,7 @@ export default async function ChatRoomPage({ params }: Props) {
     .order("created_at", { ascending: false })
     .limit(50);
 
-  const initialMessages = ((messages ?? []) as ChatMessage[]).reverse();
+  const initialMessages = (messages ?? []).reverse();
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col" style={{ height: "calc(100vh - 9rem)" }}>
@@ -63,18 +61,18 @@ export default async function ChatRoomPage({ params }: Props) {
           채팅 목록
         </Link>
         <div className="flex items-center gap-2 ml-auto">
-          {typedGroup.cover_url ? (
+          {group.cover_url ? (
             <img
-              src={typedGroup.cover_url}
-              alt={typedGroup.name}
+              src={group.cover_url}
+              alt={group.name}
               className="size-6 rounded object-cover"
             />
           ) : (
             <div className="size-6 rounded bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center text-xs font-bold text-primary">
-              {typedGroup.name[0]}
+              {group.name[0]}
             </div>
           )}
-          <span className="text-sm font-semibold">{typedGroup.name}</span>
+          <span className="text-sm font-semibold">{group.name}</span>
         </div>
       </div>
 

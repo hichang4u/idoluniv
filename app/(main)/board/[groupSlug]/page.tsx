@@ -17,7 +17,7 @@ import {
   PaginationContent,
   PaginationItem,
 } from "@/components/ui/pagination";
-import type { PostWithRelations } from "@/types/database";
+import type { PostListItem } from "@/types/database";
 
 const PAGE_SIZE = 20;
 
@@ -69,7 +69,7 @@ export default async function BoardPage({ params, searchParams }: Props) {
     .range(from, from + PAGE_SIZE - 1);
 
   const totalPages = Math.ceil((totalCount ?? 0) / PAGE_SIZE);
-  const posts = (postsData ?? []) as unknown as PostWithRelations[];
+  const posts: PostListItem[] = postsData ?? [];
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">

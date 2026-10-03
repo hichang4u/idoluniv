@@ -10,7 +10,7 @@ import {
   ItemHeader,
   ItemTitle,
 } from "@/components/ui/item";
-import type { PostWithRelations } from "@/types/database";
+import type { PostListItem } from "@/types/database";
 
 function formatDate(iso: string) {
   const d = new Date(iso);
@@ -30,7 +30,7 @@ const POST_TYPE_LABEL: Record<string, string> = {
 };
 
 interface PostCardProps {
-  post: PostWithRelations;
+  post: PostListItem;
   groupSlug: string;
 }
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { MessageCircle, Trash2 } from "lucide-react";
 import { deleteComment } from "@/app/actions/comment";
 import { CommentForm } from "@/components/board/CommentForm";
-import type { Comment } from "@/types/database";
+import type { CommentWithAuthor } from "@/types/database";
 
 function formatDate(iso: string) {
   const d = new Date(iso);
@@ -17,7 +17,7 @@ function formatDate(iso: string) {
 }
 
 interface CommentItemProps {
-  comment: Comment & { replies?: Comment[] };
+  comment: CommentWithAuthor;
   postId: string;
   isReply?: boolean;
 }

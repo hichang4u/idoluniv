@@ -70,3 +70,4 @@ select has_column_privilege('anon', 'public.users', 'email', 'SELECT') as anon_e
 | 날짜 | 적용한 마이그레이션 | S22 | 권한 표 | email | 로그인·글·좋아요 | 라운지 | 비고 |
 |---|---|---|---|---|---|---|---|
 | 2026-10-03 | 0004·0005·0006 (0001~0003 은 이력 repair) | 대기 — 대시보드 실행 필요 | 대기 | 익명 401 ✅ (API) | 해당 없음 — 그룹 0개, 앱 미배포 | 해당 없음 — 그룹 0개 | 백업 생략(Docker 없음, 콘텐츠 0행). 익명 API 확인: 글쓰기·like_count 수정 401, RPC 생성됨 |
+| 2026-10-03 | 0007 | — (anon 허용 목록 변화 없음) | — | — | 해당 없음 — 앱 미배포 | 해당 없음 | 사전 점검: 원격 사용자 1명, 닉네임 null(형식 위반·대소문자 중복 0). 익명 API: `get_viewer`·`complete_onboarding` 401, `users` 직접 수정·`onboarded_at` 조회 401, `admins` 401, 공개 컬럼 200 |

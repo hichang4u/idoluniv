@@ -70,7 +70,7 @@ select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b2',
   $q$update public.fan_profiles set favorite_group = '00000000-0000-0000-0000-0000000000a1' where user_id = '00000000-0000-0000-0000-0000000000b1'$q$),
   'ok:0', '남의 fan_profiles 는 바꿀 수 없다 (RLS 로 0행)');
 
-select todo('S4: 닉네임은 RPC 로만 바꿀 수 있어야 한다 — 0007(온보딩)에서 users UPDATE 회수', 1);
+-- S4: 0007 에서 users UPDATE 회수
 select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b1',
   $q$update public.users set nickname = 'renamed' where id = '00000000-0000-0000-0000-0000000000b1'$q$),
   '42501', 'S4 users.nickname 직접 수정 거부');

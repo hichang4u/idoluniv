@@ -128,10 +128,10 @@ select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b1',
 
 -- ── reactions ───────────────────────────────────────────────
 select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b1',
-  $q$insert into public.reactions (session_id, target_type, target_id, reaction_type) values (gen_random_uuid(), 'post', '00000000-0000-0000-0000-0000000000c1', 'like')$q$),
+  $q$insert into public.reactions (user_id, target_type, target_id, reaction_type) values ('00000000-0000-0000-0000-0000000000b1', 'post', '00000000-0000-0000-0000-0000000000c1', 'like')$q$),
   '42501', 'reactions 는 직접 쓸 수 없다 (0004)');
 
-select todo('S2: reactions 는 본인 행만 보여야 한다 — 0008(반응·조회수)', 1);
+-- S2: 0008 에서 공개 읽기 제거, 본인 행만
 select is(pg_temp.act('anon', null, $q$select id from public.reactions$q$),
   '42501', 'S2 anon 은 reactions 를 읽을 수 없다');
 

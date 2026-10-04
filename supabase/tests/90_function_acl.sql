@@ -26,12 +26,16 @@ select is_empty(
 select ok(has_function_privilege('anon', 'public.get_or_create_chat_room(uuid)', 'EXECUTE'),
   'anon 은 get_or_create_chat_room 을 실행할 수 있다 (0004)');
 
-select todo('S1·S22: session_id 를 믿는 toggle_*·increment_view_count 를 anon 이 실행할 수 있다 — 0008 에서 회수', 2);
+-- S1·S22: 0008 에서 toggle_* 를 auth.uid() 기반으로 바꾸고 anon EXECUTE 회수
 select set_eq('select fn from anon_definer_functions',
-  array['get_or_create_chat_room(uuid)'],
+  array['get_or_create_chat_room(uuid)', 'record_post_view(uuid,uuid)'],
   'S22 anon 이 실행할 수 있는 security definer 함수는 허용 목록뿐이다');
-select ok(not has_function_privilege('anon', 'public.toggle_post_like(uuid, uuid)', 'EXECUTE'),
-  'S1 anon 은 toggle_post_like(uuid, uuid) 를 실행할 수 없다');
+select ok(not has_function_privilege('anon', 'public.toggle_post_like(uuid)', 'EXECUTE'),
+  'S1 anon 은 toggle_post_like 를 실행할 수 없다');
+select hasnt_function('public', 'toggle_post_like', array['uuid', 'uuid'],
+  'session_id 를 받던 옛 toggle_post_like(uuid, uuid) 는 남아 있지 않다');
+select hasnt_function('public', 'increment_view_count', array['uuid'],
+  '중복 제거 없던 increment_view_count 는 남아 있지 않다');
 
 select * from finish();
 rollback;

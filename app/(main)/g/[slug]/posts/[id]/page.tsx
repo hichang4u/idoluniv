@@ -5,8 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { CommentSection } from "@/components/board/CommentSection";
 import { PostActions } from "@/components/board/PostActions";
 import { Button } from "@/components/ui/button";
-import { incrementViewCount } from "@/app/actions/post";
-import { getPostReactions } from "@/app/actions/reaction";
+import { getPostReactions, recordPostView } from "@/app/actions/reaction";
 import { ChevronLeft, Pencil, Eye } from "lucide-react";
 import { DeletePostButton } from "@/components/board/DeletePostButton";
 
@@ -60,7 +59,8 @@ export default async function PostDetailPage({ params }: Props) {
   // 조회수 증가 + 반응 상태 (병렬)
   const [reactions] = await Promise.all([
     getPostReactions(postId),
-    incrementViewCount(postId),
+    // 24시간 중복 제거는 DB(record_post_view)가 한다 (F3-7)
+    recordPostView(postId),
   ]);
 
   return (

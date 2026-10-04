@@ -10,7 +10,15 @@ const PROTECTED_PATHS = [
   /^\/g\/[^/]+\/posts\/[^/]+\/edit$/,
 ];
 
+// 비로그인 조회수 중복 제거용 무작위 식별자 (AD-7). 신원 증명으로 쓰지 않는다.
+// 서버 컴포넌트는 쿠키를 설정할 수 없으므로 proxy 가 발급한다. 첫 요청부터 쓰이도록 요청에도 넣는다.
+const VID_COOKIE = "vid";
+const VID_MAX_AGE = 60 * 60 * 24 * 365;
+
 export async function updateSession(request: NextRequest) {
+  const newVid = request.cookies.get(VID_COOKIE) ? null : crypto.randomUUID();
+  if (newVid) request.cookies.set(VID_COOKIE, newVid);
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient<Database>(
@@ -50,6 +58,16 @@ export async function updateSession(request: NextRequest) {
     // 갱신된 세션 쿠키를 리다이렉트 응답에도 싣는다
     supabaseResponse.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
     return redirect;
+  }
+
+  if (newVid) {
+    supabaseResponse.cookies.set(VID_COOKIE, newVid, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: VID_MAX_AGE,
+      path: "/",
+    });
   }
 
   return supabaseResponse;

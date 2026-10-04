@@ -107,8 +107,3 @@ export async function deletePost(postId: string, groupSlug: string) {
   revalidatePath(`/g/${groupSlug}`);
   redirect(`/g/${groupSlug}`);
 }
-
-export async function incrementViewCount(postId: string) {
-  const supabase = await createClient();
-  await supabase.rpc("increment_view_count", { p_post_id: postId }).maybeSingle();
-}

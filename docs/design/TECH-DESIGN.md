@@ -61,8 +61,8 @@ SQL 은 전부 **초안**이다. 문법·동작을 실제 DB 에서 실행해 �
 | N7 | 댓글 `parent_id` 검증 없음 — 다른 글의 댓글을 부모로 지정하거나 무한 깊이 가능 | `0002`, `0004` comments insert 정책 | F4-2 위반, 트리 렌더 누락 | ✅ |
 | N8 | `users.nickname` 을 본인이 PostgREST 로 직접 PATCH 가능(형식·쿨다운 검사 없음) | `0004:44-46` (`grant update (nickname, …)`) | F1-4·F1-5 를 앱에서만 검사하면 우회됨 | ✅ |
 | N9 | `updated_at` 을 클라이언트가 임의 값으로 쓸 수 있음 | `0005:25-26,33-34`, `post.ts:83` | "수정됨" 표시(F3-8) 위조 | ✅ |
-| N10 | `toggle_*` 경쟁 조건: 동시 2회 호출 시 둘 다 "없음"으로 보고 `+1` 두 번 (insert 는 `on conflict do nothing`) | `0002:93-122` | `like_count` 가 실제 행 수와 어긋남 | ○ (코드 경로상 가능, 재현 안 함) |
-| N11 | 쿠키를 처음 발급하는 Server Action(`togglePostLike`, `sendMessage`)은 Next 규칙상 **현재 페이지를 재렌더** → 상세 페이지면 `incrementViewCount` 가 한 번 더 실행 | `reaction.ts:10`, `chat.ts:11`; Next 문서 `07-mutating-data.md:505` | 조회수 이중 증가. D-1=A 로 쿠키 식별을 없애면 사라짐 | 문서 ✅ / 증상 ○ |
+| N10 | `toggle_*` 경쟁 조건: 동시 2회 호출 시 둘 다 "없음"으로 보고 `+1` 두 번 (insert 는 `on conflict do nothing`) | `0002:93-122` | `like_count` 가 실제 행 수와 어긋남 | ○ (코드 경로상 가능, 재현 안 함) — **수정됨 (0008, 대상 행 잠금 + delete 결과 분기)** |
+| N11 | 쿠키를 처음 발급하는 Server Action(`togglePostLike`, `sendMessage`)은 Next 규칙상 **현재 페이지를 재렌더** → 상세 페이지면 `incrementViewCount` 가 한 번 더 실행 | `reaction.ts:10`, `chat.ts:11`; Next 문서 `07-mutating-data.md:505` | 조회수 이중 증가. D-1=A 로 쿠키 식별을 없애면 사라짐 | 문서 ✅ / 증상 ○ — **해소 (T5-B, 쿠키를 발급하는 액션이 없어짐. `vid` 는 proxy 가 발급)** |
 | N12 | 로컬에 `.env*` 파일이 없음 | 저장소 루트 `ls -a` | 이 PC 에서 앱 실행 불가(다른 위치 보관 여부 ❓) | ✅ |
 | N13 | Sidebar 의 `/groups` 링크 → 404 | `Sidebar.tsx:20` | `/profile` 과 같은 문제 | ✅ — **수정됨 (T4-C, 내비 `/g`, 옛 `/groups` 는 리다이렉트)** |
 | N14 | `LoginForm` 이 OAuth 오류를 처리하지 않고, 복귀할 `next` 를 넘기지 않음 | `LoginForm.tsx:19-28` | F1-2 미충족 | ✅ |
@@ -836,7 +836,7 @@ PRD F1~F9 수용 기준표를 그대로 체크리스트로 쓴다(`qa-reviewer`)
 | T2 | `supabase init` + pgTAP 테스트 + CI `db-test` 잡 + 운영 스모크 절차 — **작성됨 (2026-10-03, 브랜치 `test/db-security`)**: `supabase/config.toml`, `supabase/migrations/0006_explicit_base_grants.sql`(N18), `supabase/tests/01_rls_grants.sql`·`90_function_acl.sql`(현 0001~0006 보장 검증 + 미수정 구멍은 `todo`), `.github/workflows/db.yml`, `docs/qa/smoke-log.md`. 헬퍼 `pg_temp.act(role, uid, sql)` 로 역할을 바꿔 실행하고 결과(`ok:<행 수>` 또는 SQLSTATE)를 postgres 로 단언 | supabase-backend | T1 | 1~1.5 | PR 에서 `db-test` 녹색 |
 | T3 | 공통 모듈 (§6.1) + 타입 생성 연결 — **완료 (2026-10-03, 브랜치 `feat/t3-common`)**: `types/supabase.ts`(원격에서 `gen types`, Docker 불필요 ✅), `types/database.ts` 를 생성 타입에서 파생(`PostListItem`·`CommentWithAuthor` 조회 모양 포함), 서버·브라우저·proxy 클라이언트에 `<Database>`, DB 조회 캐스트 9곳 제거(남은 `as unknown as` 0), `lib/limits.ts`·`lib/safe-next.ts`·`lib/action-result.ts`. auth 콜백에 `safeNext` 적용 + 기본 `next` 를 `/` 로(N1·P0-5 해소, 13개 입력으로 확인). **넘긴 것**: `lib/viewer.ts`(0007 `get_viewer` 필요) → T4, `lib/nav.ts`(새 경로 필요) → T4, FormData 캐스트 → 각 Server Action 재작성(T4~T7) | frontend-dev | T0 | 1 | `as unknown as` 캐스트 제거, typecheck 통과 |
 | T4 | 단계 1: 0007 + 온보딩·로그인 흐름·`/me` 최소판·라우트 이전(§6.5)·proxy — **A 완료**(0007 + pgTAP, 원격 적용 2026-10-03), **B 완료**(`lib/viewer.ts`, `app/actions/auth.ts`, `/onboarding`, `/me` 최소판, 콜백 온보딩 분기, 로그인 `next`·공급자 환경변수, 로그아웃 303, proxy 보호 경로), **C 완료**(`/g/[slug]`·`lounge`·`write`·`posts/[id]`(`/edit`) 이전, 그룹 레이아웃·탭, `next.config.ts` 영구 리다이렉트 9개, `lib/nav.ts` 3칸, proxy 경로 갱신 — 모바일 하단 탭바는 T11) | 둘 다 | T0, T3 | 2~3 | F1-1~F1-5, S4~S6, S23 |
-| T5 | 단계 2: 반응·조회수 (0008a/b) | 둘 다 | T4 | 1.5 | F5, F3-7, S1·S2·S15·S16 |
+| T5 | 단계 2: 반응·조회수 (0008) — **완료 (2026-10-04)**: A(0008 + `20_reactions_views.sql`, 원격 적용), B(`app/actions/reaction.ts` 를 `ActionResult`·`auth.uid()` 기반으로, `recordPostView` + proxy `vid` 쿠키, `PostActions` 가 로그인·온보딩 필요 시 해당 화면으로 이동). 계획의 a/b 분할은 원격 데이터 0행(R5)이라 하지 않음. 조회 기록은 `after()` 대신 렌더 중 `Promise.all` 로 호출(`after` 콜백 안의 쿠키 접근 제약을 피함) | 둘 다 | T4 | 1.5 | F5, F3-7, S1·S2·S15·S16 |
 | T6 | 단계 3: 게시글·댓글 무결성 (0009a/b) + 소유자 UI + 상세 개선(N2~N5, N15, N16) | 둘 다 | T4 | 3 | F2·F3·F4, S7~S12 |
 | T7 | 단계 4: 채팅 (0010) + 연결 관리·재연결 보정 | 둘 다 | T4 | 2 | F6-1~F6-6, S13·S14 |
 | T8 | 단계 5: 신고 (0011 일부) + 신고 UI | 둘 다 | T6, T7 | 2~3 | F7, S17·S18 |

@@ -312,6 +312,32 @@ export type Database = {
           },
         ]
       }
+      post_views: {
+        Row: {
+          post_id: string
+          viewed_at: string
+          viewer_key: string
+        }
+        Insert: {
+          post_id: string
+          viewed_at?: string
+          viewer_key: string
+        }
+        Update: {
+          post_id?: string
+          viewed_at?: string
+          viewer_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_views_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           author_id: string | null
@@ -377,28 +403,25 @@ export type Database = {
           created_at: string
           id: string
           reaction_type: string
-          session_id: string
           target_id: string
           target_type: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           reaction_type: string
-          session_id: string
           target_id: string
           target_type: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
           id?: string
           reaction_type?: string
-          session_id?: string
           target_id?: string
           target_type?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -487,19 +510,25 @@ export type Database = {
           onboarded: boolean
         }[]
       }
-      increment_view_count: { Args: { p_post_id: string }; Returns: undefined }
+      record_post_view: {
+        Args: { p_anon_key?: string; p_post_id: string }
+        Returns: undefined
+      }
       toggle_comment_like: {
-        Args: { p_comment_id: string; p_session_id: string }
-        Returns: boolean
+        Args: { p_comment_id: string }
+        Returns: {
+          like_count: number
+          liked: boolean
+        }[]
       }
       toggle_post_like: {
-        Args: { p_post_id: string; p_session_id: string }
-        Returns: boolean
+        Args: { p_post_id: string }
+        Returns: {
+          like_count: number
+          liked: boolean
+        }[]
       }
-      toggle_post_scrap: {
-        Args: { p_post_id: string; p_session_id: string }
-        Returns: boolean
-      }
+      toggle_post_scrap: { Args: { p_post_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

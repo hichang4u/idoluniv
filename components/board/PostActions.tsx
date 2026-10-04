@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Heart, Bookmark } from "lucide-react";
 import { togglePostLike, togglePostScrap } from "@/app/actions/reaction";
 import { cn } from "@/lib/utils";
+import type { ErrorCode } from "@/lib/action-result";
 
 interface PostActionsProps {
   postId: string;
@@ -23,6 +25,17 @@ export function PostActions({
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [likePending, startLikeTransition] = useTransition();
   const [scrapPending, startScrapTransition] = useTransition();
+  const [message, setMessage] = useState<string | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // 로그인·온보딩이 필요하면 그 화면으로 보내고, 아니면 안내 문구를 보여 준다
+  const handleFailure = (code: ErrorCode, text: string) => {
+    const next = encodeURIComponent(pathname);
+    if (code === "AUTH_REQUIRED") router.push(`/login?next=${next}`);
+    else if (code === "ONBOARDING_REQUIRED") router.push(`/onboarding?next=${next}`);
+    else setMessage(text);
+  };
 
   const handleLike = () => {
     // Optimistic update
@@ -30,15 +43,16 @@ export function PostActions({
     setLiked(nextLiked);
     setLikeCount((c) => (nextLiked ? c + 1 : Math.max(c - 1, 0)));
 
+    setMessage(null);
     startLikeTransition(async () => {
-      try {
-        const result = await togglePostLike(postId);
-        setLiked(result.liked);
-        setLikeCount(result.likeCount);
-      } catch {
-        // rollback
+      const result = await togglePostLike(postId);
+      if (result.ok) {
+        setLiked(result.data.liked);
+        setLikeCount(result.data.likeCount);
+      } else {
         setLiked(liked);
         setLikeCount(likeCount);
+        handleFailure(result.code, result.message);
       }
     });
   };
@@ -47,18 +61,20 @@ export function PostActions({
     const nextScrapped = !scrapped;
     setScrapped(nextScrapped);
 
+    setMessage(null);
     startScrapTransition(async () => {
-      try {
-        const result = await togglePostScrap(postId);
-        setScrapped(result.scrapped);
-      } catch {
+      const result = await togglePostScrap(postId);
+      if (result.ok) {
+        setScrapped(result.data.scrapped);
+      } else {
         setScrapped(scrapped);
+        handleFailure(result.code, result.message);
       }
     });
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <button
         type="button"
         onClick={handleLike}
@@ -88,6 +104,11 @@ export function PostActions({
         <Bookmark className={cn("size-3.5", scrapped && "fill-current")} />
         {scrapped ? "스크랩됨" : "스크랩"}
       </button>
+      {message && (
+        <p role="alert" className="w-full text-xs text-destructive">
+          {message}
+        </p>
+      )}
     </div>
   );
 }

@@ -39,6 +39,9 @@ insert into public.idol_groups (id, name, slug, is_active) values
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000b1', 'u1@test.local'),
   ('00000000-0000-0000-0000-0000000000b2', 'u2@test.local');
+-- 쓰기에는 온보딩이 필요하다(0007·0009). 여기서는 온보딩을 마친 상태로 둔다
+update public.users set nickname = 'user_one', onboarded_at = now() where id = '00000000-0000-0000-0000-0000000000b1';
+update public.users set nickname = 'user_two', onboarded_at = now() where id = '00000000-0000-0000-0000-0000000000b2';
 
 -- 글: P1 (U1, 공개), P2 (U1, 숨김)
 insert into public.posts (id, author_id, idol_group_id, title, content) values
@@ -107,7 +110,7 @@ select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b2',
   $q$delete from public.posts where id = '00000000-0000-0000-0000-0000000000c1'$q$),
   'ok:0', '남의 글은 삭제되지 않는다 (RLS 로 0행)');
 
-select todo('S8: 글 무결성 — 0009(게시글·댓글 무결성)에서 길이 CHECK·활성 그룹·유형 제한', 3);
+-- S8: 0009 에서 길이 CHECK·활성 그룹·유형 제한
 select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b1',
   $q$insert into public.posts (author_id, idol_group_id, title, content) values ('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-0000000000a1', repeat('가', 101), 'b')$q$),
   '23514', 'S8 제목 101자 거부');

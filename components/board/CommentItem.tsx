@@ -27,7 +27,7 @@ export function CommentItem({ comment, postId, isReply = false }: CommentItemPro
 
   const handleDelete = async () => {
     if (!confirm("댓글을 삭제하시겠습니까?")) return;
-    await deleteComment(comment.id, postId);
+    await deleteComment(comment.id);
   };
 
   return (

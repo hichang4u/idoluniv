@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
@@ -21,11 +21,11 @@ function formatDate(iso: string) {
 }
 
 interface Props {
-  params: Promise<{ groupSlug: string; postId: string }>;
+  params: Promise<{ slug: string; id: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { postId } = await params;
+  const { id: postId } = await params;
   const supabase = await createClient();
   const { data: post } = await supabase
     .from("posts")
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function PostDetailPage({ params }: Props) {
-  const { groupSlug, postId } = await params;
+  const { slug: groupSlug, id: postId } = await params;
   const supabase = await createClient();
 
   const { data: post } = await supabase
@@ -52,6 +52,10 @@ export default async function PostDetailPage({ params }: Props) {
     .single();
 
   if (!post || post.is_hidden) notFound();
+  // URL 의 그룹과 글의 실제 그룹이 다르면 정식 주소로 보낸다 (N5)
+  if (post.idol_group && post.idol_group.slug !== groupSlug) {
+    redirect(`/g/${post.idol_group.slug}/posts/${postId}`);
+  }
 
   // 조회수 증가 + 반응 상태 (병렬)
   const [reactions] = await Promise.all([
@@ -60,10 +64,10 @@ export default async function PostDetailPage({ params }: Props) {
   ]);
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* 뒤로가기 */}
       <Link
-        href={`/board/${groupSlug}`}
+        href={`/g/${groupSlug}`}
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         <ChevronLeft className="size-4" />
@@ -107,7 +111,7 @@ export default async function PostDetailPage({ params }: Props) {
             initialScrapped={reactions.scrapped}
           />
           <div className="flex items-center gap-2">
-            <Link href={`/board/${groupSlug}/${postId}/edit`}>
+            <Link href={`/g/${groupSlug}/posts/${postId}/edit`}>
               <Button variant="ghost" size="sm" className="gap-1">
                 <Pencil className="size-3.5" />
                 수정

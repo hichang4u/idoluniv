@@ -15,9 +15,9 @@ import {
   ItemTitle,
 } from "@/components/ui/item";
 
-export const metadata: Metadata = { title: "게시판" };
+export const metadata: Metadata = { title: "그룹" };
 
-export default async function BoardIndexPage() {
+export default async function GroupsPage() {
   const supabase = await createClient();
   const { data: groups } = await supabase
     .from("idol_groups")
@@ -29,7 +29,7 @@ export default async function BoardIndexPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
-      <h1 className="text-xl font-bold">게시판</h1>
+      <h1 className="text-xl font-bold">그룹</h1>
 
       {typedGroups.length === 0 ? (
         <Empty>
@@ -43,7 +43,7 @@ export default async function BoardIndexPage() {
             <Item
               key={group.id}
               variant="outline"
-              render={<Link href={`/board/${group.slug}`} />}
+              render={<Link href={`/g/${group.slug}`} />}
             >
               <ItemMedia variant="image">
                 <Avatar className="size-10 rounded-sm">

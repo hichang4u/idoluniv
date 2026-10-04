@@ -81,10 +81,10 @@ select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b2',
   $q$insert into public.comments (post_id, parent_id, author_id, content) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000d2', '00000000-0000-0000-0000-0000000000b2', 'x')$q$),
   'P0001:INVALID_PARENT', 'S10 다른 글의 댓글을 부모로 지정할 수 없다');
 select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b2',
-  $q$insert into public.comments (id, post_id, parent_id, author_id, content) values ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000d1', '00000000-0000-0000-0000-0000000000b2', 'reply')$q$),
+  $q$insert into public.comments (post_id, parent_id, author_id, content) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000d1', '00000000-0000-0000-0000-0000000000b2', 'reply')$q$),
   'ok:1', '최상위 댓글에 대댓글');
 select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b2',
-  $q$insert into public.comments (post_id, parent_id, author_id, content) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000b2', 'deep')$q$),
+  $q$insert into public.comments (post_id, parent_id, author_id, content) select '00000000-0000-0000-0000-0000000000c1', (select id from public.comments where content = 'reply'), '00000000-0000-0000-0000-0000000000b2', 'deep'$q$),
   'P0001:INVALID_PARENT', 'S10 대댓글에는 다시 대댓글을 달 수 없다 (1단계)');
 select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b2',
   $q$insert into public.comments (post_id, author_id, content) values ('00000000-0000-0000-0000-0000000000c3', '00000000-0000-0000-0000-0000000000b2', 'x')$q$),
@@ -96,10 +96,10 @@ select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b2',
 -- ── 댓글 수 (F4-4) ──────────────────────────────────────────
 select is((select comment_count from public.posts where id = '00000000-0000-0000-0000-0000000000c1'), 2,
   'P1 댓글 수 = 최상위 1 + 대댓글 1');
-update public.comments set is_hidden = true where id = '00000000-0000-0000-0000-0000000000e1';
+update public.comments set is_hidden = true where content = 'reply';
 select is((select comment_count from public.posts where id = '00000000-0000-0000-0000-0000000000c1'), 1,
   '숨김 댓글은 댓글 수에서 빠진다');
-update public.comments set is_hidden = false where id = '00000000-0000-0000-0000-0000000000e1';
+update public.comments set is_hidden = false where content = 'reply';
 select is((select comment_count from public.posts where id = '00000000-0000-0000-0000-0000000000c1'), 2,
   '숨김 해제하면 다시 센다');
 
@@ -126,7 +126,7 @@ select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b2',
   $q$insert into public.comments (post_id, parent_id, author_id, content) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000d1', '00000000-0000-0000-0000-0000000000b2', 'x')$q$),
   'P0001:INVALID_PARENT', '삭제된 댓글에는 답글을 달 수 없다');
 select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b2',
-  $q$select 1 where public.delete_comment('00000000-0000-0000-0000-0000000000e1') = 'deleted'$q$),
+  $q$select 1 where public.delete_comment((select id from public.comments where content = 'reply')) = 'deleted'$q$),
   'ok:1', '대댓글은 실제로 삭제된다');
 select is((select count(*)::int from public.comments where id = '00000000-0000-0000-0000-0000000000d1'), 0,
   '마지막 대댓글이 지워지면 tombstone 부모도 정리된다');

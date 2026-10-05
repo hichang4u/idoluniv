@@ -1,12 +1,14 @@
+import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { CommentSection } from "@/components/board/CommentSection";
+import { getViewer } from "@/lib/viewer";
+import { CommentSection, type CommentAccess } from "@/components/board/CommentSection";
 import { PostActions } from "@/components/board/PostActions";
 import { Button } from "@/components/ui/button";
 import { getPostReactions, recordPostView } from "@/app/actions/reaction";
-import { ChevronLeft, Pencil, Eye } from "lucide-react";
+import { ChevronLeft, Pencil, Eye, EyeOff, Heart } from "lucide-react";
 import { DeletePostButton } from "@/components/board/DeletePostButton";
 
 function formatDate(iso: string) {
@@ -19,49 +21,70 @@ function formatDate(iso: string) {
   });
 }
 
+// 제목·본문·유형이 바뀔 때만 트리거가 updated_at 을 갱신한다(0009). 1분 안의 차이는 무시 (F3-8)
+function isEdited(createdAt: string, updatedAt: string) {
+  return new Date(updatedAt).getTime() - new Date(createdAt).getTime() > 60_000;
+}
+
 interface Props {
   params: Promise<{ slug: string; id: string }>;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id: postId } = await params;
+// generateMetadata 와 페이지가 같은 요청에서 한 번만 조회하도록 캐시한다.
+// RLS 가 숨김 글은 작성자·관리자에게만 돌려준다 (0009)
+const getPost = cache(async (postId: string) => {
   const supabase = await createClient();
-  const { data: post } = await supabase
-    .from("posts")
-    .select("title")
-    .eq("id", postId)
-    .single();
-
-  return { title: post?.title ?? "게시글" };
-}
-
-export default async function PostDetailPage({ params }: Props) {
-  const { slug: groupSlug, id: postId } = await params;
-  const supabase = await createClient();
-
-  const { data: post } = await supabase
+  const { data } = await supabase
     .from("posts")
     .select(
-      `id, title, content, post_type, like_count, comment_count,
+      `id, author_id, title, content, post_type, like_count, comment_count,
        view_count, is_hidden, created_at, updated_at,
        author:author_id(id, nickname, avatar_url),
        idol_group:idol_group_id(id, name, slug)`
     )
     .eq("id", postId)
-    .single();
+    .maybeSingle();
+  return data;
+});
 
-  if (!post || post.is_hidden) notFound();
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id: postId } = await params;
+  const post = await getPost(postId);
+  if (!post) return { title: "게시글" };
+  return {
+    title: post.title,
+    description: post.content.replace(/\s+/g, " ").trim().slice(0, 120),
+    ...(post.is_hidden && { robots: { index: false } }),
+  };
+}
+
+export default async function PostDetailPage({ params }: Props) {
+  const { slug: groupSlug, id: postId } = await params;
+  const post = await getPost(postId);
+
+  // 숨김 글은 작성자·관리자에게만 온다. 그 외에는 여기서 404 (N3, F2-4)
+  if (!post) notFound();
   // URL 의 그룹과 글의 실제 그룹이 다르면 정식 주소로 보낸다 (N5)
   if (post.idol_group && post.idol_group.slug !== groupSlug) {
     redirect(`/g/${post.idol_group.slug}/posts/${postId}`);
   }
 
-  // 조회수 증가 + 반응 상태 (병렬)
-  const [reactions] = await Promise.all([
+  // 반응 상태 + 보는 사람 + 조회수 기록 (병렬)
+  const [reactions, viewer] = await Promise.all([
     getPostReactions(postId),
+    getViewer(),
     // 24시간 중복 제거는 DB(record_post_view)가 한다 (F3-7)
     recordPostView(postId),
   ]);
+  const isAuthor = !!viewer && viewer.id === post.author_id;
+  const postPath = `/g/${groupSlug}/posts/${postId}`;
+  const commentAccess: CommentAccess = post.is_hidden
+    ? "locked"
+    : !viewer
+      ? "guest"
+      : viewer.onboarded
+        ? "member"
+        : "onboarding";
 
   return (
     <div className="space-y-6">
@@ -74,6 +97,16 @@ export default async function PostDetailPage({ params }: Props) {
         {post.idol_group?.name ?? "게시판"} 목록
       </Link>
 
+      {post.is_hidden && (
+        <p
+          role="status"
+          className="flex items-center gap-2 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-muted-foreground"
+        >
+          <EyeOff className="size-4 shrink-0" />
+          숨김 처리된 글입니다 — {isAuthor ? "나에게만 보여요." : "작성자와 관리자에게만 보여요."}
+        </p>
+      )}
+
       {/* 게시글 본문 */}
       <article className="rounded-xl border border-border bg-card p-6 space-y-4">
         {/* 제목 + 메타 */}
@@ -85,6 +118,7 @@ export default async function PostDetailPage({ params }: Props) {
                 {post.author?.nickname ?? "익명"}
               </span>
               <span>{formatDate(post.created_at)}</span>
+              {isEdited(post.created_at, post.updated_at) && <span>수정됨</span>}
             </div>
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">
@@ -104,26 +138,50 @@ export default async function PostDetailPage({ params }: Props) {
 
         {/* 반응 + 작성자 액션 */}
         <div className="flex items-center justify-between pt-2">
-          <PostActions
-            postId={post.id}
-            initialLikeCount={post.like_count}
-            initialLiked={reactions.liked}
-            initialScrapped={reactions.scrapped}
-          />
-          <div className="flex items-center gap-2">
-            <Link href={`/g/${groupSlug}/posts/${postId}/edit`}>
-              <Button variant="ghost" size="sm" className="gap-1">
-                <Pencil className="size-3.5" />
-                수정
-              </Button>
-            </Link>
-            <DeletePostButton postId={postId} groupSlug={groupSlug} />
-          </div>
+          {post.is_hidden ? (
+            // 숨김 글에는 반응할 수 없다(서버도 거부). 수치만 보여 준다
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Heart className="size-3.5" />
+              {post.like_count.toLocaleString()}
+            </span>
+          ) : (
+            <PostActions
+              postId={post.id}
+              initialLikeCount={post.like_count}
+              initialLiked={reactions.liked}
+              initialScrapped={reactions.scrapped}
+            />
+          )}
+          {isAuthor && (
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {!post.is_hidden && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1"
+                  nativeButton={false}
+                  render={
+                    <Link href={`${postPath}/edit`}>
+                      <Pencil className="size-3.5" />
+                      수정
+                    </Link>
+                  }
+                />
+              )}
+              <DeletePostButton postId={postId} />
+            </div>
+          )}
         </div>
       </article>
 
       {/* 댓글 */}
-      <CommentSection postId={postId} />
+      <CommentSection
+        postId={postId}
+        commentCount={post.comment_count}
+        viewerId={viewer?.id ?? null}
+        access={commentAccess}
+        returnPath={postPath}
+      />
     </div>
   );
 }

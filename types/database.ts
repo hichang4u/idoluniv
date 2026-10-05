@@ -9,6 +9,9 @@ export type TableRow<T extends keyof Tables> = Tables[T]["Row"];
 // posts.post_type 은 CHECK 제약이 있는 text 컬럼이라 생성 타입은 string 이다.
 // 폼 입력값처럼 값을 좁혀야 하는 곳에서만 이 유니온을 쓴다.
 export type PostType = "text" | "image" | "video" | "fanfic";
+// 새 글·수정에서 고를 수 있는 유형(F3-2). image·video 는 기존 글에만 남는다(DB insert 정책도 같다, 0009).
+export const WRITABLE_POST_TYPES = ["text", "fanfic"] as const satisfies readonly PostType[];
+export type WritablePostType = (typeof WRITABLE_POST_TYPES)[number];
 export type ReactionType = "like" | "scrap";
 export type ReactionTarget = "post" | "comment";
 
@@ -34,8 +37,7 @@ export type PostListItem = Pick<
 
 export type CommentWithAuthor = Pick<
   Comment,
-  "id" | "post_id" | "parent_id" | "content" | "like_count" | "is_hidden" | "created_at" | "updated_at"
+  "id" | "post_id" | "parent_id" | "author_id" | "content" | "like_count" | "is_hidden" | "deleted_at" | "created_at" | "updated_at"
 > & {
   author: PublicUser | null;
-  replies?: CommentWithAuthor[];
 };

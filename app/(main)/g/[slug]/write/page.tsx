@@ -1,8 +1,9 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ChevronLeft } from "lucide-react";
 import { getActiveGroupBySlug } from "@/lib/groups";
+import { getViewer } from "@/lib/viewer";
 import { PostForm } from "@/components/board/PostForm";
 
 export const metadata: Metadata = { title: "글쓰기", robots: { index: false } };
@@ -15,6 +16,12 @@ export default async function WritePage({ params }: Props) {
   const { slug } = await params;
   const group = await getActiveGroupBySlug(slug);
   if (!group) notFound();
+
+  // 비로그인은 proxy 가 로그인으로 보낸다. 여기서는 온보딩 전 사용자를 닉네임 화면으로 보낸다 (D-1)
+  const path = `/g/${group.slug}/write`;
+  const viewer = await getViewer();
+  if (!viewer) redirect(`/login?next=${encodeURIComponent(path)}`);
+  if (!viewer.onboarded) redirect(`/onboarding?next=${encodeURIComponent(path)}`);
 
   return (
     <div className="space-y-4">

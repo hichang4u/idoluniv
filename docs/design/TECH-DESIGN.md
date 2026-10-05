@@ -54,20 +54,20 @@ SQL 은 전부 **초안**이다. 문법·동작을 실제 DB 에서 실행해 �
 |---|---|---|---|---|
 | N1 | **오픈 리다이렉트**: `next` 를 검증 없이 `${origin}${next}` 에 붙인다. `next=@evil.com` 이면 `https://<host>@evil.com` 이 되어 URL 파서상 호스트가 `evil.com` 이 된다 | `app/auth/callback/route.ts:7,13` | 로그인 직후 피싱 페이지로 유도 가능 | 코드 ✅ / 브라우저 동작은 URL 표준상 ○ — **수정됨 (T3, `lib/safe-next.ts`)** |
 | N2 | 댓글·대댓글 폼이 `groupSlug` 를 넘기지 않아 `revalidatePath("/board//<postId>")` 가 된다 | `CommentSection.tsx:40`, `CommentItem.tsx:72-77` → `comment.ts:59` | 작성 후 화면 갱신이 안 될 수 있음. Next 문서에 "매칭 안 되는 경로" 동작 설명 없음 | 코드 ✅ / 증상 ○ — **수정됨 (T4-C, 댓글 액션이 `refresh()` 사용)** |
-| N3 | 상세 페이지가 `is_hidden` 이면 무조건 404 → 작성자 본인도 자기 숨김 글을 못 봄 | `[postId]/page.tsx:55` | PRD F2-4 위반 | ✅ |
+| N3 | 상세 페이지가 `is_hidden` 이면 무조건 404 → 작성자 본인도 자기 숨김 글을 못 봄 | `[postId]/page.tsx:55` | PRD F2-4 위반 | ✅ — **수정됨 (T6, RLS 가 숨김 글을 작성자·관리자에게 돌려주고 상세에 배너, 반응·댓글 입력 비활성)** |
 | N4 | 그룹 조회에 `is_active` 조건 없음 → 비활성 그룹 게시판·글쓰기 접근 가능 | `board/[groupSlug]/page.tsx:49-53`, `new/page.tsx:16-20`, `generateMetadata` 3곳 | PRD F2-6 위반. 채팅은 RPC 가 null 반환해 404 ✅ | ✅ — **수정됨 (T4-C, `lib/groups.ts` 활성 그룹만 + 그룹 레이아웃 404)** |
 | N5 | URL 의 `groupSlug` 와 글의 실제 그룹을 대조하지 않음 → `/board/<아무 slug>/<postId>` 로 같은 글이 열림 | `[postId]/page.tsx:44-53` | 중복 URL(SEO), 잘못된 "목록으로" 링크 | ✅ — **수정됨 (T4-C, 상세·수정에서 정식 slug 로 리다이렉트)** |
-| N6 | 글·댓글 길이 제약이 **DB 에 없음** (채팅만 CHECK 있음). Server Action 검사는 PostgREST 직접 호출로 우회된다 | `0002_community.sql:13-14,33` | 10MB 본문 등 삽입 가능 | ✅ |
-| N7 | 댓글 `parent_id` 검증 없음 — 다른 글의 댓글을 부모로 지정하거나 무한 깊이 가능 | `0002`, `0004` comments insert 정책 | F4-2 위반, 트리 렌더 누락 | ✅ |
+| N6 | 글·댓글 길이 제약이 **DB 에 없음** (채팅만 CHECK 있음). Server Action 검사는 PostgREST 직접 호출로 우회된다 | `0002_community.sql:13-14,33` | 10MB 본문 등 삽입 가능 | ✅ — **수정됨 (0009, 길이 CHECK)** |
+| N7 | 댓글 `parent_id` 검증 없음 — 다른 글의 댓글을 부모로 지정하거나 무한 깊이 가능 | `0002`, `0004` comments insert 정책 | F4-2 위반, 트리 렌더 누락 | ✅ — **수정됨 (0009, `comments_before_insert` 가 같은 글·1단계·살아 있는 부모만 허용)** |
 | N8 | `users.nickname` 을 본인이 PostgREST 로 직접 PATCH 가능(형식·쿨다운 검사 없음) | `0004:44-46` (`grant update (nickname, …)`) | F1-4·F1-5 를 앱에서만 검사하면 우회됨 | ✅ |
-| N9 | `updated_at` 을 클라이언트가 임의 값으로 쓸 수 있음 | `0005:25-26,33-34`, `post.ts:83` | "수정됨" 표시(F3-8) 위조 | ✅ |
+| N9 | `updated_at` 을 클라이언트가 임의 값으로 쓸 수 있음 | `0005:25-26,33-34`, `post.ts:83` | "수정됨" 표시(F3-8) 위조 | ✅ — **수정됨 (0009 트리거 + 컬럼 GRANT 에서 제외, T6-B 앱이 보내지 않음)** |
 | N10 | `toggle_*` 경쟁 조건: 동시 2회 호출 시 둘 다 "없음"으로 보고 `+1` 두 번 (insert 는 `on conflict do nothing`) | `0002:93-122` | `like_count` 가 실제 행 수와 어긋남 | ○ (코드 경로상 가능, 재현 안 함) — **수정됨 (0008, 대상 행 잠금 + delete 결과 분기)** |
 | N11 | 쿠키를 처음 발급하는 Server Action(`togglePostLike`, `sendMessage`)은 Next 규칙상 **현재 페이지를 재렌더** → 상세 페이지면 `incrementViewCount` 가 한 번 더 실행 | `reaction.ts:10`, `chat.ts:11`; Next 문서 `07-mutating-data.md:505` | 조회수 이중 증가. D-1=A 로 쿠키 식별을 없애면 사라짐 | 문서 ✅ / 증상 ○ — **해소 (T5-B, 쿠키를 발급하는 액션이 없어짐. `vid` 는 proxy 가 발급)** |
 | N12 | 로컬에 `.env*` 파일이 없음 | 저장소 루트 `ls -a` | 이 PC 에서 앱 실행 불가(다른 위치 보관 여부 ❓) | ✅ |
 | N13 | Sidebar 의 `/groups` 링크 → 404 | `Sidebar.tsx:20` | `/profile` 과 같은 문제 | ✅ — **수정됨 (T4-C, 내비 `/g`, 옛 `/groups` 는 리다이렉트)** |
 | N14 | `LoginForm` 이 OAuth 오류를 처리하지 않고, 복귀할 `next` 를 넘기지 않음 | `LoginForm.tsx:19-28` | F1-2 미충족 | ✅ |
-| N15 | 대댓글에 답글 버튼이 없음(`!isReply`). F4-2 의 "대댓글에 답하면 같은 부모 아래 + `@닉네임`" 동선이 없음 | `CommentItem.tsx:49` | 기능 누락 | ✅ |
-| N16 | 삭제 버튼이 모두에게 보이고, 남의 댓글 삭제 시 0행 삭제인데 성공처럼 끝남 | `CommentItem.tsx:59`, `comment.ts:69-77` | F3-5 와 같은 유형 | ✅ |
+| N15 | 대댓글에 답글 버튼이 없음(`!isReply`). F4-2 의 "대댓글에 답하면 같은 부모 아래 + `@닉네임`" 동선이 없음 | `CommentItem.tsx:49` | 기능 누락 | ✅ — **수정됨 (T6-B, 대댓글의 답글은 같은 부모 아래 + `@닉네임 `)** |
+| N16 | 삭제 버튼이 모두에게 보이고, 남의 댓글 삭제 시 0행 삭제인데 성공처럼 끝남 | `CommentItem.tsx:59`, `comment.ts:69-77` | F3-5 와 같은 유형 | ✅ — **수정됨 (T6, 작성자에게만 삭제 버튼, `delete_comment` RPC 가 `FORBIDDEN`·`NOT_FOUND` 반환, 글 수정·삭제는 0행이면 `NOT_FOUND_OR_FORBIDDEN`)** |
 | N17 | X 로그인이 `provider: "twitter"`(OAuth 1.0a) — Supabase 문서는 1.0a 를 "will be deprecated" 로 표시하고 OAuth 2.0 공급자 `"x"` 를 권장 | `LoginForm.tsx:7,12` | 공급자 설정도 `x` 기준으로 다시 해야 할 수 있음 | 코드 ✅ / 문서 ✅ ([auth-twitter](https://supabase.com/docs/guides/auth/social-login/auth-twitter)) |
 | N18 | 0001~0003 이 테이블 SELECT·함수 EXECUTE 를 **GRANT 없이** Supabase 자동 부여에 기댐. 로컬·새 프로젝트(그리고 2026-10-30 이후 새로 만드는 객체)는 자동 부여가 없어 **새 환경에서는 게시판 읽기조차 안 된다** | `supabase/config.toml` `auto_expose_new_tables` 주석, 마이그레이션 0001~0003 | 원격과 새 환경의 권한이 달라 테스트가 원격을 대표하지 못함 → **0006 으로 명시** | ✅ (2026-10-03, T2 중 발견) |
 
@@ -837,7 +837,7 @@ PRD F1~F9 수용 기준표를 그대로 체크리스트로 쓴다(`qa-reviewer`)
 | T3 | 공통 모듈 (§6.1) + 타입 생성 연결 — **완료 (2026-10-03, 브랜치 `feat/t3-common`)**: `types/supabase.ts`(원격에서 `gen types`, Docker 불필요 ✅), `types/database.ts` 를 생성 타입에서 파생(`PostListItem`·`CommentWithAuthor` 조회 모양 포함), 서버·브라우저·proxy 클라이언트에 `<Database>`, DB 조회 캐스트 9곳 제거(남은 `as unknown as` 0), `lib/limits.ts`·`lib/safe-next.ts`·`lib/action-result.ts`. auth 콜백에 `safeNext` 적용 + 기본 `next` 를 `/` 로(N1·P0-5 해소, 13개 입력으로 확인). **넘긴 것**: `lib/viewer.ts`(0007 `get_viewer` 필요) → T4, `lib/nav.ts`(새 경로 필요) → T4, FormData 캐스트 → 각 Server Action 재작성(T4~T7) | frontend-dev | T0 | 1 | `as unknown as` 캐스트 제거, typecheck 통과 |
 | T4 | 단계 1: 0007 + 온보딩·로그인 흐름·`/me` 최소판·라우트 이전(§6.5)·proxy — **A 완료**(0007 + pgTAP, 원격 적용 2026-10-03), **B 완료**(`lib/viewer.ts`, `app/actions/auth.ts`, `/onboarding`, `/me` 최소판, 콜백 온보딩 분기, 로그인 `next`·공급자 환경변수, 로그아웃 303, proxy 보호 경로), **C 완료**(`/g/[slug]`·`lounge`·`write`·`posts/[id]`(`/edit`) 이전, 그룹 레이아웃·탭, `next.config.ts` 영구 리다이렉트 9개, `lib/nav.ts` 3칸, proxy 경로 갱신 — 모바일 하단 탭바는 T11) | 둘 다 | T0, T3 | 2~3 | F1-1~F1-5, S4~S6, S23 |
 | T5 | 단계 2: 반응·조회수 (0008) — **완료 (2026-10-04)**: A(0008 + `20_reactions_views.sql`, 원격 적용), B(`app/actions/reaction.ts` 를 `ActionResult`·`auth.uid()` 기반으로, `recordPostView` + proxy `vid` 쿠키, `PostActions` 가 로그인·온보딩 필요 시 해당 화면으로 이동). 계획의 a/b 분할은 원격 데이터 0행(R5)이라 하지 않음. 조회 기록은 `after()` 대신 렌더 중 `Promise.all` 로 호출(`after` 콜백 안의 쿠키 접근 제약을 피함) | 둘 다 | T4 | 1.5 | F5, F3-7, S1·S2·S15·S16 |
-| T6 | 단계 3: 게시글·댓글 무결성 (0009a/b) + 소유자 UI + 상세 개선(N2~N5, N15, N16) | 둘 다 | T4 | 3 | F2·F3·F4, S7~S12 |
+| T6 | 단계 3: 게시글·댓글 무결성 (0009a/b) + 소유자 UI + 상세 개선(N2~N5, N15, N16) — **A 완료 (2026-10-05)**: 0009 + `30_posts_comments.sql`(원격 적용, a/b 분할은 원격 0행이라 하지 않음). **B 완료**: 글·댓글 액션 `ActionResult`, 글 수정은 `updated_at` 을 보내지 않고 0행이면 `NOT_FOUND_OR_FORBIDDEN`, 댓글 삭제는 `delete_comment` RPC, 작성자에게만 수정·삭제, 숨김 글 배너(N3), 대댓글 답글(N15), tombstone·가려진 부모 자리표시, 댓글 수는 `comment_count`, 글쓰기 진입 시 온보딩 확인, 폼 text/fanfic·글자 수. **남긴 것**: 숨김 글 수정은 화면에서만 막음(DB 는 허용) 🟡, 삭제 확인은 `confirm()` 유지, 신고 메뉴는 T8 | 둘 다 | T4 | 3 | F2·F3·F4, S7~S12 |
 | T7 | 단계 4: 채팅 (0010) + 연결 관리·재연결 보정 | 둘 다 | T4 | 2 | F6-1~F6-6, S13·S14 |
 | T8 | 단계 5: 신고 (0011 일부) + 신고 UI | 둘 다 | T6, T7 | 2~3 | F7, S17·S18 |
 | T9 | `/admin` 3화면 + 모더레이션 RPC + 채팅 숨김 전파 | 둘 다 | T8 | 3 | F8, F6-7, S19~S21 |

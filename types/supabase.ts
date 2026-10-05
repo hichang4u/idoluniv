@@ -119,6 +119,7 @@ export type Database = {
           author_id: string | null
           content: string
           created_at: string
+          deleted_at: string | null
           id: string
           is_hidden: boolean
           like_count: number
@@ -130,6 +131,7 @@ export type Database = {
           author_id?: string | null
           content: string
           created_at?: string
+          deleted_at?: string | null
           id?: string
           is_hidden?: boolean
           like_count?: number
@@ -141,6 +143,7 @@ export type Database = {
           author_id?: string | null
           content?: string
           created_at?: string
+          deleted_at?: string | null
           id?: string
           is_hidden?: boolean
           like_count?: number
@@ -499,6 +502,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      delete_comment: { Args: { p_comment_id: string }; Returns: string }
       get_or_create_chat_room: { Args: { p_group_id: string }; Returns: string }
       get_viewer: {
         Args: never

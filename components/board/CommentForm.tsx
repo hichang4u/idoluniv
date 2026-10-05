@@ -1,62 +1,68 @@
 "use client";
 
-import { useActionState, useRef } from "react";
+import { useActionState, useState } from "react";
 import { createComment } from "@/app/actions/comment";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { LIMITS } from "@/lib/limits";
+import type { ActionResult } from "@/lib/action-result";
 
 interface CommentFormProps {
   postId: string;
   parentId?: string;
-  groupSlug?: string;
+  /** 대댓글에 답할 때 채워 두는 `@닉네임 ` (N15) */
+  initialContent?: string;
   onCancel?: () => void;
+  onDone?: () => void;
   compact?: boolean;
 }
 
-type ActionState = { error?: string } | null;
+export function CommentForm({ postId, parentId, initialContent = "", onCancel, onDone, compact = false }: CommentFormProps) {
+  const [content, setContent] = useState(initialContent);
+  const [state, formAction, pending] = useActionState<ActionResult | null, FormData>(async (_prev, formData) => {
+    const result = await createComment(formData);
+    if (result.ok) {
+      setContent("");
+      onDone?.();
+    }
+    return result;
+  }, null);
 
-export function CommentForm({
-  postId,
-  parentId,
-  groupSlug = "",
-  onCancel,
-  compact = false,
-}: CommentFormProps) {
-  const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction, pending] = useActionState<ActionState, FormData>(
-    async (prev, formData) => {
-      const result = await createComment(formData);
-      if (!result?.error) formRef.current?.reset();
-      return result ?? null;
-    },
-    null
-  );
+  const error = state && !state.ok ? state.message : null;
 
   return (
-    <form ref={formRef} action={formAction} className="space-y-2">
+    <form action={formAction} className="space-y-2" noValidate>
       <input type="hidden" name="postId" value={postId} />
-      <input type="hidden" name="groupSlug" value={groupSlug} />
       {parentId && <input type="hidden" name="parentId" value={parentId} />}
 
-      <textarea
+      <Textarea
         name="content"
-        required
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
         rows={compact ? 2 : 3}
-        maxLength={1000}
-        placeholder={parentId ? "대댓글을 입력하세요..." : "댓글을 입력하세요..."}
-        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+        maxLength={LIMITS.comment}
+        autoFocus={!!parentId}
+        placeholder={parentId ? "답글을 입력하세요" : "댓글을 입력하세요"}
+        aria-label={parentId ? "답글" : "댓글"}
+        className="resize-none"
       />
 
-      {state?.error && (
-        <p className="text-xs text-destructive">{state.error}</p>
+      {error && (
+        <p role="alert" className="text-xs text-destructive">
+          {error}
+        </p>
       )}
 
-      <div className="flex justify-end gap-2">
+      <div className="flex items-center justify-end gap-2">
+        <span className="mr-auto text-xs tabular-nums text-muted-foreground">
+          {content.length.toLocaleString()} / {LIMITS.comment.toLocaleString()}
+        </span>
         {onCancel && (
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
             취소
           </Button>
         )}
-        <Button type="submit" size="sm" disabled={pending}>
+        <Button type="submit" size="sm" disabled={pending || content.trim().length === 0}>
           {pending ? "등록 중..." : "등록"}
         </Button>
       </div>

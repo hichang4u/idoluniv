@@ -1,17 +1,13 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  useRef,
-  useSyncExternalStore,
-  useTransition,
-} from "react";
-import { Send } from "lucide-react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Send, WifiOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { sendMessage } from "@/app/actions/chat";
 import { MessageItem } from "./MessageItem";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   InputGroup,
   InputGroupAddon,
@@ -20,72 +16,101 @@ import {
 } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
 import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
-import type { ChatMessage } from "@/types/database";
+import { LIMITS } from "@/lib/limits";
+import { LOUNGE_MESSAGE_COLUMNS, type LoungeMessage } from "@/types/database";
 
-const NICKNAME_KEY = "idoluniv_chat_nickname";
+// 장시간 방송 중 메모리가 계속 늘지 않도록 오래된 메시지부터 버린다 🟡 (TECH-DESIGN §7.6)
+const MAX_MESSAGES = 200;
 
-// localStorage 의 저장된 닉네임을 외부 스토어로 구독 (다른 탭 변경은 storage 이벤트로 반영)
-function subscribeNickname(onStoreChange: () => void) {
-  window.addEventListener("storage", onStoreChange);
-  return () => window.removeEventListener("storage", onStoreChange);
+/** 라운지 입력 자격. 화면 분기용이고 최종 판단은 DB 트리거가 한다 */
+export type LoungeAccess = "member" | "guest" | "onboarding";
+
+type Connection = "connecting" | "live" | "lost";
+
+// PostgREST 와 Realtime 의 timestamptz 문자열 형식이 같다는 보장이 없어(Realtime 은 서버 값을 그대로 넘긴다)
+// 정렬·비교 전에 ISO(UTC, 밀리초)로 맞춘다. 마이크로초가 잘려도 재연결 보정은 gte + id 중복 제거라 안전하다.
+function normalizeTime(value: string) {
+  const ms = Date.parse(value.replace(" ", "T").replace(/([+-]\d{2})$/, "$1:00"));
+  return Number.isNaN(ms) ? value : new Date(ms).toISOString();
 }
 
-function getStoredNickname() {
-  try {
-    return localStorage.getItem(NICKNAME_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function getServerNickname() {
-  return null;
+// id 로 중복을 없애고 시간순으로 정렬한 뒤 최근 MAX_MESSAGES 개만 남긴다
+function mergeMessages(prev: LoungeMessage[], incoming: LoungeMessage[]) {
+  const byId = new Map(prev.map((m) => [m.id, m]));
+  for (const m of incoming) byId.set(m.id, { ...m, created_at: normalizeTime(m.created_at) });
+  return [...byId.values()]
+    .sort((a, b) => a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id))
+    .slice(-MAX_MESSAGES);
 }
 
 interface Props {
   roomId: string;
-  initialMessages: ChatMessage[];
+  initialMessages: LoungeMessage[];
+  currentUserId: string | null;
+  access: LoungeAccess;
+  /** 로그인·온보딩 뒤 돌아올 주소 */
+  returnPath: string;
 }
 
-export function ChatRoom({ roomId, initialMessages }: Props) {
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+export function ChatRoom({ roomId, initialMessages, currentUserId, access, returnPath }: Props) {
+  const [messages, setMessages] = useState<LoungeMessage[]>(() => mergeMessages([], initialMessages));
+  const [connection, setConnection] = useState<Connection>("connecting");
   const [content, setContent] = useState("");
-  const storedNickname = useSyncExternalStore(
-    subscribeNickname,
-    getStoredNickname,
-    getServerNickname
-  );
-  // null = 사용자가 아직 입력하지 않음 → 저장된 닉네임 사용
-  const [nicknameInput, setNicknameInput] = useState<string | null>(null);
-  const nickname = nicknameInput ?? storedNickname ?? "익명";
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // 재연결 보정에서 "마지막으로 가진 메시지" 시각을 읽기 위한 최신값
+  const lastAtRef = useRef<string | null>(null);
+  const router = useRouter();
+  const next = encodeURIComponent(returnPath);
 
-  // Supabase Realtime 구독
+  useEffect(() => {
+    lastAtRef.current = messages.at(-1)?.created_at ?? null;
+  }, [messages]);
+
+  // Realtime 구독 + 연결 상태 추적
   useEffect(() => {
     const supabase = createClient();
+    let disposed = false;
+
+    // 구독이 (다시) 성립할 때마다 마지막 메시지 이후를 조회해 합친다.
+    // 첫 구독도 포함한다: 서버 렌더와 구독 성립 사이에 온 메시지를 놓치지 않기 위해서다.
+    // 같은 시각의 메시지가 있을 수 있어 gte 로 가져오고 id 로 중복을 없앤다.
+    const backfill = async () => {
+      let query = supabase
+        .from("chat_messages")
+        .select(LOUNGE_MESSAGE_COLUMNS)
+        .eq("room_id", roomId)
+        // 관리자에게는 RLS 가 숨김 메시지도 돌려주므로 거른다
+        .eq("is_hidden", false)
+        .order("created_at", { ascending: false })
+        .limit(MAX_MESSAGES);
+      if (lastAtRef.current) query = query.gte("created_at", lastAtRef.current);
+      const { data } = await query;
+      if (!disposed && data && data.length > 0) setMessages((prev) => mergeMessages(prev, data));
+    };
+
     const channel = supabase
-      .channel(`chat_room:${roomId}`)
-      .on<ChatMessage>(
+      .channel(`lounge:${roomId}`)
+      .on<LoungeMessage>(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "chat_messages",
-          filter: `room_id=eq.${roomId}`,
-        },
-        (payload) => {
-          const newMsg = payload.new;
-          setMessages((prev) =>
-            prev.some((m) => m.id === newMsg.id) ? prev : [...prev, newMsg]
-          );
-        }
+        { event: "INSERT", schema: "public", table: "chat_messages", filter: `room_id=eq.${roomId}` },
+        (payload) => setMessages((prev) => mergeMessages(prev, [payload.new])),
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (disposed) return;
+        if (status === "SUBSCRIBED") {
+          setConnection("live");
+          void backfill();
+        } else {
+          // CHANNEL_ERROR·TIMED_OUT·CLOSED. 클라이언트가 소켓을 다시 연결하면 SUBSCRIBED 가 다시 온다
+          setConnection("lost");
+        }
+      });
 
     return () => {
+      disposed = true;
       supabase.removeChannel(channel);
     };
   }, [roomId]);
@@ -95,36 +120,25 @@ export function ChatRoom({ roomId, initialMessages }: Props) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 닉네임 변경 시 localStorage 저장
-  const handleNicknameChange = (value: string) => {
-    const trimmed = value.slice(0, 20);
-    setNicknameInput(trimmed);
-    if (trimmed) {
-      try {
-        localStorage.setItem(NICKNAME_KEY, trimmed);
-      } catch {
-        // 저장 불가(사생활 보호 모드 등) 시 현재 세션 값만 사용
-      }
-    }
-  };
-
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
     const trimmed = content.trim();
     if (!trimmed || isPending) return;
 
-    const fd = new FormData();
-    fd.set("roomId", roomId);
-    fd.set("content", trimmed);
-    fd.set("nickname", nickname || "익명");
-
     setContent("");
     setError(null);
 
     startTransition(async () => {
-      const result = await sendMessage(fd);
-      if (result?.error) {
-        setError(result.error);
+      const result = await sendMessage(roomId, trimmed);
+      if (result.ok) {
+        // Realtime 이 늦거나 끊겨도 보낸 메시지는 바로 보인다(같은 id 는 합쳐진다)
+        setMessages((prev) => mergeMessages(prev, [result.data]));
+      } else if (result.code === "AUTH_REQUIRED") {
+        router.push(`/login?next=${next}`);
+      } else if (result.code === "ONBOARDING_REQUIRED") {
+        router.push(`/onboarding?next=${next}`);
+      } else {
+        setError(result.message);
         setContent(trimmed);
       }
       inputRef.current?.focus();
@@ -143,6 +157,16 @@ export function ChatRoom({ roomId, initialMessages }: Props) {
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
+      {connection === "lost" && (
+        <p
+          role="status"
+          className="mb-2 flex shrink-0 items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2 text-xs text-muted-foreground"
+        >
+          <WifiOff className="size-3.5 shrink-0" />
+          연결이 끊겼어요. 다시 연결하는 중이에요…
+        </p>
+      )}
+
       {/* 메시지 목록 */}
       <div className="flex-1 overflow-y-auto rounded-xl border border-border bg-card p-4 space-y-3 min-h-0">
         {messages.length === 0 ? (
@@ -152,53 +176,62 @@ export function ChatRoom({ roomId, initialMessages }: Props) {
             </EmptyHeader>
           </Empty>
         ) : (
-          messages.map((msg) => <MessageItem key={msg.id} message={msg} />)
+          messages.map((msg) => (
+            <MessageItem key={msg.id} message={msg} isMine={!!currentUserId && msg.author_id === currentUserId} />
+          ))
         )}
         <div ref={bottomRef} />
       </div>
 
-      {/* 에러 */}
-      {error && (
-        <p className="text-xs text-destructive mt-1.5 px-1">{error}</p>
-      )}
-
       {/* 입력 영역 */}
-      <form onSubmit={handleSubmit} className="mt-3 flex shrink-0 gap-2">
-        <Input
-          type="text"
-          value={nickname}
-          onChange={(e) => handleNicknameChange(e.target.value)}
-          placeholder="닉네임"
-          maxLength={20}
-          className="w-24 shrink-0"
+      {access === "member" ? (
+        <>
+          {error && (
+            <p role="alert" className="mt-1.5 px-1 text-xs text-destructive">
+              {error}
+            </p>
+          )}
+          <form onSubmit={handleSubmit} className="mt-3 shrink-0">
+            <InputGroup className="h-11">
+              <InputGroupInput
+                ref={inputRef}
+                type="text"
+                value={content}
+                onChange={(e) => setContent(e.target.value.slice(0, LIMITS.chat))}
+                onKeyDown={handleKeyDown}
+                maxLength={LIMITS.chat}
+                placeholder="메시지를 입력하세요"
+                aria-label="메시지"
+                enterKeyHint="send"
+              />
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton
+                  type="submit"
+                  variant="default"
+                  disabled={isPending || !content.trim()}
+                  aria-label="전송"
+                >
+                  {isPending ? <Spinner /> : <Send />}
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+          </form>
+          <p className="mt-1.5 px-1 text-xs tabular-nums text-muted-foreground">
+            {content.length}/{LIMITS.chat}
+          </p>
+        </>
+      ) : (
+        <Button
+          className="mt-3 h-11 w-full shrink-0"
+          variant="outline"
+          nativeButton={false}
+          render={
+            <Link href={access === "guest" ? `/login?next=${next}` : `/onboarding?next=${next}`}>
+              {access === "guest" ? "로그인하고 대화에 참여하세요" : "닉네임을 정하고 참여하세요"}
+            </Link>
+          }
         />
-
-        <InputGroup className="flex-1">
-          <InputGroupInput
-            ref={inputRef}
-            type="text"
-            value={content}
-            onChange={(e) => setContent(e.target.value.slice(0, 500))}
-            onKeyDown={handleKeyDown}
-            placeholder="메시지를 입력하세요… (Enter 전송)"
-            disabled={isPending}
-          />
-          <InputGroupAddon align="inline-end">
-            <InputGroupButton
-              type="submit"
-              variant="default"
-              disabled={isPending || !content.trim()}
-              aria-label="전송"
-            >
-              {isPending ? <Spinner /> : <Send />}
-            </InputGroupButton>
-          </InputGroupAddon>
-        </InputGroup>
-      </form>
-
-      <p className="mt-1.5 px-1 text-xs text-muted-foreground">
-        {content.length}/500
-      </p>
+      )}
     </div>
   );
 }

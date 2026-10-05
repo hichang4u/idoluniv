@@ -49,7 +49,6 @@ export type Database = {
           is_hidden: boolean
           nickname: string
           room_id: string
-          session_id: string | null
         }
         Insert: {
           author_id?: string | null
@@ -59,7 +58,6 @@ export type Database = {
           is_hidden?: boolean
           nickname?: string
           room_id: string
-          session_id?: string | null
         }
         Update: {
           author_id?: string | null
@@ -69,7 +67,6 @@ export type Database = {
           is_hidden?: boolean
           nickname?: string
           room_id?: string
-          session_id?: string | null
         }
         Relationships: [
           {
@@ -81,6 +78,38 @@ export type Database = {
           },
           {
             foreignKeyName: "chat_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_moderation_events: {
+        Row: {
+          action: string
+          created_at: string
+          id: number
+          message_id: string
+          room_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: never
+          message_id: string
+          room_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: never
+          message_id?: string
+          room_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_moderation_events_room_id_fkey"
             columns: ["room_id"]
             isOneToOne: false
             referencedRelation: "chat_rooms"

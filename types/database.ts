@@ -35,6 +35,11 @@ export type PostListItem = Pick<
   idol_group: Pick<IdolGroup, "id" | "name" | "slug"> | null;
 };
 
+// 라운지에 표시하는 메시지. 초기 조회·Realtime payload·전송 결과가 모두 이 모양을 채운다.
+// 숨김 메시지는 RLS 로 오지 않으므로 is_hidden 은 고르지 않는다(0010).
+export type LoungeMessage = Pick<ChatMessage, "id" | "room_id" | "author_id" | "nickname" | "content" | "created_at">;
+export const LOUNGE_MESSAGE_COLUMNS = "id, room_id, author_id, nickname, content, created_at" as const;
+
 export type CommentWithAuthor = Pick<
   Comment,
   "id" | "post_id" | "parent_id" | "author_id" | "content" | "like_count" | "is_hidden" | "deleted_at" | "created_at" | "updated_at"

@@ -157,10 +157,9 @@ select is(pg_temp.act('anon', null,
      select id, 'x', 'hi', true from public.chat_rooms limit 1$q$),
   '42501', 'is_hidden 을 지정해 채팅을 넣을 수 없다 (0004 컬럼 GRANT)');
 
-select todo('S3: 비로그인 채팅 쓰기 금지 — D-1=A, 0010(채팅)', 1);
 select is(pg_temp.act('anon', null,
   $q$insert into public.chat_messages (room_id, nickname, content) select id, 'x', 'hi' from public.chat_rooms limit 1$q$),
-  '42501', 'S3 anon 채팅 쓰기 거부');
+  '42501', 'S3 anon 채팅 쓰기 거부 (0010)');
 
 select * from finish();
 rollback;

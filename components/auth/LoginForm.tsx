@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { SITE_URL } from "@/lib/site";
 
 // 노출할 공급자는 NEXT_PUBLIC_AUTH_PROVIDERS(쉼표 구분)로 정한다. 베타는 google 하나(D-2).
 // X 를 추가할 때는 OAuth 2.0 공급자 "x" 를 쓴다(1.0a "twitter" 는 폐기 예정).
@@ -32,7 +33,8 @@ export function LoginForm({ next, error }: { next: string; error: string | null 
     setLoading(provider);
     setMessage(null);
     const supabase = createClient();
-    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
+    // 빈 문자열이면 상대 주소가 되어 OAuth 복귀가 깨지므로 SITE_URL(빈 값은 null)을 쓴다
+    const origin = SITE_URL ?? window.location.origin;
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}` },

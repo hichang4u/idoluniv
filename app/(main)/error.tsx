@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CircleAlert } from "lucide-react";
 import { StatusScreen } from "@/components/layout/StatusScreen";
 import { Button } from "@/components/ui/button";
+import { reportClientError } from "@/lib/client-errors";
 
 // 화면을 그리다 난 오류 (디자인 리뷰 S10). 서버 오류는 메시지 대신 digest 만 오므로 문의용으로 보여 준다.
 export default function MainError({
@@ -15,8 +16,8 @@ export default function MainError({
   unstable_retry: () => void;
 }) {
   useEffect(() => {
-    // 수집은 T12(오류 수집)에서. 지금은 브라우저 콘솔에 남긴다
-    console.error("[error-boundary]", { digest: error.digest, message: error.message });
+    // 서버 오류는 instrumentation.ts 가 이미 남겼고, 여기서는 같은 digest 로 화면 쪽 기록을 남긴다
+    reportClientError("boundary", error, error.digest);
   }, [error]);
 
   return (

@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { formatFullDateTime } from "@/lib/format";
+import { OG_BASE } from "@/lib/site";
 import { getViewer } from "@/lib/viewer";
 import { CommentSection, type CommentAccess } from "@/components/board/CommentSection";
 import { PostActions } from "@/components/board/PostActions";
@@ -44,9 +45,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id: postId } = await params;
   const post = await getPost(postId);
   if (!post) return { title: "게시글" };
+  const description = post.content.replace(/\s+/g, " ").trim().slice(0, 120);
+  const canonical = post.idol_group ? `/g/${post.idol_group.slug}/posts/${post.id}` : undefined;
   return {
     title: post.title,
-    description: post.content.replace(/\s+/g, " ").trim().slice(0, 120),
+    description,
+    alternates: canonical ? { canonical } : undefined,
+    openGraph: { ...OG_BASE, type: "article", title: post.title, description, publishedTime: post.created_at },
+    // 숨김 글은 작성자·관리자에게만 보이는 화면이라 색인하지 않는다
     ...(post.is_hidden && { robots: { index: false } }),
   };
 }

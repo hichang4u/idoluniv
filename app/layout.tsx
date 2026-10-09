@@ -1,8 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { OG_BASE, siteUrl } from "@/lib/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  // 상대 경로 OG·canonical 의 기준 (NEXT_PUBLIC_SITE_URL)
+  metadataBase: new URL(siteUrl("/")),
+  applicationName: "IdolUniv",
+  openGraph: { ...OG_BASE, type: "website" },
   title: {
     default: "IdolUniv — 아이돌 팬덤 커뮤니티",
     template: "%s | IdolUniv",

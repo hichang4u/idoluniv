@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { ChevronLeftIcon, ChevronRightIcon, Clock, Feather, Flame, type LucideIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveGroupBySlug } from "@/lib/groups";
+import { OG_BASE } from "@/lib/site";
 import { getViewer } from "@/lib/viewer";
 import { getMyReportedIds } from "@/lib/reports";
 import { PostCard } from "@/components/board/PostCard";
@@ -36,7 +37,15 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const group = await getActiveGroupBySlug(slug);
-  return { title: group ? `${group.name} 게시판` : "게시판" };
+  if (!group) return { title: "게시판" };
+  const description = `${group.name} 비공식 팬 게시판${group.description ? ` · ${group.description}` : ""}`;
+  return {
+    title: `${group.name} 게시판`,
+    description,
+    // 정렬·쪽 번호가 붙은 주소도 같은 게시판으로 본다
+    alternates: { canonical: `/g/${group.slug}` },
+    openGraph: { ...OG_BASE, type: "website", title: `${group.name} 게시판`, description },
+  };
 }
 
 export default async function BoardPage({ params, searchParams }: Props) {

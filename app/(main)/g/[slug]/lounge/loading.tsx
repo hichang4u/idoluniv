@@ -6,7 +6,7 @@ const MESSAGE_WIDTHS = [62, 45, 78, 53, 70, 41];
 // 라운지 본문과 같은 높이·입력 높이(h-11)로 맞춘다 (그룹 이름·탭은 레이아웃이 그린다)
 export default function LoungeLoading() {
   return (
-    <div className="flex h-[calc(100dvh-182px)] min-h-80 flex-col lg:h-[calc(100dvh-198px)]" aria-busy="true" aria-label="라운지 불러오는 중">
+    <div className="flex h-[calc(100dvh-178px)] min-h-80 flex-col lg:h-[calc(100dvh-194px)]" aria-busy="true" aria-label="라운지 불러오는 중">
       <div className="flex-1 space-y-4 overflow-hidden rounded-xl border border-border bg-card p-4">
         {MESSAGE_WIDTHS.map((width, i) => (
           <div key={i} className="flex items-start gap-2">

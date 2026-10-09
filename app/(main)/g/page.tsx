@@ -1,72 +1,54 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
+import { GroupAvatar } from "@/components/group/GroupAvatar";
 import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemMedia,
-  ItemTitle,
-} from "@/components/ui/item";
 
 export const metadata: Metadata = { title: "그룹" };
 
+// 그룹 목록 (D-16). 각 그룹은 자기 파스텔 타일로 구분한다(TOKENS §3.2, 로고 없음 D-22)
 export default async function GroupsPage() {
   const supabase = await createClient();
-  const { data: groups } = await supabase
+  const { data: groups, error } = await supabase
     .from("idol_groups")
-    .select("id, name, name_ko, slug, cover_url, description")
+    .select("id, name, name_ko, slug, description, color_key")
     .eq("is_active", true)
     .order("name");
-
-  const typedGroups = groups ?? [];
+  if (error) throw error;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4">
-      <h1 className="text-xl font-bold">그룹</h1>
+    <div className="mx-auto max-w-[640px] space-y-4">
+      <h1 className="text-xl font-bold text-text-strong">그룹</h1>
 
-      {typedGroups.length === 0 ? (
+      {!groups?.length ? (
         <Empty>
           <EmptyHeader>
-            <EmptyDescription>등록된 아이돌 그룹이 없습니다.</EmptyDescription>
+            <EmptyDescription>아직 열린 그룹이 없어요.</EmptyDescription>
           </EmptyHeader>
         </Empty>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {typedGroups.map((group) => (
-            <Item
-              key={group.id}
-              variant="outline"
-              render={<Link href={`/g/${group.slug}`} />}
-            >
-              <ItemMedia variant="image">
-                <Avatar className="size-10 rounded-sm">
-                  {group.cover_url && (
-                    <AvatarImage src={group.cover_url} alt={group.name} />
+        <ul className="divide-y divide-border overflow-hidden rounded-2xl bg-card shadow-card dark:shadow-none">
+          {groups.map((group) => (
+            <li key={group.id}>
+              <Link href={`/g/${group.slug}`} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50">
+                <GroupAvatar name={group.name} colorKey={group.color_key} />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[15px] font-semibold text-text-strong">
+                    {group.name}
+                    {group.name_ko && group.name_ko !== group.name && (
+                      <span className="ml-1.5 text-sm font-normal text-text-subtle">{group.name_ko}</span>
+                    )}
+                  </span>
+                  {group.description && (
+                    <span className="block truncate text-[13px] text-text-subtle">{group.description}</span>
                   )}
-                  <AvatarFallback className="rounded-sm">
-                    {group.name[0]}
-                  </AvatarFallback>
-                </Avatar>
-              </ItemMedia>
-              <ItemContent>
-                <ItemTitle>{group.name}</ItemTitle>
-                {group.name_ko && group.name_ko !== group.name && (
-                  <ItemDescription>{group.name_ko}</ItemDescription>
-                )}
-                {group.description && (
-                  <ItemDescription>{group.description}</ItemDescription>
-                )}
-              </ItemContent>
-            </Item>
+                </span>
+                <ChevronRight className="size-4 shrink-0 text-text-subtle" aria-hidden="true" />
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

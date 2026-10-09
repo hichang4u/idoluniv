@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Send, WifiOff } from "lucide-react";
+import { ShieldCheck, Send, WifiOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { sendMessage } from "@/app/actions/chat";
 import { MessageItem } from "./MessageItem";
@@ -11,7 +11,6 @@ import { Reportable } from "@/components/report/Reportable";
 import { Button } from "@/components/ui/button";
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
-import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
 import { LIMITS } from "@/lib/limits";
 import { LOUNGE_MESSAGE_COLUMNS, type LoungeMessage } from "@/types/database";
 
@@ -225,13 +224,18 @@ export function ChatRoom({ roomId, initialMessages, initialReportedIds, currentU
       )}
 
       {/* 메시지 목록 */}
-      <div className="flex-1 overflow-y-auto rounded-xl border border-border bg-card p-4 space-y-3 min-h-0">
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {/* 메시지가 적을 때도 입력창 가까이 붙도록 아래로 모은다 */}
+        <div className="flex min-h-full flex-col justify-end gap-3.5 py-2">
+        <p className="mb-1 flex items-center justify-center gap-1.5 text-xs text-text-subtle">
+          <ShieldCheck className="size-3.5" aria-hidden="true" />
+          서로 존중해 주세요 ·{" "}
+          <Link href="/guidelines" className="font-medium text-text-strong underline underline-offset-4">
+            라운지 규칙
+          </Link>
+        </p>
         {messages.length === 0 ? (
-          <Empty className="h-full">
-            <EmptyHeader>
-              <EmptyDescription>첫 메시지를 보내보세요!</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
+          <p className="py-10 text-center text-sm text-text-subtle">첫 메시지를 보내 보세요.</p>
         ) : (
           messages.map((msg) => {
             const isMine = !!currentUserId && msg.author_id === currentUserId;
@@ -254,6 +258,7 @@ export function ChatRoom({ roomId, initialMessages, initialReportedIds, currentU
           })
         )}
         <div ref={bottomRef} />
+        </div>
       </div>
 
       {/* 입력 영역 */}
@@ -265,7 +270,7 @@ export function ChatRoom({ roomId, initialMessages, initialReportedIds, currentU
             </p>
           )}
           <form onSubmit={handleSubmit} className="mt-3 flex shrink-0 gap-2">
-            <InputGroup className="h-11 flex-1">
+            <InputGroup className="h-11 flex-1 rounded-full bg-card px-2">
               <InputGroupInput
                 ref={inputRef}
                 type="text"
@@ -278,7 +283,7 @@ export function ChatRoom({ roomId, initialMessages, initialReportedIds, currentU
                 enterKeyHint="send"
               />
             </InputGroup>
-            <Button type="submit" size="icon-touch" disabled={isPending || !content.trim()} aria-label="전송">
+            <Button type="submit" size="icon-touch" className="rounded-full" disabled={isPending || !content.trim()} aria-label="전송">
               {isPending ? <Spinner /> : <Send className="size-[18px]" />}
             </Button>
           </form>

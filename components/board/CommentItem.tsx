@@ -6,17 +6,8 @@ import { deleteComment } from "@/app/actions/comment";
 import { CommentForm } from "@/components/board/CommentForm";
 import { Reportable, ReportButton, ReportedMask, type ReportAccess } from "@/components/report/Reportable";
 import { cn } from "@/lib/utils";
+import { formatRelative } from "@/lib/format";
 import type { CommentWithAuthor } from "@/types/database";
-
-function formatDate(iso: string) {
-  const d = new Date(iso);
-  const now = new Date();
-  const diff = (now.getTime() - d.getTime()) / 1000;
-  if (diff < 60) return "방금 전";
-  if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
-  return d.toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
-}
 
 interface CommentItemProps {
   comment: CommentWithAuthor;
@@ -61,7 +52,9 @@ export function CommentItem({
     <div className={cn("py-3 space-y-1.5", isReply && "ml-6 border-l-2 border-border pl-4")}>
       <div className="flex items-center gap-2 text-xs">
         <span className="font-medium text-foreground">{nickname}</span>
-        <span className="text-muted-foreground">{formatDate(comment.created_at)}</span>
+        <time dateTime={comment.created_at} className="text-muted-foreground" suppressHydrationWarning>
+          {formatRelative(comment.created_at)}
+        </time>
       </div>
 
       <ReportedMask>

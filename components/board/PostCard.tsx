@@ -1,33 +1,10 @@
 import Link from "next/link";
-import { MessageCircle, Heart, Eye } from "lucide-react";
-
-import { Badge } from "@/components/ui/badge";
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemFooter,
-  ItemHeader,
-  ItemTitle,
-} from "@/components/ui/item";
+import { Eye, EyeOff, Feather, Heart, MessageSquare } from "lucide-react";
+import { formatRelative } from "@/lib/format";
 import type { PostListItem } from "@/types/database";
 
-function formatDate(iso: string) {
-  const d = new Date(iso);
-  const now = new Date();
-  const diff = (now.getTime() - d.getTime()) / 1000;
-  if (diff < 60) return "방금 전";
-  if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
-  return d.toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
-}
-
-const POST_TYPE_LABEL: Record<string, string> = {
-  text: "일반",
-  image: "이미지",
-  video: "영상",
-  fanfic: "팬픽",
-};
+// 기존 image·video 글은 라벨만 남긴다. 일반 글은 라벨을 달지 않고 팬픽만 깃펜 라벨 (TOKENS §6.0)
+const LEGACY_LABEL: Record<string, string> = { image: "이미지", video: "영상" };
 
 interface PostCardProps {
   post: PostListItem;
@@ -36,53 +13,61 @@ interface PostCardProps {
   reported?: boolean;
 }
 
+// 게시판 목록 한 줄 (목업 01): 제목 2줄 + 메타, 오른쪽에 댓글 수 상자
 export function PostCard({ post, groupSlug, reported = false }: PostCardProps) {
+  const href = `/g/${groupSlug}/posts/${post.id}`;
+
+  if (reported) {
+    return (
+      <Link href={href} className="flex min-h-14 items-center gap-2.5 px-4 py-3 text-sm text-text-subtle hover:bg-muted/50">
+        <span className="inline-flex size-7 items-center justify-center rounded-lg bg-surface-2" aria-hidden="true">
+          <EyeOff className="size-3.5" />
+        </span>
+        <span className="flex-1">신고한 글이에요</span>
+        <span className="font-medium text-text-strong underline underline-offset-4">보기</span>
+      </Link>
+    );
+  }
+
   return (
-    <Item
-      variant="outline"
-      render={<Link href={`/g/${groupSlug}/posts/${post.id}`} />}
-    >
-      <ItemHeader>
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary">
-            {POST_TYPE_LABEL[post.post_type] ?? post.post_type}
-          </Badge>
-          <span className="text-xs text-muted-foreground">
-            {post.author?.nickname ?? "익명"}
+    <Link href={href} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50">
+      <div className="min-w-0 flex-1 space-y-1">
+        {post.post_type === "fanfic" && (
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-group-text">
+            <Feather className="size-3" aria-hidden="true" />
+            팬픽
           </span>
-          <span className="text-xs text-muted-foreground">
-            {formatDate(post.created_at)}
-          </span>
-        </div>
-      </ItemHeader>
-
-      <ItemContent>
-        <ItemTitle className={reported ? "text-muted-foreground" : undefined}>
-          {reported ? "신고한 글입니다" : post.title}
-        </ItemTitle>
-        {!reported && post.content && (
-          <ItemDescription>
-            {post.content.replace(/[#*`>\-]/g, "").trim()}
-          </ItemDescription>
         )}
-      </ItemContent>
-
-      <ItemFooter className="text-xs text-muted-foreground">
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1">
-            <Eye className="size-3" />
+        {LEGACY_LABEL[post.post_type] && (
+          <span className="text-xs font-medium text-text-subtle">{LEGACY_LABEL[post.post_type]}</span>
+        )}
+        <h3 className="line-clamp-2 text-[15px] leading-[1.45] font-semibold text-text-strong [overflow-wrap:anywhere]">
+          {post.title}
+        </h3>
+        <p className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[13px] text-text-subtle">
+          <span className="min-w-0 truncate">
+            {post.author?.nickname ?? "탈퇴한 사용자"} ·{" "}
+            <time dateTime={post.created_at} suppressHydrationWarning>
+              {formatRelative(post.created_at)}
+            </time>
+          </span>
+          <span className="inline-flex items-center gap-1 tabular-nums">
+            <Eye className="size-3.5" aria-hidden="true" />
+            <span className="sr-only">조회</span>
             {post.view_count.toLocaleString()}
           </span>
-          <span className="flex items-center gap-1">
-            <Heart className="size-3" />
+          <span className="inline-flex items-center gap-1 tabular-nums">
+            <Heart className="size-3.5" aria-hidden="true" />
+            <span className="sr-only">좋아요</span>
             {post.like_count.toLocaleString()}
           </span>
-          <span className="flex items-center gap-1">
-            <MessageCircle className="size-3" />
-            {post.comment_count.toLocaleString()}
-          </span>
-        </div>
-      </ItemFooter>
-    </Item>
+        </p>
+      </div>
+      <span className="flex size-11 shrink-0 flex-col items-center justify-center rounded-xl bg-surface-2 text-xs font-semibold text-text-strong tabular-nums">
+        <MessageSquare className="size-3.5 text-text-subtle" aria-hidden="true" />
+        <span className="sr-only">댓글</span>
+        {post.comment_count.toLocaleString()}
+      </span>
+    </Link>
   );
 }

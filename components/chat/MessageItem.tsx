@@ -1,12 +1,7 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bubble, BubbleContent } from "@/components/ui/bubble";
-import {
-  Message,
-  MessageAvatar,
-  MessageContent,
-  MessageHeader,
-} from "@/components/ui/message";
+import { EyeOff } from "lucide-react";
+import { UserAvatar } from "@/components/chat/UserAvatar";
 import { ReportButton, ReportedMask } from "@/components/report/Reportable";
+import { formatTime } from "@/lib/format";
 import type { LoungeMessage } from "@/types/database";
 
 interface Props {
@@ -18,35 +13,33 @@ interface Props {
   hidden?: boolean;
 }
 
-// 서버(UTC)와 브라우저에서 같은 문자열이 나오도록 시간대를 고정한다(하이드레이션 불일치 방지)
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("ko-KR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Asia/Seoul",
-  });
-}
-
+// 라운지 메시지 한 줄 (목업 03): 말풍선 없이 아바타 + 닉네임·시간 + 본문(15/1.7). 좌우 정렬은 나누지 않는다
 export function MessageItem({ message, isMine = false, canReport = false, hidden = false }: Props) {
-  const initial = message.nickname ? message.nickname[0].toUpperCase() : "?";
+  if (hidden) {
+    return (
+      <div className="flex items-center gap-2.5 py-1 text-sm text-text-subtle">
+        <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-2" aria-hidden="true">
+          <EyeOff className="size-3.5" />
+        </span>
+        가려진 메시지입니다
+      </div>
+    );
+  }
 
   return (
-    <Message align="start">
-      <MessageAvatar>
-        <Avatar className="size-8">
-          <AvatarFallback>{initial}</AvatarFallback>
-        </Avatar>
-      </MessageAvatar>
-
-      <MessageContent>
-        <MessageHeader>
-          <span>{message.nickname}</span>
+    <div className="group/message flex gap-2.5">
+      <UserAvatar seed={message.author_id ?? message.nickname} name={message.nickname} className="mt-0.5" />
+      <div className="min-w-0 flex-1">
+        <p className="flex items-center text-[13px] leading-5">
+          <span className="truncate font-semibold text-text-strong">{message.nickname}</span>
           {isMine && (
-            <span className="ml-1.5 rounded-full bg-group-soft px-1.5 py-px text-[0.6875rem] font-medium text-group-text">
+            <span className="ml-1 shrink-0 rounded-full border border-group-text/40 px-1.5 text-[11px] leading-4 font-medium text-group-text">
               나
             </span>
           )}
-          <span className="ml-2 font-normal">{formatTime(message.created_at)}</span>
+          <time dateTime={message.created_at} className="ml-1.5 shrink-0 text-xs text-text-subtle tabular-nums">
+            {formatTime(message.created_at)}
+          </time>
           {canReport && (
             // 데스크톱은 메시지에 올렸을 때·키보드 초점일 때만, 터치 기기는 항상 보인다
             <ReportButton
@@ -54,18 +47,13 @@ export function MessageItem({ message, isMine = false, canReport = false, hidden
               className="ml-0.5 opacity-0 focus-visible:opacity-100 group-hover/message:opacity-100 [@media(hover:none)]:opacity-100"
             />
           )}
-        </MessageHeader>
-
-        {hidden ? (
-          <p className="rounded-lg bg-muted px-3 py-1.5 text-xs text-muted-foreground">가려진 메시지입니다.</p>
-        ) : (
-          <ReportedMask label="신고한 메시지입니다" className="px-3 py-1.5 text-xs">
-            <Bubble variant="muted" align="start">
-              <BubbleContent>{message.content}</BubbleContent>
-            </Bubble>
-          </ReportedMask>
-        )}
-      </MessageContent>
-    </Message>
+        </p>
+        <ReportedMask label="신고한 메시지입니다" className="mt-0.5 inline-block px-3 py-1.5 text-xs">
+          <p className="text-[15px] leading-[1.7] text-foreground whitespace-pre-wrap [overflow-wrap:anywhere]">
+            {message.content}
+          </p>
+        </ReportedMask>
+      </div>
+    </div>
   );
 }

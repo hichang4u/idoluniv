@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { formatFullDateTime } from "@/lib/format";
 import { getViewer } from "@/lib/viewer";
 import { CommentSection, type CommentAccess } from "@/components/board/CommentSection";
 import { PostActions } from "@/components/board/PostActions";
@@ -12,16 +13,6 @@ import { ChevronLeft, Pencil, Eye, EyeOff, Heart } from "lucide-react";
 import { DeletePostButton } from "@/components/board/DeletePostButton";
 import { Reportable, ReportedMask, ReportedText, ReportMenu, type ReportAccess } from "@/components/report/Reportable";
 import { getMyReportedIds } from "@/lib/reports";
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 // 제목·본문·유형이 바뀔 때만 트리거가 updated_at 을 갱신한다(0009). 1분 안의 차이는 무시 (F3-8)
 function isEdited(createdAt: string, updatedAt: string) {
@@ -120,7 +111,7 @@ export default async function PostDetailPage({ params }: Props) {
               <span className="font-medium text-foreground">
                 {post.author?.nickname ?? "익명"}
               </span>
-              <span>{formatDate(post.created_at)}</span>
+              <time dateTime={post.created_at}>{formatFullDateTime(post.created_at)}</time>
               {isEdited(post.created_at, post.updated_at) && <span>수정됨</span>}
             </div>
             <div className="flex items-center gap-3">

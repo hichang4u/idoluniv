@@ -80,7 +80,7 @@ export function PostActions({
         onClick={handleLike}
         disabled={likePending}
         className={cn(
-          "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
+          "flex h-11 items-center gap-1.5 rounded-full border px-4 text-sm font-medium tabular-nums transition-colors",
           liked
             ? "border-group-text/40 bg-group-soft text-group-text"
             : "border-border text-muted-foreground hover:bg-group-soft hover:text-group-text"
@@ -95,7 +95,7 @@ export function PostActions({
         onClick={handleScrap}
         disabled={scrapPending}
         className={cn(
-          "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
+          "flex h-11 items-center gap-1.5 rounded-full border px-4 text-sm font-medium tabular-nums transition-colors",
           scrapped
             ? "border-group-text/40 bg-group-soft text-group-text"
             : "border-border text-muted-foreground hover:bg-group-soft hover:text-group-text"

@@ -164,7 +164,7 @@ export default async function PostDetailPage({ params }: Props) {
               {!post.is_hidden && (
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="touch"
                   className="gap-1"
                   nativeButton={false}
                   render={

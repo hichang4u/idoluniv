@@ -75,7 +75,7 @@ export function CommentItem({
               type="button"
               onClick={() => setShowReplyForm((v) => !v)}
               aria-expanded={showReplyForm}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="-my-2.5 flex min-h-11 items-center gap-1 px-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               <MessageCircle className="size-3" />
               답글
@@ -86,7 +86,7 @@ export function CommentItem({
               type="button"
               onClick={handleDelete}
               disabled={isPending}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+              className="-my-2.5 flex min-h-11 items-center gap-1 px-1 text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
             >
               <Trash2 className="size-3" />
               {isPending ? "삭제 중..." : "삭제"}

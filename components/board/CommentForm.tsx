@@ -58,11 +58,11 @@ export function CommentForm({ postId, parentId, initialContent = "", onCancel, o
           {content.length.toLocaleString()} / {LIMITS.comment.toLocaleString()}
         </span>
         {onCancel && (
-          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+          <Button type="button" variant="ghost" size="touch" onClick={onCancel}>
             취소
           </Button>
         )}
-        <Button type="submit" size="sm" disabled={pending || content.trim().length === 0}>
+        <Button type="submit" size="touch" disabled={pending || content.trim().length === 0}>
           {pending ? "등록 중..." : "등록"}
         </Button>
       </div>

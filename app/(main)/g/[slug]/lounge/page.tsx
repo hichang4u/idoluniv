@@ -8,6 +8,9 @@ import { getOrCreateChatRoom } from "@/app/actions/chat";
 import { ChatRoom, type LoungeAccess } from "@/components/chat/ChatRoom";
 import { LOUNGE_MESSAGE_COLUMNS } from "@/types/database";
 
+// loading.tsx 와 같은 값
+const LOUNGE_HEIGHT = "h-[calc(100dvh-182px)] lg:h-[calc(100dvh-198px)]";
+
 interface Props {
   params: Promise<{ slug: string }>;
 }
@@ -44,9 +47,10 @@ export default async function LoungePage({ params }: Props) {
     { type: "chat_message", ids: initialMessages.map((m) => m.id) },
   ]);
 
-  // 그룹 이름·탭은 레이아웃이 그린다. 높이는 화면 맞춤(디자인 적용 T11 에서 탭바 숨김과 함께 다듬는다)
+  // 그룹 이름·탭은 레이아웃이 그린다. 라운지는 하단 탭바를 숨기고 남은 높이를 채운다.
+  // 빼는 높이: 상단 바 50 + 그룹 이름·탭 100 + 본문 위아래 여백(모바일 32, lg 48) — LOUNGE_HEIGHT 참고
   return (
-    <div className="flex min-h-96 flex-col" style={{ height: "calc(100dvh - 16rem)" }}>
+    <div className={`flex min-h-80 flex-col ${LOUNGE_HEIGHT}`}>
       <ChatRoom
         roomId={roomId}
         initialMessages={initialMessages}

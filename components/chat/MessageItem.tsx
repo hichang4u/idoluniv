@@ -51,7 +51,7 @@ export function MessageItem({ message, isMine = false, canReport = false, hidden
             // 데스크톱은 메시지에 올렸을 때·키보드 초점일 때만, 터치 기기는 항상 보인다
             <ReportButton
               iconOnly
-              className="ml-2 p-1 opacity-0 focus-visible:opacity-100 group-hover/message:opacity-100 [@media(hover:none)]:opacity-100"
+              className="ml-0.5 opacity-0 focus-visible:opacity-100 group-hover/message:opacity-100 [@media(hover:none)]:opacity-100"
             />
           )}
         </MessageHeader>

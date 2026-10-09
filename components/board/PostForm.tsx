@@ -62,7 +62,7 @@ export function PostForm({ groupSlug, post }: PostFormProps) {
                 />
                 <span
                   className={cn(
-                    "inline-flex min-h-9 items-center rounded-full border px-4 text-sm font-medium transition-colors",
+                    "inline-flex min-h-11 items-center rounded-full border px-4 text-sm font-medium transition-colors",
                     // 그룹 안에서 primary 는 파스텔이라 글자·테두리에 쓰지 않는다 (TOKENS §1-2)
                     "border-border text-muted-foreground hover:text-text-strong",
                     "peer-checked:border-group-text/40 peer-checked:bg-group-soft peer-checked:text-group-text",
@@ -138,10 +138,10 @@ export function PostForm({ groupSlug, post }: PostFormProps) {
       )}
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={() => history.back()}>
+        <Button type="button" variant="outline" size="touch" onClick={() => history.back()}>
           취소
         </Button>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" size="touch" disabled={pending}>
           {pending ? "저장 중..." : isEdit ? "수정하기" : "작성하기"}
         </Button>
       </div>

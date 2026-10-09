@@ -132,10 +132,10 @@ export function ReportSheet({ open, onOpenChange, targetType, targetId, onReport
           </div>
 
           <DrawerFooter className="flex-row justify-end pt-2">
-            <Button type="button" variant="outline" onClick={close}>
+            <Button type="button" variant="outline" size="touch" onClick={close}>
               취소
             </Button>
-            <Button type="submit" variant="destructive" disabled={!reason || pending}>
+            <Button type="submit" variant="destructive" size="touch" disabled={!reason || pending}>
               {pending ? "보내는 중..." : "신고하기"}
             </Button>
           </DrawerFooter>

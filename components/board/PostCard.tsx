@@ -32,9 +32,11 @@ const POST_TYPE_LABEL: Record<string, string> = {
 interface PostCardProps {
   post: PostListItem;
   groupSlug: string;
+  /** 내가 신고한 글이면 제목·미리보기를 가린다. 상세에서 "보기" 로 열 수 있다 (F7-4) */
+  reported?: boolean;
 }
 
-export function PostCard({ post, groupSlug }: PostCardProps) {
+export function PostCard({ post, groupSlug, reported = false }: PostCardProps) {
   return (
     <Item
       variant="outline"
@@ -55,8 +57,10 @@ export function PostCard({ post, groupSlug }: PostCardProps) {
       </ItemHeader>
 
       <ItemContent>
-        <ItemTitle>{post.title}</ItemTitle>
-        {post.content && (
+        <ItemTitle className={reported ? "text-muted-foreground" : undefined}>
+          {reported ? "신고한 글입니다" : post.title}
+        </ItemTitle>
+        {!reported && post.content && (
           <ItemDescription>
             {post.content.replace(/[#*`>\-]/g, "").trim()}
           </ItemDescription>

@@ -261,6 +261,7 @@ export type Database = {
       idol_groups: {
         Row: {
           agency: string | null
+          color_key: string
           cover_url: string | null
           created_at: string
           debut_date: string | null
@@ -273,6 +274,7 @@ export type Database = {
         }
         Insert: {
           agency?: string | null
+          color_key?: string
           cover_url?: string | null
           created_at?: string
           debut_date?: string | null
@@ -285,6 +287,7 @@ export type Database = {
         }
         Update: {
           agency?: string | null
+          color_key?: string
           cover_url?: string | null
           created_at?: string
           debut_date?: string | null
@@ -340,6 +343,44 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "idol_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moderation_actions: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          id: number
+          note: string | null
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          id?: never
+          note?: string | null
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          id?: never
+          note?: string | null
+          target_id?: string
+          target_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moderation_actions_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -465,6 +506,66 @@ export type Database = {
           },
         ]
       }
+      reports: {
+        Row: {
+          created_at: string
+          detail: string | null
+          handled_at: string | null
+          handled_by: string | null
+          id: string
+          reason: string
+          reporter_id: string
+          snapshot: Json
+          status: string
+          target_author_id: string | null
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          reason: string
+          reporter_id: string
+          snapshot: Json
+          status?: string
+          target_author_id?: string | null
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          reason?: string
+          reporter_id?: string
+          snapshot?: Json
+          status?: string
+          target_author_id?: string | null
+          target_id?: string
+          target_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_handled_by_fkey"
+            columns: ["handled_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reserved_nicknames: {
         Row: {
           word: string
@@ -521,6 +622,34 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_dismiss_reports: {
+        Args: { p_note?: string; p_target_id: string; p_target_type: string }
+        Returns: number
+      }
+      admin_moderate: {
+        Args: {
+          p_action: string
+          p_note?: string
+          p_target_id: string
+          p_target_type: string
+        }
+        Returns: undefined
+      }
+      admin_report_queue: {
+        Args: { p_limit?: number; p_offset?: number; p_status?: string }
+        Returns: {
+          details: string[]
+          first_at: string
+          is_hidden: boolean
+          last_at: string
+          latest_snapshot: Json
+          reasons: string[]
+          report_count: number
+          target_id: string
+          target_type: string
+          urgent: boolean
+        }[]
+      }
       change_nickname: { Args: { p_nickname: string }; Returns: string }
       complete_onboarding: {
         Args: {
@@ -546,6 +675,15 @@ export type Database = {
       record_post_view: {
         Args: { p_anon_key?: string; p_post_id: string }
         Returns: undefined
+      }
+      submit_report: {
+        Args: {
+          p_detail?: string
+          p_reason: string
+          p_target_id: string
+          p_target_type: string
+        }
+        Returns: string
       }
       toggle_comment_like: {
         Args: { p_comment_id: string }

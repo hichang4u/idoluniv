@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CommentItem, CommentPlaceholder } from "@/components/board/CommentItem";
 import { CommentForm } from "@/components/board/CommentForm";
+import { getMyReportedIds } from "@/lib/reports";
 import type { CommentWithAuthor } from "@/types/database";
 
 /** 댓글을 쓸 수 있는 상태. locked 는 숨김 글(작성자·관리자만 보는 화면) */
@@ -66,6 +67,11 @@ export async function CommentSection({ postId, commentCount, viewerId, access, r
   const threads = buildThreads(rows);
   const next = encodeURIComponent(returnPath);
   const canReply = access === "member";
+  // 숨김 글(locked)의 댓글은 작성자·관리자만 보는 화면이라 신고 진입점을 두지 않는다
+  const reportAccess = access === "locked" ? null : access;
+  const reportedIds = reportAccess
+    ? await getMyReportedIds(viewerId, [{ type: "comment", ids: rows.filter(isVisible).map((c) => c.id) }])
+    : new Set<string>();
 
   return (
     <section className="rounded-xl border border-border bg-card p-6 space-y-4">
@@ -99,6 +105,8 @@ export async function CommentSection({ postId, commentCount, viewerId, access, r
                   postId={postId}
                   isMine={!!viewerId && t.comment.author_id === viewerId}
                   replyParentId={canReply ? t.comment.id : null}
+                  reportAccess={reportAccess}
+                  reported={reportedIds.has(t.comment.id)}
                 />
               ) : (
                 <CommentPlaceholder reason={t.state} />
@@ -110,6 +118,8 @@ export async function CommentSection({ postId, commentCount, viewerId, access, r
                   postId={postId}
                   isReply
                   isMine={!!viewerId && r.author_id === viewerId}
+                  reportAccess={reportAccess}
+                  reported={reportedIds.has(r.id)}
                   // 삭제·숨김 부모에는 새 답글을 달 수 없다 (INVALID_PARENT)
                   replyParentId={canReply && t.state === "visible" ? t.key : null}
                 />

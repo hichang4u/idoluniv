@@ -45,3 +45,5 @@ next-env.d.ts
 
 # DB dumps (docs/qa/smoke-log.md)
 /backups
+# Playwright CLI output (may contain credentials)
+.playwright-cli/

@@ -2,14 +2,8 @@
 
 import { createContext, useContext, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Flag, MoreHorizontal } from "lucide-react";
+import { Flag } from "lucide-react";
 import { ReportSheet } from "@/components/report/ReportSheet";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { ReportTargetType } from "@/lib/report-reasons";
 
@@ -25,7 +19,7 @@ type ReportableState = {
 
 const ReportableContext = createContext<ReportableState | null>(null);
 
-function useReportable() {
+export function useReportable() {
   const ctx = useContext(ReportableContext);
   if (!ctx) throw new Error("Reportable 안에서만 쓸 수 있어요.");
   return ctx;
@@ -108,27 +102,6 @@ export function ReportedMask({
 export function ReportedText({ children, label }: { children: React.ReactNode; label: string }) {
   const { reported, revealed } = useReportable();
   return <>{reported && !revealed ? label : children}</>;
-}
-
-/** 글 상세의 더보기(⋯) 메뉴 */
-export function ReportMenu({ label = "더보기" }: { label?: string }) {
-  const { reported, openReport } = useReportable();
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        aria-label={label}
-        className="-m-2 inline-flex size-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-      >
-        <MoreHorizontal className="size-4" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-auto">
-        <DropdownMenuItem variant="destructive" disabled={reported} onClick={openReport}>
-          <Flag />
-          {reported ? "신고했어요" : "신고"}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
 }
 
 /** 댓글·메시지에 붙는 작은 신고 버튼. 이미 신고했으면 숨긴다 */

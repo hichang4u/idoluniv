@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { getViewer, nextNicknameChangeAt } from "@/lib/viewer";
 import { ChangeNicknameForm } from "@/components/me/ChangeNicknameForm";
+import { ThemeSetting } from "@/components/me/ThemeSetting";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
@@ -18,7 +19,7 @@ const LINKS = [
 ];
 
 // MVP 최소판 (TECH-DESIGN §7.1): 닉네임 표시·변경, 약관 링크, 로그아웃.
-// 최근 방문 그룹·화면 모드·뷰어 글꼴은 디자인 적용(T11)과 함께.
+// 최근 방문 그룹·뷰어 글꼴은 이후 단계에서.
 export default async function MePage() {
   const viewer = await getViewer();
   if (!viewer) redirect("/login?next=%2Fme");
@@ -47,6 +48,10 @@ export default async function MePage() {
           </div>
         </div>
         {!nextChange && <ChangeNicknameForm current={viewer.nickname ?? ""} />}
+      </section>
+
+      <section aria-label="설정" className="rounded-xl border border-border bg-card p-5">
+        <ThemeSetting />
       </section>
 
       {viewer.isAdmin && (

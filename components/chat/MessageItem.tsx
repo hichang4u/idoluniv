@@ -42,7 +42,7 @@ export function MessageItem({ message, isMine = false, canReport = false, hidden
         <MessageHeader>
           <span>{message.nickname}</span>
           {isMine && (
-            <span className="ml-1.5 rounded-full bg-primary/10 px-1.5 py-px text-[0.6875rem] font-medium text-primary">
+            <span className="ml-1.5 rounded-full bg-group-soft px-1.5 py-px text-[0.6875rem] font-medium text-group-text">
               나
             </span>
           )}

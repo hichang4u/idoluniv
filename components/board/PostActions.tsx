@@ -82,8 +82,8 @@ export function PostActions({
         className={cn(
           "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
           liked
-            ? "border-red-500/40 bg-red-500/10 text-red-400"
-            : "border-border text-muted-foreground hover:border-red-500/40 hover:bg-red-500/5 hover:text-red-400"
+            ? "border-group-text/40 bg-group-soft text-group-text"
+            : "border-border text-muted-foreground hover:bg-group-soft hover:text-group-text"
         )}
       >
         <Heart className={cn("size-3.5", liked && "fill-current")} />
@@ -97,8 +97,8 @@ export function PostActions({
         className={cn(
           "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
           scrapped
-            ? "border-primary/40 bg-primary/10 text-primary"
-            : "border-border text-muted-foreground hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+            ? "border-group-text/40 bg-group-soft text-group-text"
+            : "border-border text-muted-foreground hover:bg-group-soft hover:text-group-text"
         )}
       >
         <Bookmark className={cn("size-3.5", scrapped && "fill-current")} />

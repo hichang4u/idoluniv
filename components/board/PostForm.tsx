@@ -63,8 +63,9 @@ export function PostForm({ groupSlug, post }: PostFormProps) {
                 <span
                   className={cn(
                     "inline-flex min-h-9 items-center rounded-full border px-4 text-sm font-medium transition-colors",
-                    "border-border text-muted-foreground hover:border-primary hover:text-primary",
-                    "peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary",
+                    // 그룹 안에서 primary 는 파스텔이라 글자·테두리에 쓰지 않는다 (TOKENS §1-2)
+                    "border-border text-muted-foreground hover:text-text-strong",
+                    "peer-checked:border-group-text/40 peer-checked:bg-group-soft peer-checked:text-group-text",
                     "peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50"
                   )}
                 >

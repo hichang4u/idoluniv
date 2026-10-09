@@ -7,7 +7,7 @@ export const getActiveGroupBySlug = cache(async (slug: string) => {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("idol_groups")
-    .select("id, name, name_ko, slug, description, cover_url")
+    .select("id, name, name_ko, slug, description, cover_url, color_key")
     .eq("slug", slug)
     .eq("is_active", true)
     .maybeSingle();

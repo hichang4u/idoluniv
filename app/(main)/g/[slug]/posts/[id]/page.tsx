@@ -8,11 +8,10 @@ import { OG_BASE } from "@/lib/site";
 import { getViewer } from "@/lib/viewer";
 import { CommentSection, type CommentAccess } from "@/components/board/CommentSection";
 import { PostActions } from "@/components/board/PostActions";
-import { Button } from "@/components/ui/button";
 import { getPostReactions, recordPostView } from "@/app/actions/reaction";
-import { ChevronLeft, Pencil, Eye, EyeOff, Heart } from "lucide-react";
-import { DeletePostButton } from "@/components/board/DeletePostButton";
-import { Reportable, ReportedMask, ReportedText, ReportMenu, type ReportAccess } from "@/components/report/Reportable";
+import { ChevronLeft, Eye, EyeOff, Heart } from "lucide-react";
+import { PostMoreMenu } from "@/components/board/PostMoreMenu";
+import { Reportable, ReportedMask, ReportedText, type ReportAccess } from "@/components/report/Reportable";
 import { getMyReportedIds } from "@/lib/reports";
 
 // 제목·본문·유형이 바뀔 때만 트리거가 updated_at 을 갱신한다(0009). 1분 안의 차이는 무시 (F3-8)
@@ -125,7 +124,12 @@ export default async function PostDetailPage({ params }: Props) {
                 <Eye className="size-3" />
                 {post.view_count.toLocaleString()}
               </span>
-              {canReport && <ReportMenu />}
+              <PostMoreMenu
+                postId={post.id}
+                isAuthor={isAuthor}
+                editHref={post.is_hidden ? null : `${postPath}/edit`}
+                canReport={canReport}
+              />
             </div>
           </div>
         </div>
@@ -140,8 +144,8 @@ export default async function PostDetailPage({ params }: Props) {
           </div>
         </ReportedMask>
 
-        {/* 반응 + 작성자 액션 */}
-        <div className="flex items-center justify-between pt-2">
+        {/* 반응 (수정·삭제·신고는 오른쪽 위 더보기 메뉴) */}
+        <div className="flex items-center pt-2">
           {post.is_hidden ? (
             // 숨김 글에는 반응할 수 없다(서버도 거부). 수치만 보여 준다
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -155,25 +159,6 @@ export default async function PostDetailPage({ params }: Props) {
               initialLiked={reactions.liked}
               initialScrapped={reactions.scrapped}
             />
-          )}
-          {isAuthor && (
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              {!post.is_hidden && (
-                <Button
-                  variant="ghost"
-                  size="touch"
-                  className="gap-1"
-                  nativeButton={false}
-                  render={
-                    <Link href={`${postPath}/edit`}>
-                      <Pencil className="size-3.5" />
-                      수정
-                    </Link>
-                  }
-                />
-              )}
-              <DeletePostButton postId={postId} />
-            </div>
           )}
         </div>
       </article>

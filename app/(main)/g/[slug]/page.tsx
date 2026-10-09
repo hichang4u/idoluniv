@@ -75,7 +75,7 @@ export default async function BoardPage({ params, searchParams }: Props) {
           {group.description ?? `게시글 ${(totalCount ?? 0).toLocaleString()}개`}
         </p>
         <Button
-          size="sm"
+          size="touch"
           nativeButton={false}
           render={<Link href={`/g/${slug}/write`}>글쓰기</Link>}
         />
@@ -91,7 +91,7 @@ export default async function BoardPage({ params, searchParams }: Props) {
           </EmptyHeader>
           <EmptyContent>
             <Button
-              size="sm"
+              size="touch"
               nativeButton={false}
               render={<Link href={`/g/${slug}/write`}>첫 글 작성하기</Link>}
             />

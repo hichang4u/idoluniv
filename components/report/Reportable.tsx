@@ -117,7 +117,7 @@ export function ReportMenu({ label = "더보기" }: { label?: string }) {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label={label}
-        className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        className="-m-2 inline-flex size-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
       >
         <MoreHorizontal className="size-4" />
       </DropdownMenuTrigger>
@@ -141,7 +141,8 @@ export function ReportButton({ className, iconOnly = false }: { className?: stri
       onClick={openReport}
       aria-label="신고"
       className={cn(
-        "flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-destructive",
+        // 보이는 크기는 작게, 누르는 영역은 44px (세로 음수 여백으로 줄 높이 유지)
+        "-my-2.5 flex min-h-11 min-w-11 items-center justify-center gap-1 px-1 text-xs text-muted-foreground transition-colors hover:text-destructive",
         className
       )}
     >

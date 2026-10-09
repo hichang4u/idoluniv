@@ -9,12 +9,7 @@ import { sendMessage } from "@/app/actions/chat";
 import { MessageItem } from "./MessageItem";
 import { Reportable } from "@/components/report/Reportable";
 import { Button } from "@/components/ui/button";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from "@/components/ui/input-group";
+import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
 import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
 import { LIMITS } from "@/lib/limits";
@@ -269,8 +264,8 @@ export function ChatRoom({ roomId, initialMessages, initialReportedIds, currentU
               {error}
             </p>
           )}
-          <form onSubmit={handleSubmit} className="mt-3 shrink-0">
-            <InputGroup className="h-11">
+          <form onSubmit={handleSubmit} className="mt-3 flex shrink-0 gap-2">
+            <InputGroup className="h-11 flex-1">
               <InputGroupInput
                 ref={inputRef}
                 type="text"
@@ -282,17 +277,10 @@ export function ChatRoom({ roomId, initialMessages, initialReportedIds, currentU
                 aria-label="메시지"
                 enterKeyHint="send"
               />
-              <InputGroupAddon align="inline-end">
-                <InputGroupButton
-                  type="submit"
-                  variant="default"
-                  disabled={isPending || !content.trim()}
-                  aria-label="전송"
-                >
-                  {isPending ? <Spinner /> : <Send />}
-                </InputGroupButton>
-              </InputGroupAddon>
             </InputGroup>
+            <Button type="submit" size="icon-touch" disabled={isPending || !content.trim()} aria-label="전송">
+              {isPending ? <Spinner /> : <Send className="size-[18px]" />}
+            </Button>
           </form>
           <p className="mt-1.5 px-1 text-xs tabular-nums text-muted-foreground">
             {content.length}/{LIMITS.chat}

@@ -26,7 +26,7 @@ export function DeletePostButton({ postId }: { postId: string }) {
         onClick={handleDelete}
         disabled={isPending}
         className={cn(
-          "inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+          "inline-flex min-h-11 items-center gap-1 rounded-lg px-3 text-sm font-medium transition-colors",
           "text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
           isPending && "opacity-50 cursor-not-allowed"
         )}

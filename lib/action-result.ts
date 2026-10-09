@@ -24,6 +24,7 @@ export type ErrorCode =
   | "CANNOT_REPORT_OWN"
   | "FORBIDDEN"
   | "SLUG_TAKEN"
+  | "INVALID_ACTION"
   | "UNKNOWN";
 
 export const ERROR_MESSAGES: Record<ErrorCode, string> = {
@@ -47,6 +48,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   CANNOT_REPORT_OWN: "내 글은 신고할 수 없어요.",
   FORBIDDEN: "권한이 없어요.",
   SLUG_TAKEN: "이미 사용 중인 주소예요.",
+  INVALID_ACTION: "할 수 없는 처리예요.",
   UNKNOWN: "문제가 생겼어요. 다시 시도해 주세요.",
 };
 

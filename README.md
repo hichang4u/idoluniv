@@ -34,3 +34,21 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## 운영
+
+### 첫 관리자 지정
+
+관리자는 `admins` 테이블로 판별한다(D-3). 앱에는 관리자를 지정하는 화면이 없으므로 Supabase 대시보드 SQL 에디터에서 넣는다.
+
+1. 지정할 사람이 먼저 로그인하고 닉네임을 정한다(온보딩 완료).
+2. SQL 에디터에서 닉네임으로 id 를 찾아 넣는다.
+
+```sql
+insert into public.admins (user_id)
+select id from public.users where nickname = '<닉네임>';
+```
+
+3. 그 사람이 `/me` 에서 "관리자" 링크가 보이는지, `/admin` 이 열리는지 확인한다.
+
+해제는 `delete from public.admins where user_id = '<id>';`. 관리자 화면(`/admin`)은 신고 큐·그룹·처리 기록 세 개이고, 콘텐츠 삭제 기능은 없다(숨김만, 증거 보존).

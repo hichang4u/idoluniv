@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { MessageCircle, Trash2 } from "lucide-react";
 import { deleteComment } from "@/app/actions/comment";
 import { CommentForm } from "@/components/board/CommentForm";
+import { Reportable, ReportButton, ReportedMask, type ReportAccess } from "@/components/report/Reportable";
 import { cn } from "@/lib/utils";
 import type { CommentWithAuthor } from "@/types/database";
 
@@ -24,9 +25,21 @@ interface CommentItemProps {
   isMine: boolean;
   /** 답글을 달 최상위 댓글 id. null 이면 답글 버튼을 숨긴다 */
   replyParentId: string | null;
+  /** null 이면 신고 버튼을 두지 않는다(숨김 글 화면) */
+  reportAccess: ReportAccess | null;
+  /** 내가 이미 신고한 댓글 (F7-4) */
+  reported: boolean;
 }
 
-export function CommentItem({ comment, postId, isReply = false, isMine, replyParentId }: CommentItemProps) {
+export function CommentItem({
+  comment,
+  postId,
+  isReply = false,
+  isMine,
+  replyParentId,
+  reportAccess,
+  reported,
+}: CommentItemProps) {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
@@ -41,16 +54,21 @@ export function CommentItem({ comment, postId, isReply = false, isMine, replyPar
     });
   };
 
+  const canReport = !isMine && reportAccess !== null;
+
   return (
+    <Reportable targetType="comment" targetId={comment.id} initialReported={reported} access={reportAccess ?? "guest"}>
     <div className={cn("py-3 space-y-1.5", isReply && "ml-6 border-l-2 border-border pl-4")}>
       <div className="flex items-center gap-2 text-xs">
         <span className="font-medium text-foreground">{nickname}</span>
         <span className="text-muted-foreground">{formatDate(comment.created_at)}</span>
       </div>
 
-      <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{comment.content}</p>
+      <ReportedMask>
+        <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{comment.content}</p>
+      </ReportedMask>
 
-      {(replyParentId || isMine) && (
+      {(replyParentId || isMine || canReport) && (
         <div className="flex items-center gap-3">
           {replyParentId && (
             <button
@@ -74,6 +92,7 @@ export function CommentItem({ comment, postId, isReply = false, isMine, replyPar
               {isPending ? "삭제 중..." : "삭제"}
             </button>
           )}
+          {canReport && <ReportButton />}
         </div>
       )}
 
@@ -97,6 +116,7 @@ export function CommentItem({ comment, postId, isReply = false, isMine, replyPar
         </div>
       )}
     </div>
+    </Reportable>
   );
 }
 

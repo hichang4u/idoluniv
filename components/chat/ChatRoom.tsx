@@ -7,6 +7,7 @@ import { Send, WifiOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { sendMessage } from "@/app/actions/chat";
 import { MessageItem } from "./MessageItem";
+import { Reportable } from "@/components/report/Reportable";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
@@ -46,13 +47,16 @@ function mergeMessages(prev: LoungeMessage[], incoming: LoungeMessage[]) {
 interface Props {
   roomId: string;
   initialMessages: LoungeMessage[];
+  /** 입장 시점에 내가 이미 신고한 메시지 id */
+  initialReportedIds: string[];
   currentUserId: string | null;
   access: LoungeAccess;
   /** 로그인·온보딩 뒤 돌아올 주소 */
   returnPath: string;
 }
 
-export function ChatRoom({ roomId, initialMessages, currentUserId, access, returnPath }: Props) {
+export function ChatRoom({ roomId, initialMessages, initialReportedIds, currentUserId, access, returnPath }: Props) {
+  const [reportedIds] = useState(() => new Set(initialReportedIds));
   const [messages, setMessages] = useState<LoungeMessage[]>(() => mergeMessages([], initialMessages));
   const [connection, setConnection] = useState<Connection>("connecting");
   const [content, setContent] = useState("");
@@ -176,9 +180,20 @@ export function ChatRoom({ roomId, initialMessages, currentUserId, access, retur
             </EmptyHeader>
           </Empty>
         ) : (
-          messages.map((msg) => (
-            <MessageItem key={msg.id} message={msg} isMine={!!currentUserId && msg.author_id === currentUserId} />
-          ))
+          messages.map((msg) => {
+            const isMine = !!currentUserId && msg.author_id === currentUserId;
+            return (
+              <Reportable
+                key={msg.id}
+                targetType="chat_message"
+                targetId={msg.id}
+                initialReported={reportedIds.has(msg.id)}
+                access={access}
+              >
+                <MessageItem message={msg} isMine={isMine} canReport={!isMine} />
+              </Reportable>
+            );
+          })
         )}
         <div ref={bottomRef} />
       </div>

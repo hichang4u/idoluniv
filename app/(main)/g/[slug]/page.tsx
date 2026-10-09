@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveGroupBySlug } from "@/lib/groups";
+import { getViewer } from "@/lib/viewer";
+import { getMyReportedIds } from "@/lib/reports";
 import { PostCard } from "@/components/board/PostCard";
 import { Button } from "@/components/ui/button";
 import {
@@ -61,6 +63,9 @@ export default async function BoardPage({ params, searchParams }: Props) {
 
   const totalPages = Math.ceil((totalCount ?? 0) / PAGE_SIZE);
   const posts: PostListItem[] = postsData ?? [];
+  // 내가 신고한 글은 목록에서도 제목을 가린다 (F7-4, 페이지 글 id 로 1회 조회)
+  const viewer = await getViewer();
+  const reportedIds = await getMyReportedIds(viewer?.id ?? null, [{ type: "post", ids: posts.map((p) => p.id) }]);
 
   return (
     <div className="space-y-4">
@@ -95,7 +100,7 @@ export default async function BoardPage({ params, searchParams }: Props) {
       ) : (
         <ItemGroup className="gap-2">
           {posts.map((post) => (
-            <PostCard key={post.id} post={post} groupSlug={slug} />
+            <PostCard key={post.id} post={post} groupSlug={slug} reported={reportedIds.has(post.id)} />
           ))}
         </ItemGroup>
       )}

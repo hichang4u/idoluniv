@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { getPostReactions, recordPostView } from "@/app/actions/reaction";
 import { ChevronLeft, Pencil, Eye, EyeOff, Heart } from "lucide-react";
 import { DeletePostButton } from "@/components/board/DeletePostButton";
+import { Reportable, ReportedMask, ReportedText, ReportMenu, type ReportAccess } from "@/components/report/Reportable";
+import { getMyReportedIds } from "@/lib/reports";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("ko-KR", {
@@ -78,13 +80,11 @@ export default async function PostDetailPage({ params }: Props) {
   ]);
   const isAuthor = !!viewer && viewer.id === post.author_id;
   const postPath = `/g/${groupSlug}/posts/${postId}`;
-  const commentAccess: CommentAccess = post.is_hidden
-    ? "locked"
-    : !viewer
-      ? "guest"
-      : viewer.onboarded
-        ? "member"
-        : "onboarding";
+  const access: ReportAccess = !viewer ? "guest" : viewer.onboarded ? "member" : "onboarding";
+  const commentAccess: CommentAccess = post.is_hidden ? "locked" : access;
+  // 본인 글·숨김 글은 신고할 수 없다(DB 도 거부: CANNOT_REPORT_OWN, NOT_FOUND)
+  const canReport = !isAuthor && !post.is_hidden;
+  const reported = canReport && (await getMyReportedIds(viewer?.id ?? null, [{ type: "post", ids: [post.id] }])).has(post.id);
 
   return (
     <div className="space-y-6">
@@ -107,11 +107,14 @@ export default async function PostDetailPage({ params }: Props) {
         </p>
       )}
 
-      {/* 게시글 본문 */}
+      {/* 게시글 본문. 내가 신고한 글이면 제목·본문을 가린다 (F7-4) */}
+      <Reportable targetType="post" targetId={post.id} initialReported={reported} access={access}>
       <article className="rounded-xl border border-border bg-card p-6 space-y-4">
         {/* 제목 + 메타 */}
         <div className="space-y-2">
-          <h1 className="text-xl font-bold leading-snug">{post.title}</h1>
+          <h1 className="text-xl font-bold leading-snug">
+            <ReportedText label="신고한 글입니다">{post.title}</ReportedText>
+          </h1>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <div className="flex items-center gap-3">
               <span className="font-medium text-foreground">
@@ -125,6 +128,7 @@ export default async function PostDetailPage({ params }: Props) {
                 <Eye className="size-3" />
                 {post.view_count.toLocaleString()}
               </span>
+              {canReport && <ReportMenu />}
             </div>
           </div>
         </div>
@@ -132,9 +136,11 @@ export default async function PostDetailPage({ params }: Props) {
         <hr className="border-border" />
 
         {/* 본문 */}
-        <div className="prose prose-sm prose-invert max-w-none whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-          {post.content}
-        </div>
+        <ReportedMask>
+          <div className="prose prose-sm prose-invert max-w-none whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+            {post.content}
+          </div>
+        </ReportedMask>
 
         {/* 반응 + 작성자 액션 */}
         <div className="flex items-center justify-between pt-2">
@@ -173,6 +179,7 @@ export default async function PostDetailPage({ params }: Props) {
           )}
         </div>
       </article>
+      </Reportable>
 
       {/* 댓글 */}
       <CommentSection

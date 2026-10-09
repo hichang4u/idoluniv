@@ -137,7 +137,8 @@ export default async function PostDetailPage({ params }: Props) {
 
         {/* 본문 */}
         <ReportedMask>
-          <div className="prose prose-sm prose-invert max-w-none whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+          {/* body-lg 16/1.75, 긴 URL 은 아무 데서나 줄바꿈 (TOKENS §4.2) */}
+          <div className="whitespace-pre-wrap text-base leading-[1.75] text-foreground [overflow-wrap:anywhere]">
             {post.content}
           </div>
         </ReportedMask>

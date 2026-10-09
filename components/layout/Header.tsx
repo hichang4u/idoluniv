@@ -17,7 +17,8 @@ export async function Header() {
 
       <Link
         href="/"
-        className="bg-gradient-to-r from-primary to-accent bg-clip-text text-lg font-extrabold text-transparent"
+        // 잉크 단색 워드마크: 서비스는 고유색이 없고 색은 그룹만 가진다 (TOKENS §1, D-15=A)
+        className="text-lg font-bold tracking-tight text-text-strong"
       >
         IdolUniv
       </Link>

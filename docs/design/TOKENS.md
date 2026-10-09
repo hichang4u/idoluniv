@@ -4,7 +4,7 @@
 - 결정: **D-15 = A** (2026-09-29 사용자 결정). 비교 시안: [브랜드 시안 아티팩트](https://claude.ai/artifact/EAkARhZLSxCLuUU2FjUr6u)
 - 확인용 렌더: [토큰 시안 아티팩트](https://claude.ai/artifact/D8ToBVShErw2oYdZbFjbqD) — `tokens.draft.css` 를 그대로 넣어 라이트·다크로 보여 줌
 - 산출물
-  - `docs/design/tokens/tokens.draft.css` — CSS 초안 (아직 `app/globals.css` 에 연결하지 않음)
+  - `docs/design/tokens/tokens.draft.css` — CSS 원본. **2026-10-09 `app/globals.css` 에 연결함 (T11-A)** — 값을 바꾸면 이 파일을 다시 만든 뒤 globals.css 로 옮긴다
   - `docs/design/tokens/gen.py`, `color.py` — 값 생성·검증 스크립트. 값을 바꿀 때는 CSS 를 손으로 고치지 말고 `python gen.py` 로 다시 만든다
   - `docs/design/tokens/presets.json` — 그룹 색 프리셋 24개와 대비 계산 결과
 - 표기: ✅ 스크립트 계산으로 확인 / ○ 판단·추정 / ❓ 미확인

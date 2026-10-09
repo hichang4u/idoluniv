@@ -14,6 +14,8 @@ interface Props {
   isMine?: boolean;
   /** 남의 메시지에만 신고 버튼. 상위에 Reportable 이 있어야 한다 */
   canReport?: boolean;
+  /** 입장 뒤 관리자·자동 숨김으로 가려졌다 (F6-7) */
+  hidden?: boolean;
 }
 
 // 서버(UTC)와 브라우저에서 같은 문자열이 나오도록 시간대를 고정한다(하이드레이션 불일치 방지)
@@ -25,7 +27,7 @@ function formatTime(iso: string) {
   });
 }
 
-export function MessageItem({ message, isMine = false, canReport = false }: Props) {
+export function MessageItem({ message, isMine = false, canReport = false, hidden = false }: Props) {
   const initial = message.nickname ? message.nickname[0].toUpperCase() : "?";
 
   return (
@@ -54,11 +56,15 @@ export function MessageItem({ message, isMine = false, canReport = false }: Prop
           )}
         </MessageHeader>
 
-        <ReportedMask label="신고한 메시지입니다" className="px-3 py-1.5 text-xs">
-          <Bubble variant="muted" align="start">
-            <BubbleContent>{message.content}</BubbleContent>
-          </Bubble>
-        </ReportedMask>
+        {hidden ? (
+          <p className="rounded-lg bg-muted px-3 py-1.5 text-xs text-muted-foreground">가려진 메시지입니다.</p>
+        ) : (
+          <ReportedMask label="신고한 메시지입니다" className="px-3 py-1.5 text-xs">
+            <Bubble variant="muted" align="start">
+              <BubbleContent>{message.content}</BubbleContent>
+            </Bubble>
+          </ReportedMask>
+        )}
       </MessageContent>
     </Message>
   );

@@ -28,6 +28,10 @@ export type LoungeAccess = "member" | "guest" | "onboarding";
 
 type Connection = "connecting" | "live" | "lost";
 
+// 숨김 전파 이벤트 (F6-7, 0010 chat_moderation_events). 숨긴 메시지는 RLS 때문에 UPDATE 이벤트가
+// 오지 않으므로 이 테이블의 INSERT 로 알게 된다.
+type ModerationEvent = { id: number; message_id: string; action: string };
+
 // PostgREST 와 Realtime 의 timestamptz 문자열 형식이 같다는 보장이 없어(Realtime 은 서버 값을 그대로 넘긴다)
 // 정렬·비교 전에 ISO(UTC, 밀리초)로 맞춘다. 마이크로초가 잘려도 재연결 보정은 gte + id 중복 제거라 안전하다.
 function normalizeTime(value: string) {
@@ -58,6 +62,8 @@ interface Props {
 export function ChatRoom({ roomId, initialMessages, initialReportedIds, currentUserId, access, returnPath }: Props) {
   const [reportedIds] = useState(() => new Set(initialReportedIds));
   const [messages, setMessages] = useState<LoungeMessage[]>(() => mergeMessages([], initialMessages));
+  // 입장 뒤 관리자·자동 숨김으로 가려진 메시지
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(() => new Set());
   const [connection, setConnection] = useState<Connection>("connecting");
   const [content, setContent] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -66,17 +72,63 @@ export function ChatRoom({ roomId, initialMessages, initialReportedIds, currentU
   const inputRef = useRef<HTMLInputElement>(null);
   // 재연결 보정에서 "마지막으로 가진 메시지" 시각을 읽기 위한 최신값
   const lastAtRef = useRef<string | null>(null);
+  // 숨김 이벤트 보정 범위(가진 메시지 중 가장 오래된 시각)
+  const firstAtRef = useRef<string | null>(null);
   const router = useRouter();
   const next = encodeURIComponent(returnPath);
 
   useEffect(() => {
     lastAtRef.current = messages.at(-1)?.created_at ?? null;
+    firstAtRef.current = messages[0]?.created_at ?? null;
   }, [messages]);
 
   // Realtime 구독 + 연결 상태 추적
   useEffect(() => {
     const supabase = createClient();
     let disposed = false;
+    // 이미 반영한 마지막 이벤트 id. 실시간 이벤트와 보정 조회가 겹쳐도 순서가 뒤집히지 않게 한다
+    let lastEventId = 0;
+
+    const applyEvents = (events: ModerationEvent[]) => {
+      const fresh = events.filter((e) => e.id > lastEventId).sort((a, b) => a.id - b.id);
+      if (fresh.length === 0) return;
+      lastEventId = fresh[fresh.length - 1].id;
+      // 같은 메시지에 여러 이벤트가 있으면 마지막 것이 최종 상태다
+      const finalAction = new Map(fresh.map((e) => [e.message_id, e.action]));
+      setHiddenIds((prev) => {
+        const nextIds = new Set(prev);
+        for (const [id, action] of finalAction) {
+          if (action === "hide") nextIds.add(id);
+          else nextIds.delete(id);
+        }
+        return nextIds;
+      });
+      // 입장 전에 숨겨져 목록에 없던 메시지가 해제되면 가져와 합친다
+      const unhidden = [...finalAction].filter(([, action]) => action === "unhide").map(([id]) => id);
+      if (unhidden.length > 0) {
+        void supabase
+          .from("chat_messages")
+          .select(LOUNGE_MESSAGE_COLUMNS)
+          .in("id", unhidden)
+          .eq("is_hidden", false)
+          .then(({ data }) => {
+            if (!disposed && data && data.length > 0) setMessages((prev) => mergeMessages(prev, data));
+          });
+      }
+    };
+
+    // (재)구독 때마다 가진 메시지 범위의 숨김 이벤트를 다시 읽는다(끊긴 동안 놓친 숨김 보정)
+    const backfillEvents = async () => {
+      let query = supabase
+        .from("chat_moderation_events")
+        .select("id, message_id, action")
+        .eq("room_id", roomId)
+        .order("id", { ascending: true })
+        .limit(500);
+      if (firstAtRef.current) query = query.gte("created_at", firstAtRef.current);
+      const { data } = await query;
+      if (!disposed && data) applyEvents(data);
+    };
 
     // 구독이 (다시) 성립할 때마다 마지막 메시지 이후를 조회해 합친다.
     // 첫 구독도 포함한다: 서버 렌더와 구독 성립 사이에 온 메시지를 놓치지 않기 위해서다.
@@ -102,11 +154,17 @@ export function ChatRoom({ roomId, initialMessages, initialReportedIds, currentU
         { event: "INSERT", schema: "public", table: "chat_messages", filter: `room_id=eq.${roomId}` },
         (payload) => setMessages((prev) => mergeMessages(prev, [payload.new])),
       )
+      .on<ModerationEvent>(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "chat_moderation_events", filter: `room_id=eq.${roomId}` },
+        (payload) => applyEvents([payload.new]),
+      )
       .subscribe((status) => {
         if (disposed) return;
         if (status === "SUBSCRIBED") {
           setConnection("live");
           void backfill();
+          void backfillEvents();
         } else {
           // CHANNEL_ERROR·TIMED_OUT·CLOSED. 클라이언트가 소켓을 다시 연결하면 SUBSCRIBED 가 다시 온다
           setConnection("lost");
@@ -190,7 +248,12 @@ export function ChatRoom({ roomId, initialMessages, initialReportedIds, currentU
                 initialReported={reportedIds.has(msg.id)}
                 access={access}
               >
-                <MessageItem message={msg} isMine={isMine} canReport={!isMine} />
+                <MessageItem
+                  message={msg}
+                  isMine={isMine}
+                  hidden={hiddenIds.has(msg.id)}
+                  canReport={!isMine && !hiddenIds.has(msg.id)}
+                />
               </Reportable>
             );
           })

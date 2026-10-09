@@ -49,6 +49,16 @@ export default async function MePage() {
         {!nextChange && <ChangeNicknameForm current={viewer.nickname ?? ""} />}
       </section>
 
+      {viewer.isAdmin && (
+        <Link
+          href="/admin"
+          className="flex min-h-12 items-center justify-between rounded-xl border border-border bg-card px-5 text-sm font-medium hover:bg-muted/50"
+        >
+          관리자
+          <ChevronRight className="size-4 text-muted-foreground" aria-hidden="true" />
+        </Link>
+      )}
+
       <nav aria-label="정책" className="rounded-xl border border-border bg-card">
         {LINKS.map((link, i) => (
           <Link

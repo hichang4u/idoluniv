@@ -45,3 +45,7 @@ next-env.d.ts
 
 # DB dumps (docs/qa/smoke-log.md)
 /backups
+# Playwright CLI: 실행 결과(스냅샷·스크린샷·콘솔 로그 — 로그인 화면이 담길 수 있다)와
+# 도구 설치가 만든 에이전트 스킬 파일(도구 버전마다 바뀌므로 저장소에 두지 않는다)
+.playwright-cli/
+.claude/skills/playwright-cli/

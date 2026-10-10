@@ -8,6 +8,10 @@ import { OG_BASE } from "@/lib/site";
 import { getViewer } from "@/lib/viewer";
 import { getMyReportedIds } from "@/lib/reports";
 import { PostCard } from "@/components/board/PostCard";
+import { GroupBand } from "@/components/group/GroupBand";
+import { GroupTabs } from "@/components/group/GroupTabs";
+import { RecordVisit } from "@/components/group/RecordVisit";
+import { TopBar } from "@/components/layout/TopBar";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Pagination, PaginationContent, PaginationItem } from "@/components/ui/pagination";
@@ -61,6 +65,16 @@ export default async function BoardPage({ params, searchParams }: Props) {
   if (!group) notFound();
 
   const supabase = await createClient();
+  // 헤더 띠의 지표. 행을 받지 않고 수만 센다(숨김 글 제외)
+  const countPosts = (fanficOnly: boolean) => {
+    let q = supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("idol_group_id", group.id)
+      .eq("is_hidden", false);
+    if (fanficOnly) q = q.eq("post_type", "fanfic");
+    return q;
+  };
   let query = supabase
     .from("posts")
     .select(
@@ -76,9 +90,11 @@ export default async function BoardPage({ params, searchParams }: Props) {
     query = query.gte("created_at", daysAgoIso(7)).order("like_count", { ascending: false });
   }
   if (sort === "fanfic") query = query.eq("post_type", "fanfic");
-  const { data: postsData, count: totalCount, error } = await query
-    .order("created_at", { ascending: false })
-    .range(from, from + PAGE_SIZE - 1);
+  const [{ data: postsData, count: totalCount, error }, { count: postCount }, { count: fanficCount }] = await Promise.all([
+    query.order("created_at", { ascending: false }).range(from, from + PAGE_SIZE - 1),
+    countPosts(false),
+    countPosts(true),
+  ]);
   // 빈 목록과 조회 실패를 구분한다: 실패는 error.tsx 로 (디자인 리뷰 S10)
   if (error) throw error;
 
@@ -99,53 +115,68 @@ export default async function BoardPage({ params, searchParams }: Props) {
   const current = SORTS.find((s) => s.value === sort)!;
 
   return (
-    <div className="space-y-3">
-      {/* 정렬 칩. 선택은 그룹의 진한 톤(group-text) — 파스텔은 글자색으로 쓰지 않는다 */}
-      <nav aria-label="정렬" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
-        {SORTS.map(({ value, label, icon: Icon }) => {
-          const active = value === sort;
-          return (
-            <Link
-              key={value}
-              href={href({ sort: value })}
-              aria-current={active ? "page" : undefined}
-              className={cn(
-                "inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm transition-colors",
-                active
-                  ? "border-group-text/40 bg-group-soft font-semibold text-group-text"
-                  : "border-border bg-card text-text-subtle hover:text-text-strong"
-              )}
-            >
-              <Icon className="size-3.5" aria-hidden="true" />
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
+    <>
+      <RecordVisit slug={group.slug} name={group.name} colorKey={group.color_key} />
+      <TopBar back="/g" backLabel="그룹 목록" title={group.name} />
+      {/* 모바일은 띠·탭·칩·목록이 화면 끝까지 이어지고(목업 01), 데스크톱은 한 장의 카드로 묶는다 */}
+      <div className="md:overflow-hidden md:rounded-2xl md:shadow-card md:dark:shadow-none">
+        <GroupBand
+          slug={group.slug}
+          name={group.name}
+          colorKey={group.color_key}
+          postCount={postCount ?? 0}
+          fanficCount={fanficCount ?? 0}
+        />
+        <GroupTabs slug={group.slug} name={group.name} active="board" />
 
-      {posts.length === 0 ? (
-        <Empty className="rounded-2xl bg-card py-12">
-          <EmptyHeader>
-            <EmptyTitle className="text-base font-semibold text-text-strong break-keep">{current.empty}</EmptyTitle>
-            <EmptyDescription className="break-keep">첫 글의 주인공이 되어 보세요.</EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Button size="touch" nativeButton={false} render={<Link href={`/g/${slug}/write`}>글쓰기</Link>} />
-          </EmptyContent>
-        </Empty>
-      ) : (
-        // 일반 글은 카드가 아니라 텍스트 목록 (D-25, 팬 커뮤니티 관습)
-        <ul className="divide-y divide-border overflow-hidden rounded-2xl bg-card shadow-card dark:shadow-none">
-          {posts.map((post) => (
-            <li key={post.id}>
-              <PostCard post={post} groupSlug={slug} reported={reportedIds.has(post.id)} />
-            </li>
-          ))}
-        </ul>
-      )}
+        {/* 정렬 칩. 선택은 그룹의 진한 톤(group-text) — 파스텔은 글자색으로 쓰지 않는다 */}
+        <nav aria-label="정렬" className="flex gap-1.5 overflow-x-auto bg-card px-4 py-2.5">
+          {SORTS.map(({ value, label, icon: Icon }) => {
+            const active = value === sort;
+            return (
+              <Link
+                key={value}
+                href={href({ sort: value })}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  // 보이는 높이 32px, 누르는 영역은 가상 요소로 44px
+                  "relative inline-flex h-8 shrink-0 items-center gap-[5px] rounded-full border px-3 text-[13px] transition-colors after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-['']",
+                  active
+                    ? "border-group-text bg-group-soft font-semibold text-group-text"
+                    : "border-border font-medium text-text-subtle hover:text-text-strong"
+                )}
+              >
+                <Icon className="size-3.5" aria-hidden="true" />
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {posts.length === 0 ? (
+          <Empty className="rounded-none border-t border-border bg-card py-12">
+            <EmptyHeader>
+              <EmptyTitle className="text-base font-semibold text-text-strong break-keep">{current.empty}</EmptyTitle>
+              <EmptyDescription className="break-keep">첫 글의 주인공이 되어 보세요.</EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button size="touch" nativeButton={false} render={<Link href={`/g/${slug}/write`}>글쓰기</Link>} />
+            </EmptyContent>
+          </Empty>
+        ) : (
+          // 일반 글은 카드가 아니라 텍스트 목록 (D-25, 팬 커뮤니티 관습)
+          <ul className="bg-card">
+            {posts.map((post) => (
+              <li key={post.id} className="border-t border-border">
+                <PostCard post={post} groupSlug={slug} reported={reportedIds.has(post.id)} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       {totalPages > 1 && (
-        <Pagination className="pt-2" aria-label="페이지 이동">
+        <Pagination className="py-3" aria-label="페이지 이동">
           <PaginationContent>
             {page > 1 && (
               <PaginationItem>
@@ -181,6 +212,6 @@ export default async function BoardPage({ params, searchParams }: Props) {
           </PaginationContent>
         </Pagination>
       )}
-    </div>
+    </>
   );
 }

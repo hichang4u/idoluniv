@@ -3,13 +3,12 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Send, WifiOff } from "lucide-react";
+import { ArrowRight, CircleAlert, Clock, Eye, MessagesSquare, ShieldCheck, WifiOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { sendMessage } from "@/app/actions/chat";
 import { MessageItem } from "./MessageItem";
 import { Reportable } from "@/components/report/Reportable";
-import { Button } from "@/components/ui/button";
-import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
+import { IconChip } from "@/components/common/IconChip";
 import { Spinner } from "@/components/ui/spinner";
 import { LIMITS } from "@/lib/limits";
 import { LOUNGE_MESSAGE_COLUMNS, type LoungeMessage } from "@/types/database";
@@ -61,8 +60,9 @@ export function ChatRoom({ roomId, initialMessages, initialReportedIds, currentU
   const [connection, setConnection] = useState<Connection>("connecting");
   const [content, setContent] = useState("");
   const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  // 빈도 제한·도배 거부는 경고 톤 안내(목업 03), 그 외 실패는 오류
+  const [error, setError] = useState<{ text: string; tone: "warn" | "error" } | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   // 재연결 보정에서 "마지막으로 가진 메시지" 시각을 읽기 위한 최신값
   const lastAtRef = useRef<string | null>(null);
@@ -171,9 +171,10 @@ export function ChatRoom({ roomId, initialMessages, initialReportedIds, currentU
     };
   }, [roomId]);
 
-  // 새 메시지 오면 맨 아래로 스크롤
+  // 새 메시지 오면 목록만 맨 아래로 스크롤한다(scrollIntoView 는 창까지 움직여 상단 바를 밀어낸다)
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const list = listRef.current;
+    list?.scrollTo({ top: list.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
   const handleSubmit = (e?: React.FormEvent) => {
@@ -194,7 +195,8 @@ export function ChatRoom({ roomId, initialMessages, initialReportedIds, currentU
       } else if (result.code === "ONBOARDING_REQUIRED") {
         router.push(`/onboarding?next=${next}`);
       } else {
-        setError(result.message);
+        const warn = result.code === "RATE_LIMITED" || result.code === "DUPLICATE_MESSAGE";
+        setError({ text: result.message, tone: warn ? "warn" : "error" });
         setContent(trimmed);
       }
       inputRef.current?.focus();
@@ -211,53 +213,57 @@ export function ChatRoom({ roomId, initialMessages, initialReportedIds, currentU
     }
   };
 
+  // 글자 수는 한도에 가까워질 때만 보여 준다 (목업 03 은 입력창만)
+  const nearLimit = content.length >= LIMITS.chat - 50;
+
   return (
-    <div className="flex flex-col flex-1 min-h-0">
+    <div className="flex min-h-0 flex-1 flex-col">
       {connection === "lost" && (
         <p
           role="status"
-          className="mb-2 flex shrink-0 items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2 text-xs text-muted-foreground"
+          className="flex shrink-0 items-center gap-2 border-b border-border bg-surface-2 px-4 py-2 text-xs text-text-subtle"
         >
-          <WifiOff className="size-3.5 shrink-0" />
+          <WifiOff className="size-3.5 shrink-0" aria-hidden="true" />
           연결이 끊겼어요. 다시 연결하는 중이에요…
         </p>
       )}
 
       {/* 메시지 목록 */}
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto">
         {/* 메시지가 적을 때도 입력창 가까이 붙도록 아래로 모은다 */}
-        <div className="flex min-h-full flex-col justify-end gap-3.5 py-2">
-        <p className="mb-1 flex items-center justify-center gap-1.5 text-xs text-text-subtle">
-          <ShieldCheck className="size-3.5" aria-hidden="true" />
-          서로 존중해 주세요 ·{" "}
-          <Link href="/guidelines" className="font-medium text-text-strong underline underline-offset-4">
-            라운지 규칙
-          </Link>
-        </p>
-        {messages.length === 0 ? (
-          <p className="py-10 text-center text-sm text-text-subtle">첫 메시지를 보내 보세요.</p>
-        ) : (
-          messages.map((msg) => {
-            const isMine = !!currentUserId && msg.author_id === currentUserId;
-            return (
-              <Reportable
-                key={msg.id}
-                targetType="chat_message"
-                targetId={msg.id}
-                initialReported={reportedIds.has(msg.id)}
-                access={access}
-              >
-                <MessageItem
-                  message={msg}
-                  isMine={isMine}
-                  hidden={hiddenIds.has(msg.id)}
-                  canReport={!isMine && !hiddenIds.has(msg.id)}
-                />
-              </Reportable>
-            );
-          })
-        )}
-        <div ref={bottomRef} />
+        <div className="flex min-h-full flex-col justify-end gap-3 px-4 pt-2 pb-2.5">
+          <p className="flex items-center justify-center gap-1.5 px-4 pt-2 pb-1 text-xs text-text-subtle">
+            <IconChip icon={ShieldCheck} color="mint" size="xs" />
+            <span>
+              서로 존중해 주세요 ·{" "}
+              <Link href="/guidelines" className="font-medium text-foreground underline underline-offset-2">
+                라운지 규칙
+              </Link>
+            </span>
+          </p>
+          {messages.length === 0 ? (
+            <p className="py-10 text-center text-sm text-text-subtle">첫 메시지를 보내 보세요.</p>
+          ) : (
+            messages.map((msg) => {
+              const isMine = !!currentUserId && msg.author_id === currentUserId;
+              return (
+                <Reportable
+                  key={msg.id}
+                  targetType="chat_message"
+                  targetId={msg.id}
+                  initialReported={reportedIds.has(msg.id)}
+                  access={access}
+                >
+                  <MessageItem
+                    message={msg}
+                    isMine={isMine}
+                    hidden={hiddenIds.has(msg.id)}
+                    canReport={!isMine && !hiddenIds.has(msg.id)}
+                  />
+                </Reportable>
+              );
+            })
+          )}
         </div>
       </div>
 
@@ -265,43 +271,71 @@ export function ChatRoom({ roomId, initialMessages, initialReportedIds, currentU
       {access === "member" ? (
         <>
           {error && (
-            <p role="alert" className="mt-1.5 px-1 text-xs text-destructive">
-              {error}
+            <p
+              role="alert"
+              className={
+                error.tone === "warn"
+                  ? "flex shrink-0 items-center gap-1.5 px-4 pb-1.5 text-[12.5px] text-warning-text"
+                  : "flex shrink-0 items-center gap-1.5 px-4 pb-1.5 text-[12.5px] text-destructive"
+              }
+            >
+              {error.tone === "warn" ? (
+                <Clock className="size-4 shrink-0" aria-hidden="true" />
+              ) : (
+                <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
+              )}
+              {error.text}
             </p>
           )}
-          <form onSubmit={handleSubmit} className="mt-3 flex shrink-0 gap-2">
-            <InputGroup className="h-11 flex-1 rounded-full bg-card px-2">
-              <InputGroupInput
-                ref={inputRef}
-                type="text"
-                value={content}
-                onChange={(e) => setContent(e.target.value.slice(0, LIMITS.chat))}
-                onKeyDown={handleKeyDown}
-                maxLength={LIMITS.chat}
-                placeholder="메시지를 입력하세요"
-                aria-label="메시지"
-                enterKeyHint="send"
-              />
-            </InputGroup>
-            <Button type="submit" size="icon-touch" className="rounded-full" disabled={isPending || !content.trim()} aria-label="전송">
-              {isPending ? <Spinner /> : <Send className="size-[18px]" />}
-            </Button>
+          <form
+            onSubmit={handleSubmit}
+            className="flex shrink-0 items-center gap-2 border-t border-border px-3 pt-2 pb-[calc(14px+env(safe-area-inset-bottom))]"
+          >
+            <input
+              ref={inputRef}
+              type="text"
+              value={content}
+              onChange={(e) => setContent(e.target.value.slice(0, LIMITS.chat))}
+              onKeyDown={handleKeyDown}
+              maxLength={LIMITS.chat}
+              placeholder="메시지를 입력하세요"
+              aria-label="메시지"
+              aria-describedby={nearLimit ? "chat-count" : undefined}
+              enterKeyHint="send"
+              className="h-11 min-w-0 flex-1 rounded-full border border-line-strong bg-surface-0 px-4 text-[15px] text-foreground outline-none placeholder:text-text-subtle focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+            />
+            {nearLimit && (
+              <span id="chat-count" className="shrink-0 text-xs text-text-subtle tabular-nums">
+                {content.length}/{LIMITS.chat}
+              </span>
+            )}
+            <button
+              type="submit"
+              disabled={isPending || !content.trim()}
+              aria-label="보내기"
+              className="inline-grid size-11 shrink-0 place-items-center rounded-full bg-group-solid text-group-on-solid transition-[filter,opacity] hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
+            >
+              {isPending ? <Spinner /> : <ArrowRight className="size-5" aria-hidden="true" />}
+            </button>
           </form>
-          <p className="mt-1.5 px-1 text-xs tabular-nums text-muted-foreground">
-            {content.length}/{LIMITS.chat}
-          </p>
         </>
       ) : (
-        <Button
-          className="mt-3 h-11 w-full shrink-0"
-          variant="outline"
-          nativeButton={false}
-          render={
-            <Link href={access === "guest" ? `/login?next=${next}` : `/onboarding?next=${next}`}>
-              {access === "guest" ? "로그인하고 대화에 참여하세요" : "닉네임을 정하고 참여하세요"}
-            </Link>
-          }
-        />
+        // 비로그인·온보딩 전: 입력창 대신 참여 유도 (목업 04)
+        <div className="grid shrink-0 gap-2.5 border-t border-border px-4 pt-3.5 pb-[calc(18px+env(safe-area-inset-bottom))] text-center">
+          <p className="inline-flex items-center justify-center gap-1.5 text-[13.5px] text-text-subtle break-keep">
+            <Eye className="size-4 shrink-0" aria-hidden="true" />
+            {access === "guest"
+              ? "대화는 누구나 볼 수 있어요. 참여하려면 로그인이 필요해요."
+              : "대화에 참여하려면 닉네임을 정해 주세요."}
+          </p>
+          <Link
+            href={access === "guest" ? `/login?next=${next}` : `/onboarding?next=${next}`}
+            className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-group-solid text-sm font-semibold text-group-on-solid transition-[filter] hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            <MessagesSquare className="size-[18px]" aria-hidden="true" />
+            {access === "guest" ? "로그인하고 참여하기" : "닉네임 정하고 참여하기"}
+          </Link>
+        </div>
       )}
     </div>
   );

@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Heart, Bookmark } from "lucide-react";
+import Link from "next/link";
+import { Heart, Bookmark, MessageSquare } from "lucide-react";
 import { togglePostLike, togglePostScrap } from "@/app/actions/reaction";
 import { cn } from "@/lib/utils";
 import type { ErrorCode } from "@/lib/action-result";
@@ -12,6 +13,8 @@ interface PostActionsProps {
   initialLikeCount: number;
   initialLiked?: boolean;
   initialScrapped?: boolean;
+  /** 댓글 수 — 누르면 댓글 목록으로 */
+  commentCount: number;
 }
 
 export function PostActions({
@@ -19,7 +22,10 @@ export function PostActions({
   initialLikeCount,
   initialLiked = false,
   initialScrapped = false,
+  commentCount,
 }: PostActionsProps) {
+  // 좋아요를 누를 때마다 하트를 한 번 튀긴다(동작 줄이기 설정이면 끈다, TOKENS §6.0)
+  const [pop, setPop] = useState(0);
   const [liked, setLiked] = useState(initialLiked);
   const [scrapped, setScrapped] = useState(initialScrapped);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
@@ -41,6 +47,7 @@ export function PostActions({
     // Optimistic update
     const nextLiked = !liked;
     setLiked(nextLiked);
+    if (nextLiked) setPop((n) => n + 1);
     setLikeCount((c) => (nextLiked ? c + 1 : Math.max(c - 1, 0)));
 
     setMessage(null);
@@ -73,20 +80,26 @@ export function PostActions({
     });
   };
 
+  // 목업 02 반응 줄: 36px 알약 버튼. 켜진 상태는 그룹의 진한 톤 + 옅은 면, 아이콘을 채운다(색만으로 전달하지 않음)
+  const pill = "relative inline-flex h-9 items-center gap-[5px] rounded-full border px-3 text-[13px] font-semibold tabular-nums transition-colors after:absolute after:inset-x-0 after:-inset-y-1 after:content-['']";
+  const on = "border-group-text bg-group-soft text-group-text";
+  const off = "border-border text-text-strong hover:bg-group-soft";
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       <button
         type="button"
         onClick={handleLike}
         disabled={likePending}
-        className={cn(
-          "flex h-11 items-center gap-1.5 rounded-full border px-4 text-sm font-medium tabular-nums transition-colors",
-          liked
-            ? "border-group-text/40 bg-group-soft text-group-text"
-            : "border-border text-muted-foreground hover:bg-group-soft hover:text-group-text"
-        )}
+        aria-pressed={liked}
+        aria-label={`좋아요 ${likeCount.toLocaleString()}`}
+        className={cn(pill, liked ? on : off)}
       >
-        <Heart className={cn("size-3.5", liked && "fill-current")} />
+        <Heart
+          key={pop}
+          className={cn("size-[18px]", liked && "fill-current", pop > 0 && "motion-safe:animate-[iu-pop_0.32s_ease-out]")}
+          aria-hidden="true"
+        />
         {likeCount.toLocaleString()}
       </button>
 
@@ -94,16 +107,17 @@ export function PostActions({
         type="button"
         onClick={handleScrap}
         disabled={scrapPending}
-        className={cn(
-          "flex h-11 items-center gap-1.5 rounded-full border px-4 text-sm font-medium tabular-nums transition-colors",
-          scrapped
-            ? "border-group-text/40 bg-group-soft text-group-text"
-            : "border-border text-muted-foreground hover:bg-group-soft hover:text-group-text"
-        )}
+        aria-pressed={scrapped}
+        className={cn(pill, scrapped ? on : off)}
       >
-        <Bookmark className={cn("size-3.5", scrapped && "fill-current")} />
+        <Bookmark className={cn("size-[18px]", scrapped && "fill-current")} aria-hidden="true" />
         {scrapped ? "스크랩됨" : "스크랩"}
       </button>
+
+      <Link href="#comments" aria-label={`댓글 ${commentCount.toLocaleString()}`} className={cn(pill, off)}>
+        <MessageSquare className="size-[18px]" aria-hidden="true" />
+        {commentCount.toLocaleString()}
+      </Link>
       {message && (
         <p role="alert" className="w-full text-xs text-destructive">
           {message}

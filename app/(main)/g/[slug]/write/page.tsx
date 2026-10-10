@@ -1,10 +1,9 @@
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 import type { Metadata } from "next";
-import { ChevronLeft } from "lucide-react";
 import { getActiveGroupBySlug } from "@/lib/groups";
 import { getViewer } from "@/lib/viewer";
 import { PostForm } from "@/components/board/PostForm";
+import { TopBar } from "@/components/layout/TopBar";
 
 export const metadata: Metadata = { title: "글쓰기", robots: { index: false } };
 
@@ -24,18 +23,13 @@ export default async function WritePage({ params }: Props) {
   if (!viewer.onboarded) redirect(`/onboarding?next=${encodeURIComponent(path)}`);
 
   return (
-    <div className="space-y-4">
-      <Link
-        href={`/g/${group.slug}`}
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ChevronLeft className="size-4" />
-        {group.name} 게시판
-      </Link>
-      <h1 className="text-xl font-bold">글쓰기</h1>
-      <div className="rounded-xl border border-border bg-card p-6">
-        <PostForm groupSlug={group.slug} />
+    <>
+      <TopBar back={`/g/${group.slug}`} backLabel={`${group.name} 게시판으로`} title="글쓰기" />
+      <div className="px-4 py-4 md:p-0">
+        <div className="rounded-2xl bg-card p-5 shadow-card md:p-6 dark:shadow-none">
+          <PostForm groupSlug={group.slug} />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

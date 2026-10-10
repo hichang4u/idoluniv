@@ -22,7 +22,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   if (viewer) redirect(viewer.onboarded ? next : `/onboarding?next=${encodeURIComponent(next)}`);
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-background px-4">
+    <main className="min-h-dvh bg-background">
       <LoginForm next={next} error={errorKey ? (ERRORS[errorKey] ?? ERRORS.auth_callback_failed) : null} />
     </main>
   );

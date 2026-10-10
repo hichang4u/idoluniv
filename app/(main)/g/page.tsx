@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { GroupAvatar } from "@/components/group/GroupAvatar";
+import { TopBar } from "@/components/layout/TopBar";
 import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
 
 export const metadata: Metadata = { title: "그룹" };
@@ -18,8 +19,8 @@ export default async function GroupsPage() {
   if (error) throw error;
 
   return (
-    <div className="mx-auto max-w-[640px] space-y-4">
-      <h1 className="text-xl font-bold text-text-strong">그룹</h1>
+    <div className="mx-auto max-w-[640px]">
+      <TopBar big title="그룹" />
 
       {!groups?.length ? (
         <Empty>
@@ -28,7 +29,8 @@ export default async function GroupsPage() {
           </EmptyHeader>
         </Empty>
       ) : (
-        <ul className="divide-y divide-border overflow-hidden rounded-2xl bg-card shadow-card dark:shadow-none">
+        // 모바일은 화면 끝까지 이어지는 목록, 데스크톱은 카드 (게시판 목록과 같은 규칙)
+        <ul className="divide-y divide-border bg-card md:overflow-hidden md:rounded-2xl md:shadow-card md:dark:shadow-none">
           {groups.map((group) => (
             <li key={group.id}>
               <Link href={`/g/${group.slug}`} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50">

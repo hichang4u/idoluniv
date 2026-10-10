@@ -262,3 +262,23 @@
     letter-spacing: 0;
   }
 }
+
+/* ── 움직임 (TOKENS §6.0) ─────────────────────────────────────
+   좋아요 하트 한 번 튀기기, 로그인 응원봉 흔들림만 둔다. 쓰는 쪽은 motion-safe: 로 감싸
+   "동작 줄이기" 설정이면 움직이지 않는다. */
+@keyframes iu-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+@keyframes iu-sway {
+  0%, 100% { transform: rotate(-7deg); }
+  50% { transform: rotate(7deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

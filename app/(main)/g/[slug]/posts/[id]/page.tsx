@@ -1,15 +1,17 @@
 import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { formatFullDateTime } from "@/lib/format";
+import { formatFullDateTime, formatRelative } from "@/lib/format";
 import { OG_BASE } from "@/lib/site";
 import { getViewer } from "@/lib/viewer";
 import { CommentSection, type CommentAccess } from "@/components/board/CommentSection";
+import { CommentComposerProvider } from "@/components/board/CommentComposer";
 import { PostActions } from "@/components/board/PostActions";
+import { UserAvatar } from "@/components/chat/UserAvatar";
+import { TopBar } from "@/components/layout/TopBar";
 import { getPostReactions, recordPostView } from "@/app/actions/reaction";
-import { ChevronLeft, Eye, EyeOff, Heart } from "lucide-react";
+import { Eye, EyeOff, Feather, Heart, MessageSquare, Pencil } from "lucide-react";
 import { PostMoreMenu } from "@/components/board/PostMoreMenu";
 import { Reportable, ReportedMask, ReportedText, type ReportAccess } from "@/components/report/Reportable";
 import { getMyReportedIds } from "@/lib/reports";
@@ -82,96 +84,119 @@ export default async function PostDetailPage({ params }: Props) {
   const canReport = !isAuthor && !post.is_hidden;
   const reported = canReport && (await getMyReportedIds(viewer?.id ?? null, [{ type: "post", ids: [post.id] }])).has(post.id);
 
+  const groupName = post.idol_group?.name ?? "게시판";
+  const nickname = post.author?.nickname ?? "탈퇴한 사용자";
+
+  // 목업 02: 상단 바(뒤로 · 게시판 이름 · 더보기) → 본문 → 댓글 → 바닥 입력창. 하단 탭바는 숨긴다.
+  // 내가 신고한 글이면 제목·본문을 가린다 (F7-4) — 더보기 메뉴도 같은 신고 상태를 쓰므로 화면 전체를 감싼다
   return (
-    <div className="space-y-6">
-      {/* 뒤로가기 */}
-      <Link
-        href={`/g/${groupSlug}`}
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ChevronLeft className="size-4" />
-        {post.idol_group?.name ?? "게시판"} 목록
-      </Link>
+    <Reportable targetType="post" targetId={post.id} initialReported={reported} access={access}>
+      <TopBar
+        back={`/g/${groupSlug}`}
+        backLabel={`${groupName} 게시판으로`}
+        title={`${groupName} 게시판`}
+        titleAs="p"
+        actions={
+          <PostMoreMenu
+            postId={post.id}
+            isAuthor={isAuthor}
+            editHref={post.is_hidden ? null : `${postPath}/edit`}
+            canReport={canReport}
+          />
+        }
+      />
 
       {post.is_hidden && (
         <p
           role="status"
-          className="flex items-center gap-2 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-muted-foreground"
+          className="flex items-center gap-2 border-b border-border bg-surface-2 px-4 py-3 text-[13px] text-text-subtle md:mb-2 md:rounded-xl md:border-0"
         >
-          <EyeOff className="size-4 shrink-0" />
+          <EyeOff className="size-4 shrink-0" aria-hidden="true" />
           숨김 처리된 글입니다 — {isAuthor ? "나에게만 보여요." : "작성자와 관리자에게만 보여요."}
         </p>
       )}
 
-      {/* 게시글 본문. 내가 신고한 글이면 제목·본문을 가린다 (F7-4) */}
-      <Reportable targetType="post" targetId={post.id} initialReported={reported} access={access}>
-      <article className="rounded-xl border border-border bg-card p-6 space-y-4">
-        {/* 제목 + 메타 */}
-        <div className="space-y-2">
-          <h1 className="text-xl font-bold leading-snug">
-            <ReportedText label="신고한 글입니다">{post.title}</ReportedText>
-          </h1>
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <div className="flex items-center gap-3">
-              <span className="font-medium text-foreground">
-                {post.author?.nickname ?? "익명"}
+      <CommentComposerProvider postId={postId} access={commentAccess} returnPath={postPath}>
+        {/* 바닥 입력창(모바일 고정)에 마지막 댓글이 가리지 않도록 아래 여백을 둔다 */}
+        <div className={commentAccess === "locked" ? "" : "pb-[calc(70px+env(safe-area-inset-bottom))] md:pb-0"}>
+          <article className="grid gap-2.5 bg-card px-4 pt-4 pb-3.5 md:rounded-2xl md:px-5 md:pt-5">
+            {post.post_type === "fanfic" && (
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-group-text">
+                <Feather className="size-3.5" aria-hidden="true" />
+                팬픽
               </span>
-              <time dateTime={post.created_at}>{formatFullDateTime(post.created_at)}</time>
-              {isEdited(post.created_at, post.updated_at) && <span>수정됨</span>}
+            )}
+            <h1 className="text-xl leading-[1.4] font-bold tracking-[-0.02em] text-text-strong [overflow-wrap:anywhere]">
+              <ReportedText label="신고한 글입니다">{post.title}</ReportedText>
+            </h1>
+
+            <div className="flex items-center gap-2.5">
+              <UserAvatar seed={post.author_id ?? nickname} name={nickname} className="size-8 text-[13px]" />
+              <div className="min-w-0">
+                <p className="truncate text-[13px] font-semibold text-text-strong">{nickname}</p>
+                <p className="flex items-center gap-2 text-xs text-text-subtle">
+                  <time dateTime={post.created_at} title={formatFullDateTime(post.created_at)} suppressHydrationWarning>
+                    {formatRelative(post.created_at)}
+                  </time>
+                  <span className="inline-flex items-center gap-[3px] tabular-nums">
+                    <Eye className="size-3.5" aria-hidden="true" />
+                    <span className="sr-only">조회</span>
+                    {post.view_count.toLocaleString()}
+                  </span>
+                  {isEdited(post.created_at, post.updated_at) && (
+                    <span className="inline-flex items-center gap-[3px]">
+                      <Pencil className="size-3" aria-hidden="true" />
+                      수정됨
+                    </span>
+                  )}
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1">
-                <Eye className="size-3" />
-                {post.view_count.toLocaleString()}
-              </span>
-              <PostMoreMenu
-                postId={post.id}
-                isAuthor={isAuthor}
-                editHref={post.is_hidden ? null : `${postPath}/edit`}
-                canReport={canReport}
-              />
+
+            <ReportedMask>
+              {/* body-lg 16/1.75, 긴 URL 은 아무 데서나 줄바꿈 (TOKENS §4.2) */}
+              <div className="whitespace-pre-wrap text-base leading-[1.75] text-foreground [overflow-wrap:anywhere]">
+                {post.content}
+              </div>
+            </ReportedMask>
+
+            {/* 반응 (수정·삭제·신고는 오른쪽 위 더보기 메뉴) */}
+            <div className="pt-1">
+              {post.is_hidden ? (
+                // 숨김 글에는 반응할 수 없다(서버도 거부). 수치만 보여 준다
+                <p className="flex items-center gap-3 text-[13px] text-text-subtle tabular-nums">
+                  <span className="inline-flex items-center gap-1">
+                    <Heart className="size-4" aria-hidden="true" />
+                    <span className="sr-only">좋아요</span>
+                    {post.like_count.toLocaleString()}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <MessageSquare className="size-4" aria-hidden="true" />
+                    <span className="sr-only">댓글</span>
+                    {post.comment_count.toLocaleString()}
+                  </span>
+                </p>
+              ) : (
+                <PostActions
+                  postId={post.id}
+                  initialLikeCount={post.like_count}
+                  initialLiked={reactions.liked}
+                  initialScrapped={reactions.scrapped}
+                  commentCount={post.comment_count}
+                />
+              )}
             </div>
-          </div>
+          </article>
+
+          <CommentSection
+            postId={postId}
+            commentCount={post.comment_count}
+            viewerId={viewer?.id ?? null}
+            postAuthorId={post.author_id}
+            access={commentAccess}
+          />
         </div>
-
-        <hr className="border-border" />
-
-        {/* 본문 */}
-        <ReportedMask>
-          {/* body-lg 16/1.75, 긴 URL 은 아무 데서나 줄바꿈 (TOKENS §4.2) */}
-          <div className="whitespace-pre-wrap text-base leading-[1.75] text-foreground [overflow-wrap:anywhere]">
-            {post.content}
-          </div>
-        </ReportedMask>
-
-        {/* 반응 (수정·삭제·신고는 오른쪽 위 더보기 메뉴) */}
-        <div className="flex items-center pt-2">
-          {post.is_hidden ? (
-            // 숨김 글에는 반응할 수 없다(서버도 거부). 수치만 보여 준다
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Heart className="size-3.5" />
-              {post.like_count.toLocaleString()}
-            </span>
-          ) : (
-            <PostActions
-              postId={post.id}
-              initialLikeCount={post.like_count}
-              initialLiked={reactions.liked}
-              initialScrapped={reactions.scrapped}
-            />
-          )}
-        </div>
-      </article>
-      </Reportable>
-
-      {/* 댓글 */}
-      <CommentSection
-        postId={postId}
-        commentCount={post.comment_count}
-        viewerId={viewer?.id ?? null}
-        access={commentAccess}
-        returnPath={postPath}
-      />
-    </div>
+      </CommentComposerProvider>
+    </Reportable>
   );
 }

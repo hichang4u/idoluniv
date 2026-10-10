@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getViewer } from "@/lib/viewer";
 import { AdminTabs } from "@/components/admin/AdminTabs";
+import { TopBar } from "@/components/layout/TopBar";
 
 export const metadata: Metadata = {
   title: { template: "%s · 관리자", default: "관리자" },
@@ -15,10 +16,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!viewer?.isAdmin) notFound();
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4">
-      <h1 className="text-xl font-bold">관리자</h1>
-      <AdminTabs />
-      {children}
+    <div className="mx-auto max-w-3xl">
+      <TopBar back="/me" backLabel="마이로" title="관리자" />
+      <div className="flex flex-col gap-4 px-4 pb-4 md:p-0">
+        <AdminTabs />
+        {children}
+      </div>
     </div>
   );
 }

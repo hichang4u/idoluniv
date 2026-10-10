@@ -11,10 +11,10 @@ export async function Header() {
   } = await supabase.auth.getUser();
 
   return (
-    // 상단 바 50px (TOKENS §5). 사이드바 열기는 데스크톱만 — 모바일은 하단 탭바로 이동한다
-    <header className="sticky top-0 z-50 flex h-[50px] shrink-0 items-center gap-2 border-b border-border bg-background/80 px-4 backdrop-blur-sm">
-      <SidebarTrigger className="-ml-1 hidden md:inline-flex" />
-      <Separator orientation="vertical" className="mr-1 hidden h-4 md:block" />
+    // 데스크톱 전역 헤더 50px (TOKENS §5). 모바일은 화면마다 자기 상단 바(TopBar)를 쓰고 하단 탭바로 이동한다 (목업 01~08)
+    <header className="sticky top-0 z-50 hidden h-[50px] shrink-0 items-center gap-2 border-b border-border bg-background/80 md:flex px-4 backdrop-blur-sm">
+      <SidebarTrigger className="-ml-1" />
+      <Separator orientation="vertical" className="mr-1 h-4" />
 
       <Link
         href="/"

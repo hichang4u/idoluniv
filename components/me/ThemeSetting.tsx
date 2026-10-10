@@ -2,13 +2,14 @@
 
 import { useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
-import { Monitor, Moon, Sun } from "lucide-react";
+import { Moon } from "lucide-react";
+import { IconChip } from "@/components/common/IconChip";
 import { cn } from "@/lib/utils";
 
 const OPTIONS = [
-  { value: "system", label: "시스템", Icon: Monitor },
-  { value: "light", label: "라이트", Icon: Sun },
-  { value: "dark", label: "다크", Icon: Moon },
+  { value: "system", label: "시스템" },
+  { value: "light", label: "라이트" },
+  { value: "dark", label: "다크" },
 ] as const;
 
 const subscribe = () => () => {};
@@ -20,12 +21,17 @@ export function ThemeSetting() {
   const isClient = useSyncExternalStore(subscribe, () => true, () => false);
   const current = isClient ? (theme ?? "system") : null;
 
+  // 설정 행 하나 (목업 08): 라벤더 칩 + "화면 모드" + 오른쪽 세그먼트
   return (
-    <fieldset className="space-y-2">
-      <legend className="text-sm font-medium">화면 모드</legend>
-      <div className="grid grid-cols-3 gap-2">
-        {OPTIONS.map(({ value, label, Icon }) => (
-          <label key={value} className="cursor-pointer">
+    <fieldset className="flex min-h-[50px] items-center gap-3 px-4 py-1.5">
+      <legend className="sr-only">화면 모드</legend>
+      <IconChip icon={Moon} color="lavender" size="sm" />
+      <span className="text-[15px] text-text-strong" aria-hidden="true">
+        화면 모드
+      </span>
+      <div className="ml-auto inline-flex rounded-full bg-surface-2 p-0.5">
+        {OPTIONS.map(({ value, label }) => (
+          <label key={value} className="relative cursor-pointer after:absolute after:inset-x-0 after:-inset-y-2 after:content-['']">
             <input
               type="radio"
               name="theme"
@@ -36,12 +42,11 @@ export function ThemeSetting() {
             />
             <span
               className={cn(
-                "flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-border text-sm text-muted-foreground transition-colors",
-                "hover:text-text-strong peer-checked:border-ink peer-checked:bg-ink peer-checked:font-semibold peer-checked:text-on-ink",
+                "block rounded-full px-2.5 py-1 text-[12.5px] text-text-subtle transition-colors",
+                "peer-checked:bg-card peer-checked:font-semibold peer-checked:text-text-strong peer-checked:shadow-[0_1px_2px_rgb(0_0_0/0.08)]",
                 "peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50"
               )}
             >
-              <Icon className="size-4" aria-hidden="true" />
               {label}
             </span>
           </label>

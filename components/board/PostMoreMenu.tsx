@@ -21,8 +21,8 @@ interface PostMoreMenuProps {
   canReport: boolean;
 }
 
-// 글 상세 오른쪽 위 더보기(⋯) 메뉴 (목업 02): 작성자는 수정·삭제, 다른 사람은 신고.
-// 하단 반응 줄에서 수정·삭제를 빼 모바일에서 버튼이 두 줄로 엉키지 않게 한다. 상위에 Reportable 이 있어야 한다
+// 글 상세 상단 바 오른쪽 더보기(⋯) 메뉴 (목업 02): 작성자는 수정·삭제, 다른 사람은 신고.
+// 상위에 Reportable 이 있어야 한다
 export function PostMoreMenu({ postId, isAuthor, editHref, canReport }: PostMoreMenuProps) {
   const { reported, openReport } = useReportable();
   const router = useRouter();
@@ -47,9 +47,9 @@ export function PostMoreMenu({ postId, isAuthor, editHref, canReport }: PostMore
         <DropdownMenuTrigger
           aria-label="더보기"
           disabled={isPending}
-          className="-m-2 inline-flex size-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+          className="inline-flex size-11 items-center justify-center rounded-full text-text-strong transition-colors hover:bg-muted disabled:opacity-50"
         >
-          <MoreHorizontal className="size-4" />
+          <MoreHorizontal className="size-[22px]" strokeWidth={1.9} aria-hidden="true" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-auto min-w-36">
           {isAuthor && editHref && (
@@ -73,7 +73,11 @@ export function PostMoreMenu({ postId, isAuthor, editHref, canReport }: PostMore
         </DropdownMenuContent>
       </DropdownMenu>
       {message && (
-        <p role="alert" className="text-xs text-destructive">
+        // 상단 바 높이를 바꾸지 않도록 바 아래에 띄운다
+        <p
+          role="alert"
+          className="absolute top-full right-3 mt-1 rounded-lg bg-popover px-3 py-2 text-xs text-destructive shadow-overlay"
+        >
           {message}
         </p>
       )}

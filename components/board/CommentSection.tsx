@@ -1,7 +1,6 @@
-import Link from "next/link";
+import { MessagesSquare } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { CommentItem, CommentPlaceholder } from "@/components/board/CommentItem";
-import { CommentForm } from "@/components/board/CommentForm";
 import { getMyReportedIds } from "@/lib/reports";
 import type { CommentWithAuthor } from "@/types/database";
 
@@ -13,9 +12,9 @@ interface CommentSectionProps {
   /** posts.comment_count — 트리거가 보이는 댓글만 센다 (F4-4) */
   commentCount: number;
   viewerId: string | null;
+  /** 글쓴이. 그의 댓글에 "작성자" 를 붙인다 */
+  postAuthorId: string | null;
   access: CommentAccess;
-  /** 로그인·온보딩 뒤 돌아올 주소 */
-  returnPath: string;
 }
 
 type Thread =
@@ -50,7 +49,8 @@ function buildThreads(rows: CommentWithAuthor[]): Thread[] {
   return threads.sort((a, b) => a.at.localeCompare(b.at));
 }
 
-export async function CommentSection({ postId, commentCount, viewerId, access, returnPath }: CommentSectionProps) {
+// 댓글 목록 (목업 02). 입력창은 화면 바닥의 CommentComposer 하나이고 "답글" 이 그것을 답글 모드로 바꾼다
+export async function CommentSection({ postId, commentCount, viewerId, postAuthorId, access }: CommentSectionProps) {
   const supabase = await createClient();
 
   // 숨김 필터를 걸지 않는다: 숨김 부모 자리표시를 만들려면 필요하고, 남의 숨김 댓글은 RLS 가 애초에 주지 않는다
@@ -65,7 +65,6 @@ export async function CommentSection({ postId, commentCount, viewerId, access, r
 
   const rows: CommentWithAuthor[] = data ?? [];
   const threads = buildThreads(rows);
-  const next = encodeURIComponent(returnPath);
   const canReply = access === "member";
   // 숨김 글(locked)의 댓글은 작성자·관리자만 보는 화면이라 신고 진입점을 두지 않는다
   const reportAccess = access === "locked" ? null : access;
@@ -73,61 +72,53 @@ export async function CommentSection({ postId, commentCount, viewerId, access, r
     ? await getMyReportedIds(viewerId, [{ type: "comment", ids: rows.filter(isVisible).map((c) => c.id) }])
     : new Set<string>();
 
+  const isPostAuthor = (c: CommentWithAuthor) => !!postAuthorId && c.author_id === postAuthorId;
+
   return (
-    <section className="rounded-xl border border-border bg-card p-6 space-y-4">
-      <h2 className="text-sm font-semibold">댓글 {commentCount.toLocaleString()}개</h2>
+    <section
+      id="comments"
+      aria-labelledby="comments-h"
+      className="mt-2 grid scroll-mt-14 gap-3.5 bg-card px-4 pt-3 pb-5 md:rounded-2xl md:px-5"
+    >
+      <h2 id="comments-h" className="inline-flex items-center gap-1.5 text-sm font-semibold text-text-strong">
+        <MessagesSquare className="size-4" aria-hidden="true" />
+        댓글 <span className="tabular-nums">{commentCount.toLocaleString()}</span>
+      </h2>
 
-      {access === "member" && <CommentForm postId={postId} />}
-      {access === "guest" && (
-        <p className="rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
-          <Link href={`/login?next=${next}`} className="font-medium text-foreground underline underline-offset-4">
-            로그인
-          </Link>
-          하고 댓글을 남겨 보세요.
-        </p>
-      )}
-      {access === "onboarding" && (
-        <p className="rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
-          <Link href={`/onboarding?next=${next}`} className="font-medium text-foreground underline underline-offset-4">
-            닉네임을 정하면
-          </Link>{" "}
-          댓글을 쓸 수 있어요.
-        </p>
+      {access === "locked" && <p className="text-[13px] text-text-subtle">숨김 처리된 글에는 댓글을 달 수 없어요.</p>}
+      {threads.length === 0 && access !== "locked" && (
+        <p className="py-4 text-center text-[13px] text-text-subtle">첫 댓글을 남겨 보세요.</p>
       )}
 
-      {threads.length > 0 && (
-        <div className="divide-y divide-border pt-2">
-          {threads.map((t) => (
-            <div key={t.key}>
-              {t.state === "visible" ? (
-                <CommentItem
-                  comment={t.comment}
-                  postId={postId}
-                  isMine={!!viewerId && t.comment.author_id === viewerId}
-                  replyParentId={canReply ? t.comment.id : null}
-                  reportAccess={reportAccess}
-                  reported={reportedIds.has(t.comment.id)}
-                />
-              ) : (
-                <CommentPlaceholder reason={t.state} />
-              )}
-              {t.replies.map((r) => (
-                <CommentItem
-                  key={r.id}
-                  comment={r}
-                  postId={postId}
-                  isReply
-                  isMine={!!viewerId && r.author_id === viewerId}
-                  reportAccess={reportAccess}
-                  reported={reportedIds.has(r.id)}
-                  // 삭제·숨김 부모에는 새 답글을 달 수 없다 (INVALID_PARENT)
-                  replyParentId={canReply && t.state === "visible" ? t.key : null}
-                />
-              ))}
-            </div>
+      {threads.map((t) => (
+        <div key={t.key} className="grid gap-3.5">
+          {t.state === "visible" ? (
+            <CommentItem
+              comment={t.comment}
+              isMine={!!viewerId && t.comment.author_id === viewerId}
+              isPostAuthor={isPostAuthor(t.comment)}
+              replyParentId={canReply ? t.comment.id : null}
+              reportAccess={reportAccess}
+              reported={reportedIds.has(t.comment.id)}
+            />
+          ) : (
+            <CommentPlaceholder reason={t.state} />
+          )}
+          {t.replies.map((r) => (
+            <CommentItem
+              key={r.id}
+              comment={r}
+              isReply
+              isMine={!!viewerId && r.author_id === viewerId}
+              isPostAuthor={isPostAuthor(r)}
+              reportAccess={reportAccess}
+              reported={reportedIds.has(r.id)}
+              // 삭제·숨김 부모에는 새 답글을 달 수 없다 (INVALID_PARENT)
+              replyParentId={canReply && t.state === "visible" ? t.key : null}
+            />
           ))}
         </div>
-      )}
+      ))}
     </section>
   );
 }

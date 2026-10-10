@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import { NAV_ITEMS, isNavActive } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
-/** 라운지는 입력창을 바닥에 붙이기 위해 탭바를 숨긴다 (TECH-DESIGN §6.5, 목업 03) */
+/** 라운지·글 상세는 입력창을 바닥에 붙이기 위해 탭바를 숨긴다 (TECH-DESIGN §6.5, 목업 02·03) */
 export function isTabBarHidden(pathname: string) {
-  return /^\/g\/[^/]+\/lounge$/.test(pathname);
+  return /^\/g\/[^/]+\/(lounge|posts\/[^/]+)$/.test(pathname);
 }
 
 // 모바일 하단 탭바 3칸 (F9-5, D-16). 데스크톱은 사이드바가 같은 목록을 쓴다.

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Eye, EyeOff, Feather, Heart, MessageSquare } from "lucide-react";
+import { IconChip } from "@/components/common/IconChip";
 import { formatRelative } from "@/lib/format";
 import type { PostListItem } from "@/types/database";
 
@@ -19,22 +20,20 @@ export function PostCard({ post, groupSlug, reported = false }: PostCardProps) {
 
   if (reported) {
     return (
-      <Link href={href} className="flex min-h-14 items-center gap-2.5 px-4 py-3 text-sm text-text-subtle hover:bg-muted/50">
-        <span className="inline-flex size-7 items-center justify-center rounded-lg bg-surface-2" aria-hidden="true">
-          <EyeOff className="size-3.5" />
-        </span>
+      <Link href={href} className="flex min-h-14 items-center gap-2.5 px-4 py-3 text-[13px] text-text-subtle transition-colors hover:bg-muted/50">
+        <IconChip icon={EyeOff} color="greige" size="sm" />
         <span className="flex-1">신고한 글이에요</span>
-        <span className="font-medium text-text-strong underline underline-offset-4">보기</span>
+        <span className="font-medium text-text-strong underline underline-offset-[3px]">보기</span>
       </Link>
     );
   }
 
   return (
     <Link href={href} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50">
-      <div className="min-w-0 flex-1 space-y-1">
+      <div className="grid min-w-0 flex-1 gap-0.5">
         {post.post_type === "fanfic" && (
           <span className="inline-flex items-center gap-1 text-xs font-medium text-group-text">
-            <Feather className="size-3" aria-hidden="true" />
+            <Feather className="size-3.5" aria-hidden="true" />
             팬픽
           </span>
         )}
@@ -44,27 +43,27 @@ export function PostCard({ post, groupSlug, reported = false }: PostCardProps) {
         <h3 className="line-clamp-2 text-[15px] leading-[1.45] font-semibold text-text-strong [overflow-wrap:anywhere]">
           {post.title}
         </h3>
-        <p className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[13px] text-text-subtle">
+        <p className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12.5px] text-text-subtle">
           <span className="min-w-0 truncate">
             {post.author?.nickname ?? "탈퇴한 사용자"} ·{" "}
             <time dateTime={post.created_at} suppressHydrationWarning>
               {formatRelative(post.created_at)}
             </time>
           </span>
-          <span className="inline-flex items-center gap-1 tabular-nums">
+          <span className="inline-flex items-center gap-[3px] tabular-nums">
             <Eye className="size-3.5" aria-hidden="true" />
             <span className="sr-only">조회</span>
             {post.view_count.toLocaleString()}
           </span>
-          <span className="inline-flex items-center gap-1 tabular-nums">
+          <span className="inline-flex items-center gap-[3px] tabular-nums">
             <Heart className="size-3.5" aria-hidden="true" />
             <span className="sr-only">좋아요</span>
             {post.like_count.toLocaleString()}
           </span>
         </p>
       </div>
-      <span className="flex size-11 shrink-0 flex-col items-center justify-center rounded-xl bg-surface-2 text-xs font-semibold text-text-strong tabular-nums">
-        <MessageSquare className="size-3.5 text-text-subtle" aria-hidden="true" />
+      <span className="flex w-[42px] shrink-0 flex-col items-center gap-px rounded-[10px] bg-surface-2 pt-[7px] pb-[5px] text-[13px] leading-[1.2] font-semibold text-text-strong tabular-nums">
+        <MessageSquare className="size-4 text-text-subtle" aria-hidden="true" />
         <span className="sr-only">댓글</span>
         {post.comment_count.toLocaleString()}
       </span>

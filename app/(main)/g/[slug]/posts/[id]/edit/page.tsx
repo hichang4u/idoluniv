@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
 import { PostForm } from "@/components/board/PostForm";
+import { TopBar } from "@/components/layout/TopBar";
 
 export const metadata: Metadata = { title: "게시글 수정", robots: { index: false } };
 
@@ -31,13 +32,13 @@ export default async function EditPostPage({ params }: Props) {
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-bold">게시글 수정</h1>
+    <>
+      <TopBar back={`/g/${groupSlug}/posts/${postId}`} backLabel="글로 돌아가기" title="게시글 수정" />
+      <div className="px-4 py-4 md:p-0">
+        <div className="rounded-2xl bg-card p-5 shadow-card md:p-6 dark:shadow-none">
+          <PostForm groupSlug={groupSlug} post={post} />
+        </div>
       </div>
-      <div className="rounded-xl border border-border bg-card p-6">
-        <PostForm groupSlug={groupSlug} post={post} />
-      </div>
-    </div>
+    </>
   );
 }

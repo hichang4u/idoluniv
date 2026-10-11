@@ -59,7 +59,7 @@
 
 | ID | 항목 | 담당 | 선행 | 완료 기준 |
 |---|---|---|---|---|
-| P0-1 | **T13** Vercel Production 배포 + Google OAuth 운영 Redirect URL 등록 (Preview 패턴 R3 포함). **2026-10-11 대부분 완료** — 배포·Git 연결·환경변수·Supabase URL 설정, 운영 로그인 ✅. 운영 글 저장 ✅, `LEGAL_*`(임시 값) 후 재배포 ✅. 남은 것: 연동 비밀값 처리, R3 (TECH-DESIGN T13). 이전 메모: 배포 기록 없음 ❓ | 사용자 + `frontend-dev` | P0-2 의 `NEXT_PUBLIC_SITE_URL` | Production URL 에서 로그인 → 쓰기 동선 (T13 완료 기준) |
+| P0-1 | **T13** Vercel Production 배포 + Google OAuth 운영 Redirect URL 등록 (Preview 패턴 R3 포함). **2026-10-11 대부분 완료** — 배포·Git 연결·환경변수·Supabase URL 설정, 운영 로그인 ✅. 운영 글 저장 ✅, `LEGAL_*`(임시 값) 후 재배포 ✅. 남은 것: 연동 비밀값 처리(→ P1-7), R3 (TECH-DESIGN T13). 이전 메모: 배포 기록 없음 ❓ | 사용자 + `frontend-dev` | P0-2 의 `NEXT_PUBLIC_SITE_URL` | Production URL 에서 로그인 → 쓰기 동선 (T13 완료 기준) |
 | P0-2 | `LEGAL_*`·`NEXT_PUBLIC_SITE_URL` 값 설정 (로컬·Vercel). **2026-10-11**: `NEXT_PUBLIC_SITE_URL` ✅, `LEGAL_*` 필수 6개는 **임시 값**으로 설정해 `[설정 필요]` 0 ✅ — 운영자 이름·문의 이메일은 실제 값으로 교체 필요, `LEGAL_SUPABASE_REGION` 은 2026-10-12 CLI 로 확인 → 대한민국(서울) ✅ (함수 리전도 `icn1` 로 이동, D-30) | 사용자 | 도메인 결정 | `/terms`·`/privacy`·`/guidelines` 에 `[설정 필요]` 없음, 서버 경고 없음 |
 | P0-3 | 라운지 "90일 후 삭제" 문구 처리 결정. 삭제 작업이 없어 문구가 앞서 있다 (`app/(main)/privacy/page.tsx:58`, TECH-DESIGN §7.9.1 ✱, F6-8). 구현하려면 R8 `pg_cron` 확인 ❓ 부터. **결정 (2026-10-11): A = 구현 (D-27)** → 0014(PR). R8 ✅(`pg_cron` 1.6.4). **완료 (2026-10-11)** — 0014 원격 적용, 작업 등록·수동 실행 0건 확인 (smoke-log 10-11) | 결정 = 사용자. 문구 수정 = `frontend-dev`, 구현 시 `supabase-backend` | — | 처리방침 문구와 실제 동작 일치 |
 | P0-4 | S22·권한 표·`users.email` SQL 대시보드 실행 (T0 에서 대기, `docs/qa/smoke-log.md` §3). R12 `private` 스키마 노출 여부도 같은 자리에서 확인. **완료 (2026-10-11)** — S22·email·R12 ✅, `members` 에 남아 있던 anon 쓰기 권한은 **0013**(PR #32)으로 회수·운영 적용, 권한 표·컬럼 권한 재확인 ✅ (smoke-log 10-11) | 실행 = 사용자. 판정 = `supabase-backend` | — | S22 결과가 smoke-log "0008 이후" 허용 목록(`get_or_create_chat_room(uuid)`, `record_post_view(uuid,uuid)`)과 일치, anon INSERT·UPDATE·DELETE 전부 false, email false. smoke-log 에 기록 |
@@ -82,6 +82,7 @@ P0-8 은 원래 출시 차단 후보 목록에 없던 것을 PM 이 추가했다
 | P1-3 | Production 오류 수집 확인 — Vercel 로그에 `onRequestError`·`/api/client-errors` 기록이 남는지 (F9-6) | `frontend-dev` | P0-1 | 의도적 오류 1건이 로그에 구조화 형태로 보임 |
 | P1-4 | 베타 운영 루틴 — R16(무료 플랜 1주 비활성 정지) 대비 주 1회 접속·스모크, R18 주 1회 수동 덤프. `db dump` 는 Docker 가 필요해 이 PC 에서 실패한 기록이 있다(TECH-DESIGN §8.1) → 덤프 수단부터 정해야 함 ❓ | 사용자 | P0-1 | 덤프 방법 확정, 첫 덤프 1회 |
 | P1-6 | T14 비차단 발견 (2026-10-12, `qa-reviewer` + 운영 확인): ① 작성자가 API 로 `post_type` 을 `video`·`image` 로 바꿀 수 있음(update 정책에 유형 제한 없음, 코드 확인) ② 처리방침 "신고 기록 처리 종료 후 1년 뒤 삭제" 미구현(첫 기한 약 1년 뒤) ③ 신고자가 자기 신고의 `handled_by` 로 처리 관리자를 알 수 있음 ○ ④ 숨김·없는 글 상세가 404 화면을 HTTP 200 으로 냄(soft 404, `noindex` 있음) ⑤ 로그아웃 Origin 검사·`/api/client-errors` 빈도 제한 없음 ⑥ 신고 큐 조회 실패가 "신고 없음" 과 같아 보임 ⑦ pgTAP 공백: S15 병렬 미검증, S23 러너 없음(`safeNext` 일회 실행 ✅) | `supabase-backend`, `frontend-dev` | — | 항목별 수정 또는 수용 결정 기록 |
+| P1-7 | Supabase–Vercel 연동이 넣은 Production 비밀 변수 정리 — `SUPABASE_SERVICE_ROLE_KEY`·`SUPABASE_SECRET_KEY`·`SUPABASE_JWT_SECRET`·`POSTGRES_PASSWORD`·`POSTGRES_URL` 등, 코드 미사용 ✅(T13). 선택지: (a) 연동 해제(권장 ○ — 안 쓰는 비밀값을 두지 않음) (b) 연동 유지 + 변수만 삭제(연동이 다시 만들 수 있음 ❓). **2026-10-12 사용자: 나중에 처리** | 결정 = 사용자, 실행 = Claude | — | 비밀값 변수 0개, 앱 동작·배포 영향 없음 확인 |
 | P1-5 | 모바일 Lighthouse 성능·접근성 90+ (PRD §15 Go/No-Go, 주요 4개 화면) | `frontend-dev`, `designer` | P0-1 | 4개 화면 측정값 기록, 90 미만 항목 수정 |
 
 ---

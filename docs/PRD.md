@@ -5,10 +5,10 @@
 
 | | |
 |---|---|
-| **버전** | v1.1.0 |
-| **상태** | Draft v2 — MVP 재기준(re-baseline) |
+| **버전** | v1.1.1 |
+| **상태** | Draft v2 — MVP 재기준(re-baseline), 2026-10-11 현황 반영 |
 | **Owner** | IdolUniv Team |
-| **Last updated** | 2026-09-24 |
+| **Last updated** | 2026-10-11 |
 | **태그** | PRD v1.1 · K-pop Fandom · Super App · MVP Closed Beta 2026-11 (추정) |
 
 **핵심 수치** — K-pop 시장 $12B (2024, 출처 미기재) · 4단계 성장 로드맵 · 출시 후 12개월 MAU 목표 100K · 지원 언어 5개(2단계부터)
@@ -17,20 +17,21 @@
 
 | 표기 | 뜻 |
 |---|---|
-| ✅ 확인 | 저장소 코드·마이그레이션으로 확인한 사실 (기준: 2026-09-24 작업 트리) |
+| ✅ 확인 | 저장소 코드·마이그레이션·git·기존 QA 기록으로 확인한 사실 (기준: 커밋 `8b593da`, 2026-10-11) |
+| ○ 판단 | 근거 있는 판단·추정 |
 | 🟡 제안 | 이 문서가 새로 정한 기본값. 결정권자가 바꿀 수 있다 |
 | ❓ 미확인 | 외부 상태(원격 DB, OAuth 설정, 요금제, 법령 해석 등)라 확인하지 못한 것 |
 | 🔷 결정 필요 | [18 결정 필요 사항](#18-결정-필요-사항)에 올린 항목 |
 
-**관련 문서** — 실행 우선순위와 일정은 [`docs/BACKLOG.md`](BACKLOG.md), 스프린트 진척은 [`docs/SPRINTS.html`](SPRINTS.html), 목업 대 구현 차이는 [`docs/design/REVIEW-2026-09-24.md`](design/REVIEW-2026-09-24.md). PRD 는 **무엇을·왜** 를, BACKLOG 는 **언제·누가** 를 다룬다. 둘이 충돌하면 범위는 PRD, 순서는 BACKLOG 를 따른다.
+**관련 문서** — 실행 우선순위와 일정은 [`docs/BACKLOG.md`](BACKLOG.md), 스프린트 진척은 [`docs/SPRINTS.md`](SPRINTS.md), 구현 방식·작업(T#)·결정(D-1~D-14)·리스크(R#)는 [`docs/design/TECH-DESIGN.md`](design/TECH-DESIGN.md) §10~12, 운영 확인 기록은 [`docs/qa/smoke-log.md`](qa/smoke-log.md), 디자인 결정(D-15~)은 [`docs/design/TOKENS.md`](design/TOKENS.md)·[`DESIGN-ANALYSIS.md`](design/DESIGN-ANALYSIS.md), 09-24 목업 대 구현 차이는 [`docs/design/REVIEW-2026-09-24.md`](design/REVIEW-2026-09-24.md). PRD 는 **무엇을·왜**, BACKLOG 는 **언제·누가**, TECH-DESIGN 은 **어떻게** 를 다룬다. 충돌하면 범위는 PRD, 순서는 BACKLOG, 구현 방식은 TECH-DESIGN 을 따른다.
 
-> `docs/PRD.html` 은 v1.0 원본이며 이 개정을 반영하지 않았다.
+> `docs/PRD.html` 은 v1.0 원본, `docs/SPRINTS.html` 은 2026-09-24 판 원본이며 둘 다 이후 개정을 반영하지 않는다.
 
 ---
 
 ## 목차
 
-**현황** — [00 현재 상태](#00-현재-상태-2026-09-24)
+**현황** — [00 현재 상태](#00-현재-상태-2026-10-11)
 **개요** — [01 제품 개요](#01-제품-개요) · [02 시장 분석](#02-시장-분석) · [03 사용자 페르소나](#03-사용자-페르소나) · [04 비전 & 미션](#04-비전--미션)
 **요구사항** — [05 기능 요구사항](#05-기능-요구사항) · [06 커뮤니티 정책 & 모더레이션](#06-커뮤니티-정책--모더레이션) · [07 개인정보 & 법적 요건](#07-개인정보--법적-요건) · [08 비기능 요구사항](#08-비기능-요구사항) · [09 UX 원칙 & 정보 구조](#09-ux-원칙--정보-구조)
 **설계** — [10 시스템 아키텍처](#10-시스템-아키텍처) · [11 기술 스택](#11-기술-스택) · [12 DB 스키마](#12-db-스키마)
@@ -39,23 +40,29 @@
 
 ---
 
-## 00. 현재 상태 (2026-09-24)
-*Status*
+## 00. 현재 상태 (2026-10-11)
+*Status* — 2026-10-11 갱신. 이전 판(09-24)은 git 이력에 있다.
 
-v1.0 의 MVP 목표(2026 Q2 출시)는 지켜지지 않았다. 마지막 커밋은 `14c161a` (2026-06-12) 이고, 이후 작업은 커밋되지 않은 채 작업 트리에 있다.
+v1.0 의 MVP 목표(2026 Q2 출시)는 지켜지지 않았다. 09-24 재기준 이후 PR #1~#27 이 병합됐고(`main` = `8b593da`) ✅, 축소된 MVP(§5.1 F1~F9)의 코드는 거의 다 있다. 앱은 아직 Production 에 배포되지 않았다(배포 기록 없음 ❓). 확인은 로컬 앱 → 운영 Supabase 로 했다(`docs/qa/smoke-log.md`).
 
 | 영역 | 상태 | 근거 |
 |---|---|---|
-| 게시판 CRUD · 댓글/대댓글 | ✅ 동작. 소유자 UI·입력 결함 남음 | `app/actions/post.ts`, `comment.ts`, BACKLOG P1-5 |
-| 좋아요 · 스크랩 | ✅ 동작. 쿠키 `session_id` 식별이라 카운트 조작 가능성 | `app/actions/reaction.ts`, BACKLOG P0-1 |
-| 실시간 채팅 | ✅ 동작. 사칭·도배 방어 없음 | `components/chat/ChatRoom.tsx`, `app/actions/chat.ts` |
-| 소셜 로그인 | 버튼 3종(Google/Kakao/X) 있음. 공급자 설정 ❓ 미확인. 로그인 직후 `/profile` 404 | `components/auth/LoginForm.tsx`, `app/auth/callback/route.ts` |
-| 닉네임 | 설정 수단 없음 → 모든 작성자가 "익명" | `handle_new_user()` (`0001`) |
-| 신고 · 관리자 | 미착수 (`is_hidden` 컬럼만 있음) | 마이그레이션 전체 |
-| 보안 하드닝 | `0004`/`0005` 작성됨, 원격 적용 ❓ 미확인 | BACKLOG P0-3 |
-| CI · Production 배포 | 없음 | `.github/` 없음 |
+| 로그인 · 온보딩 · 닉네임 | ✅ Google 로그인(D-2) → 온보딩(닉네임·만 14세·약관) → 원래 페이지. 로컬 Google 로그인·온보딩 ✅(2026-10-10). 온보딩 완료 → `next` 이동은 PR #27 에서 미확인 ❓ | `app/onboarding/`, `app/actions/auth.ts`, `0007`, T3·T4 |
+| 게시판 CRUD · 댓글/대댓글 | ✅ 작성자 전용 수정·삭제, 길이·부모 검증, tombstone, 답글 모드. 운영 DB 에서 글 작성·수정 확인 ✅(PR #27) | `app/(main)/g/[slug]/`, `0009`, T6, PR #26·#27 |
+| 좋아요 · 스크랩 · 조회수 | ✅ `auth.uid()` 기준, 조회수 24시간 중복 제거 | `app/actions/reaction.ts`, `0008`, T5 |
+| 그룹 라운지 (채팅) | ✅ 발신자 덮어쓰기·빈도 제한·중복 차단·숨김 전파. 로컬 실시간 전송·숨김 전파 ✅(2026-10-10) | `components/chat/`, `0010`, T7·T9 |
+| 신고 · 관리자 | ✅ 신고 시트·자동 숨김(3명)·`/admin` 3화면. 로컬 QA ✅(PR #25). 자동 숨김은 pgTAP 로만 확인 | `0011`, `app/(main)/admin/`, T8·T9 |
+| 그룹 시드 | ✅ 5개 그룹 원격 적용 | `0012`, T10 |
+| 보안 · DB | ✅ 0001~0012 원격 적용 기록, CI pgTAP. **S22·권한 표 대시보드 SQL 대기** ❓. R2 권한 전환일 2026-10-30 | TECH-DESIGN §8.1, smoke-log, T0·T2 |
+| 디자인 · 모바일 | ✅ 토큰·Pretendard·하단 탭바 3칸·44px·화면별 목업 정렬. 390px·다크·1280px 확인 ✅(PR #26) | T11, PR #23·#26·#27 |
+| 법적 페이지 · SEO · 오류 수집 | 코드 ✅. `LEGAL_*`·`NEXT_PUBLIC_SITE_URL` 값 미설정, 법무 검토 전. 처리방침의 "라운지 90일 후 삭제" 는 삭제 작업이 없어 문구가 앞서 있음 | `app/(main)/{terms,privacy,guidelines}/`, `app/sitemap.ts`, `instrumentation.ts`, T12 |
+| CI · Production 배포 | CI ✅(`ci.yml`·`db.yml`). Production 배포·Google OAuth 운영 등록은 남음 | T1·T2, T13 |
 
-**재기준 목표** — 축소된 MVP(게시판 + 채팅 + 신고/숨김 + 최소 관리자)로 **클로즈드 베타 2026-11-08 전후 (추정, 신뢰도 낮음)**. 근거와 주차별 계획은 BACKLOG §5.
+**알려진 차이** — 홈 `/` 는 소개 카드뿐이다(§09 IA 의 "최신 글" 미구현 ✅, BACKLOG P2). 미해결 결함 1건: 세션이 끊긴 채 온보딩을 제출하면 로그인 화면 대신 "권한이 없어요." (BACKLOG P1-2).
+
+**운영 DB 테스트 데이터** — 정리하지 않기로 결정 (2026-10-11, 사용자). 테스트 계정 2개(관리자 1 포함)와 테스트 글·댓글·라운지 메시지가 남아 있다.
+
+**재기준 목표** — 축소된 MVP(게시판 + 라운지 + 신고/숨김 + 최소 관리자)로 **클로즈드 베타 2026-11-08 전후 (추정, 신뢰도 중간~낮음 ○)**. 남은 일은 대부분 사용자 몫 외부 작업(T13 배포·OAuth, `LEGAL_*`, 대시보드 SQL)과 전체 QA(T14)다. 근거와 주차별 계획은 BACKLOG §2·§6.
 
 ---
 
@@ -88,7 +95,7 @@ v1.0 의 MVP 목표(2026 Q2 출시)는 지켜지지 않았다. 마지막 커밋�
 
 1. **그룹별로 모이는 장소를 연다.** 팬이 자기 그룹 게시판에서 글·댓글을 쓰고, 같은 그룹 팬과 실시간으로 대화한다.
 2. **1인 운영자가 감당할 수 있는 자정 수단을 갖춘다.** 신고 → 숨김이 관리자 화면에서 완결된다.
-3. **사용자 단위로 행동을 식별한다.** 제재·rate limit·카운트 무결성이 가능한 식별 체계를 쓴다 (🔷 D-1).
+3. **사용자 단위로 행동을 식별한다.** 제재·rate limit·카운트 무결성이 가능한 식별 체계를 쓴다 (D-1 = A, 쓰기 전부 로그인 필수 — 2026-09-29 결정).
 4. **재방문 여부를 측정할 수 있다.** 베타 기간 중 [14 KPI](#14-kpi--측정)의 선행 지표를 읽을 수 있어야 한다.
 
 ### MVP 비목표 (Non-goals)
@@ -180,7 +187,7 @@ MVP 는 기능 수로 위 플랫폼과 경쟁할 수 없다. 1단계의 차별�
 > **주간 활동 팬 수 (WAF, Weekly Active Fans)** — 최근 7일 동안 글·댓글·채팅 메시지 중 1건 이상을 작성한 **로그인 사용자** 수.
 
 - 조회만 하는 방문자는 세지 않는다. 팬덤 커뮤니티의 가치는 참여에서 나오고, 조회수는 봇·새로고침으로 부풀기 쉽다.
-- 로그인 사용자만 세는 이유: 쿠키 식별은 한 사람이 여러 번 셀 수 있다. D-1 결과가 B(익명 로그인)라면 익명 계정은 별도 집계한다.
+- 로그인 사용자만 세는 이유: 쿠키 식별은 한 사람이 여러 번 셀 수 있다. D-1 = A 로 쓰기는 전부 로그인 사용자이므로 별도 보정이 필요 없다.
 - MAU 는 보조 지표로 유지한다([14](#14-kpi--측정)).
 
 ---
@@ -190,7 +197,7 @@ MVP 는 기능 수로 위 플랫폼과 경쟁할 수 없다. 1단계의 차별�
 
 ### 5.1 MVP 상세 요구사항 (1단계 · Foundation)
 
-각 기능은 **사용자 스토리 → 수용 기준(AC) → 현재 상태** 로 적는다. AC 는 QA(`qa-reviewer`)가 그대로 체크리스트로 쓸 수 있는 수준으로 쓴다.
+각 기능은 **사용자 스토리 → 수용 기준(AC) → 현재 상태** 로 적는다. AC 는 QA(`qa-reviewer`)가 그대로 체크리스트로 쓸 수 있는 수준으로 쓴다. 상태 열은 **2026-10-11 기준**(코드·git·`docs/qa/smoke-log.md`)이며, Production 확인은 전부 T13·T14 이후다.
 
 #### F1. 인증 · 닉네임
 
@@ -198,13 +205,13 @@ MVP 는 기능 수로 위 플랫폼과 경쟁할 수 없다. 1단계의 차별�
 
 | # | 수용 기준 | 상태 |
 |---|---|---|
-| F1-1 | 로그인 화면에는 **Production 에서 로그인이 검증된 공급자만** 노출한다. 클로즈드 베타는 **Google 하나**(D-2, 2026-09-30) | 버튼 3종 하드코딩 ✅ / 공급자 설정 ❓ |
-| F1-2 | 로그인 성공 후 로그인 버튼을 누른 페이지로 돌아간다. 알 수 없으면 `/` | 현재 `/profile`(404) ✅ — BACKLOG P0-5 |
-| F1-3 | 닉네임이 없는 사용자는 첫 로그인 직후 닉네임 설정 화면으로 간다. 설정 전에는 글·댓글·채팅을 쓸 수 없다 | 미구현 |
-| F1-4 | 닉네임: 2~20자 🟡, 한글·영문·숫자·`_` 🟡, 대소문자 무시 유일 🟡. 중복 시 "이미 사용 중인 닉네임" 오류 | `users.nickname unique` 만 있음 ✅ (대소문자 구분) |
-| F1-5 | 닉네임은 30일에 1회 변경 가능 🟡 (사칭 후 변경 방지) | 미구현 |
-| F1-6 | 가입 시 만 14세 이상 확인 + 이용약관·개인정보처리방침 동의 (링크가 실제 페이지로 이동) | 링크 대상 없음 ✅ — BACKLOG P1-11 |
-| F1-7 | 로그아웃 후 이전 세션으로 쓰기 불가 | `app/auth/signout/route.ts` 있음 ✅ |
+| F1-1 | 로그인 화면에는 **Production 에서 로그인이 검증된 공급자만** 노출한다. 클로즈드 베타는 **Google 하나**(D-2, 2026-09-30) | 공급자는 `NEXT_PUBLIC_AUTH_PROVIDERS`(기본 `google`) ✅. 로컬 Google 로그인 ✅ / Production 은 T13 ❓ |
+| F1-2 | 로그인 성공 후 로그인 버튼을 누른 페이지로 돌아간다. 알 수 없으면 `/` | ✅ `next` + `safeNext`(N1), 기본 `/` (T3·T4) |
+| F1-3 | 닉네임이 없는 사용자는 첫 로그인 직후 닉네임 설정 화면으로 간다. 설정 전에는 글·댓글·채팅을 쓸 수 없다 | ✅ 콜백 온보딩 분기 + DB `can_write()` (0007). 온보딩 완료 → `next` 이동은 미확인 ❓ (BACKLOG P0-6) |
+| F1-4 | 닉네임: 2~20자 🟡, 한글·영문·숫자·`_` 🟡, 대소문자 무시 유일 🟡. 중복 시 "이미 사용 중인 닉네임" 오류 | ✅ CHECK + `lower(nickname)` 유일 인덱스 + 금지어 (0007, D-11) |
+| F1-5 | 닉네임은 30일에 1회 변경 가능 🟡 (사칭 후 변경 방지) | ✅ `change_nickname` RPC 쿨다운 (0007) |
+| F1-6 | 가입 시 만 14세 이상 확인 + 이용약관·개인정보처리방침 동의 (링크가 실제 페이지로 이동) | ✅ 온보딩 체크 2개. 링크는 `/terms` 하나("이용약관 · 개인정보처리방침 동의" 한 항목, 처리방침은 약관 화면에서 이어짐). `LEGAL_*` 값 미설정 |
+| F1-7 | 로그아웃 후 이전 세션으로 쓰기 불가 | `app/auth/signout/route.ts` (303) ✅ |
 
 #### F2. 그룹 · 게시판 목록
 
@@ -212,12 +219,12 @@ MVP 는 기능 수로 위 플랫폼과 경쟁할 수 없다. 1단계의 차별�
 
 | # | 수용 기준 | 상태 |
 |---|---|---|
-| F2-1 | `/board` 에 활성(`is_active`) 그룹만 표시 | ✅ |
-| F2-2 | 그룹 게시판 목록은 최신순, 페이지당 20개 | ✅ `PAGE_SIZE = 20` |
-| F2-3 | 정렬 칩: 최신순 / 인기순(최근 7일 좋아요 순 🟡) / 팬픽 필터 | 미구현 (목업에 있음) |
-| F2-4 | 숨김 글은 목록·검색엔진·카운트에서 제외 (작성자 본인은 상세에서 "숨김 처리됨" 표시와 함께 볼 수 있다) | RLS 로 목록 제외 ✅ / 작성자 표시 미구현 |
-| F2-5 | 게시글이 없으면 빈 상태 + "첫 글 쓰기" CTA (터치 영역 44px 이상) | 빈 상태 ✅ / 버튼 28px |
-| F2-6 | 존재하지 않거나 비활성인 그룹 slug 는 404 | ❓ 미검증 |
+| F2-1 | `/board` 에 활성(`is_active`) 그룹만 표시 | ✅ 경로는 `/g` (D-16, 옛 `/board` 는 영구 리다이렉트) — `lib/groups.ts` (T4-C) |
+| F2-2 | 그룹 게시판 목록은 최신순, 페이지당 20개 | ✅ |
+| F2-3 | 정렬 칩: 최신순 / 인기순(최근 7일 좋아요 순 🟡) / 팬픽 필터 | ✅ `?sort=` 칩 (T11-C, D-14) |
+| F2-4 | 숨김 글은 목록·검색엔진·카운트에서 제외 (작성자 본인은 상세에서 "숨김 처리됨" 표시와 함께 볼 수 있다) | ✅ RLS + 작성자 배너 (T6, N3). 로컬 QA ✅ |
+| F2-5 | 게시글이 없으면 빈 상태 + "첫 글 쓰기" CTA (터치 영역 44px 이상) | ✅ 빈 상태 + `size="touch"` 글쓰기 버튼 |
+| F2-6 | 존재하지 않거나 비활성인 그룹 slug 는 404 | ✅ 그룹 레이아웃 404 (T4-C, N4). 없는 slug 404 확인 (smoke-log 10-09) |
 
 #### F3. 게시글 작성 · 조회 · 수정 · 삭제
 
@@ -225,32 +232,32 @@ MVP 는 기능 수로 위 플랫폼과 경쟁할 수 없다. 1단계의 차별�
 
 | # | 수용 기준 | 상태 |
 |---|---|---|
-| F3-1 | 비로그인 사용자가 글쓰기를 누르면 로그인으로 보내고, 로그인 후 글쓰기 화면으로 돌아온다 | 미구현 (제출 시 throw) |
-| F3-2 | 제목 1~100자, 본문 1~10,000자 🟡, 유형은 `text`/`fanfic` 만 노출 | 제목 100자 ✅ / 본문 상한 없음 / 유형 4종 노출 |
-| F3-3 | 본문은 평문으로 저장·표시, 줄바꿈 유지. URL 자동 링크는 2단계 | `whitespace-pre-wrap` ✅ / "Markdown 지원" 문구 삭제 필요 |
-| F3-4 | 수정·삭제 버튼은 작성자에게만 보인다. 남의 글 수정 URL 직접 진입 시 403 또는 상세로 리다이렉트 | 버튼 항상 렌더 ✅ |
-| F3-5 | 수정이 RLS 로 0행 갱신되면 성공으로 처리하지 않고 오류를 보여 준다 | 현재 성공처럼 redirect ✅ |
-| F3-6 | 삭제는 확인 대화상자 후 실행. 댓글도 함께 삭제된다 | `on delete cascade` ✅ |
-| F3-7 | 조회수는 같은 사용자(또는 세션)가 24시간 🟡 내 다시 봐도 1회만 오른다 | 렌더마다 +1 ✅ — BACKLOG P0-1 |
-| F3-8 | 수정된 글은 "수정됨" 표시 | ❓ 미검증 |
+| F3-1 | 비로그인 사용자가 글쓰기를 누르면 로그인으로 보내고, 로그인 후 글쓰기 화면으로 돌아온다 | ✅ proxy·페이지 게이트 → `/login?next=` (T4·T6). 비로그인 글쓰기 307 확인 (smoke-log 10-09) |
+| F3-2 | 제목 1~100자, 본문 1~10,000자 🟡, 유형은 `text`/`fanfic` 만 노출 | ✅ DB CHECK + 폼 (0009, T6-B). 실패 뒤 유형 유지는 PR #27 |
+| F3-3 | 본문은 평문으로 저장·표시, 줄바꿈 유지. URL 자동 링크는 2단계 | ✅ 평문, Markdown 문구 없음 |
+| F3-4 | 수정·삭제 버튼은 작성자에게만 보인다. 남의 글 수정 URL 직접 진입 시 403 또는 상세로 리다이렉트 | ✅ 작성자에게만 ⋯ 메뉴 (T6-B, `2245c16`) |
+| F3-5 | 수정이 RLS 로 0행 갱신되면 성공으로 처리하지 않고 오류를 보여 준다 | ✅ `NOT_FOUND_OR_FORBIDDEN` (T6-B) |
+| F3-6 | 삭제는 확인 대화상자 후 실행. 댓글도 함께 삭제된다 | ✅ `confirm()` + cascade. 전용 대화상자는 P2 |
+| F3-7 | 조회수는 같은 사용자(또는 세션)가 24시간 🟡 내 다시 봐도 1회만 오른다 | ✅ `record_post_view` + `post_views` (0008, T5) |
+| F3-8 | 수정된 글은 "수정됨" 표시 | ✅ `updated_at` 트리거 (0009). 로컬 QA ✅ |
 
 #### F4. 댓글 · 대댓글
 
 | # | 수용 기준 | 상태 |
 |---|---|---|
-| F4-1 | 로그인 사용자만 작성. 1~1,000자 | 1,000자 ✅ |
-| F4-2 | 대댓글은 **1단계까지만**. 대댓글에 답하면 같은 부모 아래 추가하고 `@닉네임` 을 앞에 붙인다 🟡 | UI 는 최상위 댓글 아래 한 단계만 렌더 ✅ / DB 는 깊이 제한 없음 |
-| F4-3 | 작성자 본인만 수정·삭제. 부모 댓글 삭제 시 대댓글이 있으면 "삭제된 댓글입니다" 로 자리 유지 🟡 | 현재 cascade 로 대댓글까지 삭제 ✅ |
-| F4-4 | 댓글 수는 숨김 댓글을 제외한다 | `sync_comment_count` 는 숨김과 무관하게 셈 ✅ — 차이 있음 |
+| F4-1 | 로그인 사용자만 작성. 1~1,000자 | ✅ DB CHECK (0009) |
+| F4-2 | 대댓글은 **1단계까지만**. 대댓글에 답하면 같은 부모 아래 추가하고 `@닉네임` 을 앞에 붙인다 🟡 | ✅ `comments_before_insert` (0009) + 답글 모드 (T6-B, PR #26). 로컬 QA ✅ |
+| F4-3 | 작성자 본인만 수정·삭제. 부모 댓글 삭제 시 대댓글이 있으면 "삭제된 댓글입니다" 로 자리 유지 🟡 | ✅ `delete_comment` tombstone (0009). 로컬 QA ✅ |
+| F4-4 | 댓글 수는 숨김 댓글을 제외한다 | ✅ `sync_comment_count` 교체 (0009) |
 
 #### F5. 좋아요 · 스크랩
 
 | # | 수용 기준 | 상태 |
 |---|---|---|
-| F5-1 | 한 사용자는 한 글에 좋아요 1회. 다시 누르면 취소 | 쿠키 `session_id` 기준 ✅ |
-| F5-2 | 식별 단위는 D-1 결정을 따른다. 어떤 경우에도 클라이언트가 넘긴 식별자를 그대로 믿지 않는다 | `p_session_id` 를 그대로 신뢰 ✅ — 🔷 D-1 |
-| F5-3 | 다른 사용자의 좋아요·스크랩 여부나 식별자를 읽을 수 없다 | `reactions` public read ✅ — 위반 |
-| F5-4 | 스크랩 목록 화면은 2단계 (MVP 는 토글만) | — |
+| F5-1 | 한 사용자는 한 글에 좋아요 1회. 다시 누르면 취소 | ✅ `auth.uid()` 기준 유일키 (0008) |
+| F5-2 | 식별 단위는 D-1 결정을 따른다. 어떤 경우에도 클라이언트가 넘긴 식별자를 그대로 믿지 않는다 | ✅ D-1 = A. 1-인자 `toggle_*` 가 `auth.uid()` 사용, 옛 2-인자 함수 삭제 (0008) |
+| F5-3 | 다른 사용자의 좋아요·스크랩 여부나 식별자를 읽을 수 없다 | ✅ `reactions: select own`, anon 조회 401 (smoke-log 10-04) |
+| F5-4 | 스크랩 목록 화면은 2단계 (MVP 는 토글만) | — 토글만 ✅ |
 
 #### F6. 그룹 라운지 (실시간 채팅)
 
@@ -259,44 +266,44 @@ MVP 는 기능 수로 위 플랫폼과 경쟁할 수 없다. 1단계의 차별�
 | # | 수용 기준 | 상태 |
 |---|---|---|
 | F6-1 | 활성 그룹당 채팅방 1개, 첫 진입 시 자동 생성 | `get_or_create_chat_room` ✅ (`0004`) |
-| F6-2 | 입장 시 **가장 최근** 50개를 시간순으로 표시 | 현재 가장 오래된 50개 ✅ — BACKLOG P1-6 |
-| F6-3 | 메시지 1~500자. 전송 후 1초 🟡 이내 다른 참여자에게 표시 | 500자 ✅ / 지연 ❓ |
-| F6-4 | 발신자 표시명은 계정 닉네임. 메시지마다 자유 입력 불가 (D-1 이 C 이면 예외 규칙 필요) | 자유 입력 ✅ |
-| F6-5 | 도배 방지: 사용자당 10초에 5건 🟡, 같은 내용 연속 3회 🟡 차단, 초과 시 안내 문구 | 미구현 |
-| F6-6 | 다른 사용자의 `session_id` 등 내부 식별자가 클라이언트·Realtime payload 에 노출되지 않는다 | 노출 ✅ — 위반 |
-| F6-7 | 숨김 처리된 메시지는 이미 받은 클라이언트에서도 사라지거나 "가려진 메시지" 로 바뀐다 🟡 | 미구현 |
-| F6-8 | 메시지 보존 기간: 90일 🟡 이후 삭제 (신고된 메시지는 처리 종료 후 90일) | 미구현 |
+| F6-2 | 입장 시 **가장 최근** 50개를 시간순으로 표시 | ✅ (09-29 확인, TECH-DESIGN §1.1) + 재구독 시 보정 조회 (T7-B) |
+| F6-3 | 메시지 1~500자. 전송 후 1초 🟡 이내 다른 참여자에게 표시 | 500자 ✅. 로컬 두 창 실시간 표시 ✅ (10-10) / 지연 수치 측정 안 함 ❓ |
+| F6-4 | 발신자 표시명은 계정 닉네임. 메시지마다 자유 입력 불가 | ✅ 트리거가 `author_id`·`nickname` 덮어씀, insert 는 `room_id, content` 만 (0010) |
+| F6-5 | 도배 방지: 사용자당 10초에 5건 🟡, 같은 내용 연속 3회 🟡 차단, 초과 시 안내 문구 | ✅ `RATE_LIMITED`·`DUPLICATE_MESSAGE` (0010). 연속 중복은 같은 방 본인 직전 2건 기준. 로컬 확인 ✅ |
+| F6-6 | 다른 사용자의 `session_id` 등 내부 식별자가 클라이언트·Realtime payload 에 노출되지 않는다 | ✅ `session_id` 컬럼 삭제 (0010) |
+| F6-7 | 숨김 처리된 메시지는 이미 받은 클라이언트에서도 사라지거나 "가려진 메시지" 로 바뀐다 🟡 | ✅ `chat_moderation_events` 구독 (0010, T9). 로컬 확인 ✅ (R1, 10-10) |
+| F6-8 | 메시지 보존 기간: 90일 🟡 이후 삭제 (신고된 메시지는 처리 종료 후 90일) | **미구현**. 처리방침에는 "90일 후 삭제" 문구가 이미 있음 → 문구 처리 결정 대기 (BACKLOG P0-3, R8 `pg_cron` ❓) |
 
 #### F7. 신고
 
 | # | 수용 기준 | 상태 |
 |---|---|---|
-| F7-1 | 게시글·댓글·채팅 메시지 각각에 신고 진입점이 있다 (게시글/댓글: 더보기 메뉴, 채팅: 메시지 길게 누르기) | 미구현 |
-| F7-2 | 신고 사유는 [06](#06-커뮤니티-정책--모더레이션) 의 사유 코드 중 1개 + 선택 설명(300자) | 미구현 |
-| F7-3 | 같은 사용자가 같은 대상을 중복 신고할 수 없다 | 미구현 |
-| F7-4 | 신고 후 신고자에게는 해당 콘텐츠를 즉시 가려 준다 (신고자 본인 화면에서만) 🟡 | 미구현 |
-| F7-5 | 서로 다른 사용자 3명 🟡 이 신고하면 관리자 검토 전까지 자동 임시 숨김 (D-4 결정: 3명) | 미구현 |
+| F7-1 | 게시글·댓글·채팅 메시지 각각에 신고 진입점이 있다 (게시글/댓글: 더보기 메뉴, 채팅: 메시지 길게 누르기) | ✅ 글 ⋯ 메뉴, 댓글 메뉴, 라운지 메시지 깃발 (T8-B). 길게 누르기 대신 터치 기기에서 깃발 상시 표시 🟡 |
+| F7-2 | 신고 사유는 [06](#06-커뮤니티-정책--모더레이션) 의 사유 코드 중 1개 + 선택 설명(300자) | ✅ 신고 시트 8종 (0011, `lib/report-reasons.ts`) |
+| F7-3 | 같은 사용자가 같은 대상을 중복 신고할 수 없다 | ✅ 유일키 + `ALREADY_REPORTED` (0011) |
+| F7-4 | 신고 후 신고자에게는 해당 콘텐츠를 즉시 가려 준다 (신고자 본인 화면에서만) 🟡 | ✅ `lib/reports.ts` (T8-B). 로컬 QA ✅ |
+| F7-5 | 서로 다른 사용자 3명 🟡 이 신고하면 관리자 검토 전까지 자동 임시 숨김 (D-4 결정: 3명) | ✅ `submit_report` (0011). pgTAP S18 로 확인, 운영 확인은 계정 부족으로 안 함 |
 
 #### F8. 최소 관리자 (`/admin`)
 
 | # | 수용 기준 | 상태 |
 |---|---|---|
-| F8-1 | 관리자만 접근. 관리자 여부는 DB 에서 판별하고 클라이언트 입력을 믿지 않는다 | 역할 컬럼 없음 ✅ |
-| F8-2 | 신고 큐: 미처리 우선, 대상 미리보기, 신고 수·사유 표시 | 미구현 |
-| F8-3 | 처리: 숨김 / 숨김 해제 / 기각. 처리자·시각·사유를 기록 (감사 로그) | 미구현 |
-| F8-4 | 그룹 추가·수정·비활성화 (slug 는 생성 후 변경 불가 🟡 — URL 안정성) | 미구현 (시드도 없음 — BACKLOG P1-4) |
-| F8-5 | 숨김·해제는 security definer 함수로만 가능. 작성자는 `is_hidden` 을 바꿀 수 없다 | 컬럼 쓰기 권한 회수 ✅ (`0005`, 원격 적용 ❓) |
+| F8-1 | 관리자만 접근. 관리자 여부는 DB 에서 판별하고 클라이언트 입력을 믿지 않는다 | ✅ `admins` + `private.is_admin()` (0007, D-3), `/admin` 레이아웃 404 (T9) |
+| F8-2 | 신고 큐: 미처리 우선, 대상 미리보기, 신고 수·사유 표시 | ✅ `admin_report_queue` + `/admin/reports` (0011, T9). 로컬 QA ✅ |
+| F8-3 | 처리: 숨김 / 숨김 해제 / 기각. 처리자·시각·사유를 기록 (감사 로그) | ✅ `moderation_actions` + `/admin/log`. 로컬 QA ✅ |
+| F8-4 | 그룹 추가·수정·비활성화 (slug 는 생성 후 변경 불가 🟡 — URL 안정성) | ✅ `/admin/groups` (T9), 시드 5개 (0012). 운영 DB 그룹 수정 확인 ✅ (PR #27) |
+| F8-5 | 숨김·해제는 security definer 함수로만 가능. 작성자는 `is_hidden` 을 바꿀 수 없다 | ✅ `0005` + `admin_moderate` (0011), 원격 적용 기록 있음 (smoke-log) |
 
 #### F9. 공통 · 출시 조건
 
 | # | 수용 기준 | 상태 |
 |---|---|---|
-| F9-1 | 이용약관 · 개인정보처리방침 · 커뮤니티 가이드라인 페이지 | 없음 |
-| F9-2 | `sitemap.xml` (활성 그룹 게시판 + 숨김 아닌 글), `robots.txt` (`/admin`, `/auth` 차단) | 없음 |
-| F9-3 | 글 상세 `generateMetadata` 에 title + description(본문 앞 120자 🟡) | title 만 3곳 ✅ |
-| F9-4 | 없는 경로는 서비스 스타일 404 (`not-found.tsx`) | Next 기본 404 ✅ |
-| F9-5 | 모바일 하단 탭바 **3칸 (홈 / 그룹 / 마이)** — 그룹 중심 IA (D-16, 2026-09-30). 라운지 화면에서는 숨김 | 없음 (Sidebar Sheet 만) |
-| F9-6 | FE 런타임 오류 수집 | 없음 |
+| F9-1 | 이용약관 · 개인정보처리방침 · 커뮤니티 가이드라인 페이지 | 페이지 ✅ (`a28b3ac`). `LEGAL_*` 값 미설정·법무 검토 전 (BACKLOG P0-2, P1-1) |
+| F9-2 | `sitemap.xml` (활성 그룹 게시판 + 숨김 아닌 글), `robots.txt` (`/admin`, `/auth` 차단) | 코드 ✅ (T12). `NEXT_PUBLIC_SITE_URL` 미설정, Production 확인 전 |
+| F9-3 | 글 상세 `generateMetadata` 에 title + description(본문 앞 120자 🟡) | ✅ description·canonical·OG (T12) |
+| F9-4 | 없는 경로는 서비스 스타일 404 (`not-found.tsx`) | ✅ `app/not-found.tsx`, `(main)/not-found.tsx` (T11-B) |
+| F9-5 | 모바일 하단 탭바 **3칸 (홈 / 그룹 / 마이)** — 그룹 중심 IA (D-16, 2026-09-30). 라운지 화면에서는 숨김 | ✅ T11-B. 글 상세에서도 숨김 (하단 댓글 입력창, PR #26) |
+| F9-6 | FE 런타임 오류 수집 | 코드 ✅ `instrumentation.ts`·`/api/client-errors` → Vercel 로그 (T12, D-5). Production 수집 확인 전 |
 
 ### 5.2 권한 매트릭스 (MVP)
 
@@ -306,12 +313,12 @@ MVP 는 기능 수로 위 플랫폼과 경쟁할 수 없다. 1단계의 차별�
 | 채팅 읽기 | ✔ | ✔ | ✔ | — | ✔ |
 | 글·댓글 작성 | ✘ → 로그인 유도 | ✘ → 닉네임 설정 유도 | ✔ | — | ✔ |
 | 글·댓글 수정·삭제 | ✘ | ✘ | ✘ | ✔ | 숨김만 (삭제 ✘ 🟡 — 증거 보존) |
-| 좋아요·스크랩 | 🔷 D-1 | 🔷 D-1 | ✔ | ✔ | ✔ |
-| 채팅 쓰기 | 🔷 D-1 | ✘ | ✔ | — | ✔ |
+| 좋아요·스크랩 | ✘ → 로그인 유도 | ✘ → 닉네임 설정 유도 | ✔ | ✔ | ✔ |
+| 채팅 쓰기 | ✘ → 로그인 유도 | ✘ | ✔ | — | ✔ |
 | 신고 | ✘ | ✘ | ✔ | 본인 글 ✘ | — |
 | 숨김·해제, 그룹 관리 | ✘ | ✘ | ✘ | ✘ | ✔ |
 
-- D-1 을 A 로 정하면 🔷 칸은 모두 ✘ → 로그인 유도가 된다.
+- D-1 = A (2026-09-29) 로 비로그인 쓰기는 전부 ✘ → 로그인 유도. 좋아요도 온보딩 완료가 필요하다(D-13). 구현은 `private.can_write()` (0007) ✅.
 - 모든 ✘ 는 **UI 숨김이 아니라 RLS·GRANT 로 강제**한다. UI 는 편의일 뿐이다 (`0004` 주석의 원칙).
 
 ### 5.3 2단계 이후 기능
@@ -329,7 +336,7 @@ MVP 는 기능 수로 위 플랫폼과 경쟁할 수 없다. 1단계의 차별�
 - 푸시 알림 (신규 콘텐츠, 댓글 답글) + PWA
 - 검색 (아이돌명, 해시태그, 통합 검색)
 - 인플루언서·팬클럽 운영자 계정 인증
-- 라이트 테마 전환 (다크 기본)
+- ~~라이트 테마 전환 (다크 기본)~~ — D-17(2026-09-30)로 MVP 부터 시스템 설정 따름 + `/me` 화면 모드 전환 (T11-A). 2단계 항목에서 뺌
 - 게시물 예약 발행
 
 #### 3단계 · 수익화 — Creator Economy
@@ -423,7 +430,7 @@ MVP 는 기능 수로 위 플랫폼과 경쟁할 수 없다. 1단계의 차별�
 | 이메일 | OAuth 공급자 | `auth.users`, `public.users.email` | 비공개 (컬럼 GRANT 회수, `0004`) |
 | 프로필 이미지 URL | OAuth 공급자 메타데이터 | `public.users.avatar_url` | 공개 |
 | 닉네임 · 소개 | 사용자 입력 | `public.users` | 공개 |
-| 쿠키 식별자 | `session_id`, `sid` 쿠키 | `reactions`, `chat_messages` | D-1 결과에 따라 폐기 가능 |
+| 쿠키 식별자 | `vid` 쿠키 (비로그인 조회수 중복 방지용, 신원 증명 아님 — AD-7) | `post_views.viewer_key` (`s:<vid>`) | 비공개 (클라이언트 접근 불가, 0008). 옛 `session_id`·`sid` 는 D-1 = A 로 폐기 (0008·0010) |
 | 접속 로그 | Vercel · Supabase | 각 플랫폼 | 비공개 (보존 기간은 플랫폼 정책 ❓) |
 
 ### 7.2 요구사항
@@ -461,9 +468,9 @@ v1.0 대비 변경: FID → INP, 1인 운영·요금제 현실에 맞게 가용�
 ### 🛡️ 보안
 
 - **모든 권한은 DB 에서 강제** — RLS(행) + 컬럼 GRANT(열) + security definer 함수(카운터·관리 작업). Server Action 의 조건문은 방어선으로 치지 않는다 ✅ (`0004` 원칙)
-- security definer 함수는 `search_path` 고정, 필요한 역할에만 `EXECUTE` 부여 (현재 `toggle_*` 는 PUBLIC 기본값일 가능성 — BACKLOG P0-1)
+- security definer 함수는 `search_path` 고정, 필요한 역할에만 `EXECUTE` 부여 (0008 이후 anon 실행 가능 함수는 `get_or_create_chat_room`·`record_post_view` 뿐이어야 함 — 대시보드 S22 확인 대기 ❓, BACKLOG P0-4)
 - 클라이언트가 넘긴 식별자(`session_id` 등)를 신원 증명으로 쓰지 않는다
-- Rate limiting: MVP 는 채팅·글·댓글·신고 쓰기에 사용자 단위 적용 🟡. API 전반은 2단계
+- Rate limiting: MVP 는 채팅·글·댓글·신고 쓰기에 사용자 단위 적용 🟡 — 구현됨 (0009 글·댓글, 0010 채팅, 0011 신고) ✅. API 전반은 2단계
 - 세션: Supabase Auth 기본(짧은 access token + refresh token). v1.0 의 "JWT 7일 만료" 는 삭제 — 로그인 유지 기간은 필요 시 별도 정의
 - 업로드 파일 검증(형식·용량·악성 파일)은 업로드 기능과 함께 2단계
 - OWASP Top 10 대응, 특히 XSS: 사용자 콘텐츠는 평문 렌더. Markdown 도입 시 sanitize 필수
@@ -471,8 +478,8 @@ v1.0 대비 변경: FID → INP, 1인 운영·요금제 현실에 맞게 가용�
 ### 📱 접근성
 
 - WCAG 2.1 AA — 텍스트 대비 4.5:1, 비텍스트(입력창 경계 등) 3:1
-- 현재 미달 항목 ✅ (계산값, 디자인 리뷰 §1.4): `primary-foreground/primary` 4.06, `muted-foreground/muted` 4.23 → 토큰 조정 필요
-- 터치 영역 44×44px 이상 (현재 주요 버튼 `size="sm"` 28px)
+- 09-24 미달 항목 (계산값, 디자인 리뷰 §1.4): `primary-foreground/primary` 4.06, `muted-foreground/muted` 4.23 → 2026-10-09 새 토큰으로 교체 (T11-A, 대비 계산은 `docs/design/TOKENS.md`). 화면 단위 재측정은 안 함 ❓
+- 터치 영역 44×44px 이상 — 주요 버튼 `touch`·`icon-touch` 크기로 적용 (T11-B) ✅
 - 입력창 글자 16px 이상 (iOS 포커스 확대 방지)
 - 키보드 내비게이션·포커스 표시, 스크린 리더 호환, 텍스트 크기 조절
 
@@ -491,7 +498,7 @@ v1.0 대비 변경: FID → INP, 1인 운영·요금제 현실에 맞게 가용�
 ### 📈 확장성
 
 - Supabase 서버리스 자동 스케일, 이미지 최적화(`next/image`), CDN 캐싱
-- 게시판 목록은 `(idol_group_id, created_at desc)` 복합 인덱스 🟡 (현재 단일 인덱스 2개 ✅)
+- 게시판 목록은 `(idol_group_id, created_at desc)` 복합 인덱스 — `idx_posts_group_created` (0009) ✅
 - 채팅 메시지 보존 기간(F6-8)으로 테이블 크기 상한 관리
 - 데이터 파티셔닝은 채팅 메시지가 수백만 행을 넘을 때 검토
 
@@ -499,7 +506,7 @@ v1.0 대비 변경: FID → INP, 1인 운영·요금제 현실에 맞게 가용�
 
 - i18n: 한/영/일/중/태. 5개 언어 모두 LTR 이므로 RTL 은 범위 밖. 대신 CSS 논리 속성(`ms-`/`me-`)을 써서 향후 확장 비용만 낮춘다
 - 타임존 자동 감지, 문화권별 날짜 형식, 통화 현지화 (KRW/USD/JPY — 3단계)
-- 한글 폰트 폴백 지정 (현재 Geist `latin` 서브셋만 ✅ — 디자인 리뷰 §1.1)
+- 한글 폰트 — Pretendard 가변 dynamic subset 적용, Geist 제거 (D-20, T11-A) ✅
 
 ---
 
@@ -510,7 +517,7 @@ v1.0 대비 변경: FID → INP, 1인 운영·요금제 현실에 맞게 가용�
 |---|---|---|---|
 | 01 | **Mobile First** | 390×844 기준으로 먼저 설계 | 모바일 Lighthouse 성능·접근성 90+ |
 | 02 | **3-Tap Rule** | 홈에서 어느 그룹 게시판·라운지든 3탭 이내 | 주요 동선 탭 수 ≤ 3 (수동 점검) |
-| 03 | **Dark Mode 기본** | 다크 테마 기본, 라이트는 2단계 | 라이트 전환 후 다크 사용률 |
+| 03 | **시스템 테마 따름** | 기기 설정(라이트·다크)을 따르고 `/me` 에서 바꿀 수 있다. 라이트 기준 설계 — D-17 (2026-09-30)로 v1.1 의 "다크 기본, 라이트는 2단계" 를 대체 | 다크 사용률 (참고 지표) |
 | 04 | **초고속 로딩** | 스켈레톤이 실제 레이아웃과 같은 모양 | LCP < 2.5s, CLS < 0.1 |
 | 05 | **접근성(a11y)** | WCAG 2.1 AA | axe-core 위반 0건 |
 | 06 | **팬 감성 디자인** | 아이돌 세계관에 어울리는 비주얼 | NPS 50+ |
@@ -520,14 +527,14 @@ v1.0 대비 변경: FID → INP, 1인 운영·요금제 현실에 맞게 가용�
 
 ```
 하단 탭바 (모바일) — 3칸, 그룹 중심 (D-16, 2026-09-30 결정)
-├── 홈 /                     최근 방문 그룹 바로가기 + 최신 글(전체 그룹 교차) 🟡
-├── 그룹 /g                  최근 방문 그룹(이 기기) + 전체 그룹 목록
+├── 홈 /                     최근 방문 그룹 바로가기 + 최신 글(전체 그룹 교차) 🟡   ← 2026-10-11 현재 소개 카드만
+├── 그룹 /g                  최근 방문 그룹(이 기기) + 전체 그룹 목록              ← 현재 전체 목록만 (최근 방문은 /me 에)
 │   └── /g/[slug]                     그룹 공간 · [게시판] 탭 (정렬 칩)
 │       ├── /lounge                   그룹 공간 · [라운지] 탭 (실시간 채팅)
 │       ├── /write                    글쓰기            [로그인 + 온보딩]
 │       └── /posts/[id]               상세 + 댓글
 │           └── /edit                 수정              [작성자]
-└── 마이 /me                 닉네임·화면 모드·약관·로그아웃 (스크랩 목록은 2단계) [로그인]
+└── 마이 /me                 닉네임·화면 모드·최근 방문 그룹·약관·로그아웃 (스크랩 목록은 2단계) [로그인]
 
 /login  /onboarding [로그인]  /admin [관리자]  /terms  /privacy  /guidelines
 ```
@@ -549,19 +556,27 @@ v1.0 대비 변경: FID → INP, 1인 운영·요금제 현실에 맞게 가용�
    │  HTTPS                                  │ WebSocket
    ▼                                         ▼
 [Vercel — Next.js 16 App Router]        [Supabase Realtime]
-   ├─ proxy.ts        세션 갱신·보호 경로     (chat_messages 구독)
-   ├─ Server Components  목록·상세 조회                ▲
-   └─ Server Actions  app/actions/*.ts                 │
-        post · comment · reaction · chat               │
+   ├─ proxy.ts        세션 갱신·보호 경로·vid     (chat_messages,
+   ├─ Server Components  목록·상세 조회             chat_moderation_events 구독)
+   ├─ Server Actions  app/actions/*.ts                 ▲
+   │    auth · post · comment · reaction · chat ·      │
+   │    report · admin                                 │
+   ├─ Route Handler   /api/client-errors (오류 수집)   │
+   └─ instrumentation.ts  onRequestError → Vercel 로그 │
    │  @supabase/ssr (사용자 JWT)                       │
    ▼                                                   │
 [Supabase]                                             │
    ├─ PostgREST ── RLS + 컬럼 GRANT                    │
    ├─ PostgreSQL ── security definer RPC ──────────────┘
-   │     toggle_post_like · toggle_post_scrap · toggle_comment_like
-   │     increment_view_count · get_or_create_chat_room
-   └─ Auth (OAuth: Google / Kakao / X)
+   │     get_viewer · complete_onboarding · change_nickname
+   │     toggle_post_like · toggle_post_scrap · toggle_comment_like (1-인자, auth.uid())
+   │     record_post_view · delete_comment · get_or_create_chat_room
+   │     submit_report · admin_moderate · admin_dismiss_reports · admin_report_queue
+   │   └─ private 스키마: is_admin · can_write · 트리거 함수 (API 비노출)
+   └─ Auth (OAuth: Google — D-2)
 ```
+
+(2026-10-11 갱신: 0007~0011 기준 ✅. 구성 요소는 `docs/design/TECH-DESIGN.md` §4·§6)
 
 - v1.0 도식의 API Routes · Edge Functions · Storage · AI 서비스는 **MVP 에 없다**. 콘텐츠 쓰기는 Edge Function 이 아니라 Server Action → PostgREST 로 간다.
 - 브라우저도 anon key 로 PostgREST 에 직접 접근할 수 있다. 그래서 권한은 서버 코드가 아니라 DB 가 강제해야 한다.
@@ -573,7 +588,7 @@ v1.0 대비 변경: FID → INP, 1인 운영·요금제 현실에 맞게 가용�
 | 📝 콘텐츠 작성 | Browser → Server Action → PostgREST(RLS) → PostgreSQL | MVP ✅ |
 | 💬 실시간 채팅 | Browser → Server Action → `chat_messages` insert → Realtime → 구독자 | MVP ✅ |
 | 👍 반응·카운터 | Server Action → security definer RPC → `reactions` + 카운터 컬럼 | MVP ✅ |
-| 🚩 신고·숨김 | Server Action → `reports` insert / 관리자 RPC → `is_hidden` | MVP (예정) |
+| 🚩 신고·숨김 | Server Action → `submit_report` RPC / 관리자 RPC `admin_moderate` → `is_hidden` + `moderation_actions` (라운지는 `chat_moderation_events` 로 전파) | MVP ✅ |
 | 🤖 AI 기능 | Server Action 또는 Edge Function → Claude/Replicate → 결과 저장 | 2~4단계 |
 | 💳 결제 | Toss/Stripe → Webhook(Route Handler) → DB → 권한 부여 | 3단계 |
 
@@ -586,21 +601,22 @@ v1.0 대비 변경: FID → INP, 1인 운영·요금제 현실에 맞게 가용�
 |---|---|---|---|
 | Frontend · Core | **Next.js 16.2** (App Router) | ✅ 사용 중 | v1.0 의 "Next.js 14" 정정. `middleware.ts` 대신 `proxy.ts`. 코드 작성 전 `node_modules/next/dist/docs/` 확인 (`AGENTS.md`) |
 | Frontend · UI | **React 19.2** | ✅ | |
-| Frontend · Language | **TypeScript** | ✅ | `tsc --noEmit` 통과 (BACKLOG P0-4) |
-| Frontend · Styling | **Tailwind CSS 4** + shadcn/ui (Base UI) | ✅ | `components/ui/*` |
-| Frontend · Theme | next-themes | ✅ | |
+| Frontend · Language | **TypeScript** | ✅ | CI 에서 typecheck. DB 타입은 `supabase gen types` 로 생성 (`types/supabase.ts`, T3) |
+| Frontend · Styling | **Tailwind CSS 4** + shadcn/ui (Base UI) | ✅ | `components/ui/*`, 디자인 토큰 `app/globals.css` (T11-A) |
+| Frontend · Font | **Pretendard** (`pretendard` npm) | ✅ | D-20 |
+| Frontend · Theme | next-themes | ✅ | 시스템 기본 (D-17) |
 | Frontend · Toast | sonner | ✅ | |
 | Frontend · State | Zustand | 설치만, 미사용 | 필요 시점까지 제거 검토 |
 | Frontend · Data | React Query | 설치만, 미사용 | Server Components 로 충분한 동안 제거 검토 |
 | Backend · DB | **Supabase PostgreSQL** + RLS | ✅ | |
 | Backend · Auth | **Supabase Auth** (`@supabase/ssr`) | ✅ | |
-| Backend · Realtime | **Supabase Realtime** | ✅ | 채팅 |
+| Backend · Realtime | **Supabase Realtime** | ✅ | 라운지 메시지 + 숨김 전파 이벤트 |
 | Backend · Storage | Supabase Storage | 2단계 | 이미지 업로드 |
 | Backend · Functions | Edge Functions | 필요 시 | 현재 Server Actions 로 충분 |
 | AI | Claude API · Replicate · Whisper | 2~4단계 | |
-| DevOps · Deploy | **Vercel** | ❓ 배포 여부 미확인 | |
-| DevOps · CI | GitHub Actions | 미도입 | lint + typecheck + build (BACKLOG P0-4) |
-| DevOps · Monitor | Sentry | 미도입 | 베타는 Vercel 로그(D-5). 공개 출시 전 재검토 |
+| DevOps · Deploy | **Vercel** (Hobby, D-5) | Production 배포 전 (T13) ❓ | |
+| DevOps · CI | GitHub Actions | ✅ | `ci.yml` lint·typecheck·build (T1), `db.yml` pgTAP (T2) |
+| DevOps · Monitor | Vercel 로그 + 구조화 출력 | 코드 ✅ (T12) | Sentry 는 미도입. 공개 출시 전 재검토 (D-5) |
 | Payment | Toss Payments · Stripe | 3단계 | |
 
 ---
@@ -608,65 +624,84 @@ v1.0 대비 변경: FID → INP, 1인 운영·요금제 현실에 맞게 가용�
 ## 12. DB 스키마
 *Database Schema*
 
-### 12.1 현재 스키마 (마이그레이션 `0001`~`0005` 기준 ✅)
+### 12.1 현재 스키마 (마이그레이션 `0001`~`0012` 기준 ✅, 2026-10-11 갱신)
+
+원격 적용 기록: 0001~0003 은 CLI 이력 없이 적용돼 있던 것을 repair, 0004~0012 는 `db push` (TECH-DESIGN §8.1, `docs/qa/smoke-log.md`). 원격 카탈로그를 이 문서 작성 중 직접 조회하지는 않았다 ❓.
 
 ```
 auth.users ──(trigger handle_new_user)──► users ──── fan_profiles
-                                            │           └─ favorite_group ─► idol_groups
+                                            │  │        └─ favorite_group ─► idol_groups
+                                            │  └── admins (관리자, 0007)
                                             │
 idol_groups ── members                      │
-     │                                      │
+     │  (color_key, 0011)                   │
      ├── posts ◄───────── author_id ────────┤
-     │     └── comments (parent_id 자기참조) ◄┤
-     │                                      │
-     │   reactions (session_id | user_id, target_type, target_id)
+     │     ├── comments (parent_id 1단계, deleted_at) ◄┤
+     │     └── post_views (post_id, viewer_key)        │
+     │                                                 │
+     │   reactions (user_id, target_type, target_id, reaction_type)
      │
-     └── chat_rooms (그룹당 1) ── chat_messages (author_id | session_id, nickname)
+     └── chat_rooms (그룹당 1) ── chat_messages (author_id, nickname 스냅샷)
+                              └── chat_moderation_events (숨김 전파)
+
+reports ── moderation_actions (감사 로그)      reserved_nicknames (금지어)
 ```
+
+| 마이그레이션 | 내용 |
+|---|---|
+| `0001_initial` | `idol_groups`, `members`, `users`, `fan_profiles`, 가입 트리거 `handle_new_user` |
+| `0002_community` | `posts`, `comments`, `reactions`, `sync_comment_count`, 옛 2-인자 `toggle_*`·`increment_view_count` (0008 에서 삭제) |
+| `0003_chat` | `chat_rooms`, `chat_messages`, Realtime publication |
+| `0004_rls_hardening` | anon 전체 허용 정책을 `auth.uid()` 기반으로 교체, 카운터 컬럼 쓰기 차단, `users.email` 비공개, `get_or_create_chat_room` RPC |
+| `0005_grant_hardening` | 작성자의 `is_hidden` 쓰기 회수, `fan_profiles` 게임화 수치 쓰기 회수 |
+| `0006_explicit_base_grants` | 자동 부여에 기대던 SELECT·EXECUTE 를 명시 (N18, R2 대비) |
+| `0007_onboarding_admin` | `users` + `onboarded_at`·`nickname_changed_at`·`terms_version`, 닉네임 CHECK·`lower(nickname)` 유일, `users` UPDATE 회수. `reserved_nicknames`, `admins`, `private` 스키마(`is_admin`·`can_write`·`raise_if_cannot_write`), RPC `get_viewer`·`complete_onboarding`·`change_nickname` |
+| `0008_reactions_views` | `reactions.session_id` 삭제·`user_id` NOT NULL·본인 행만 조회, 기존 반응 폐기(D-8). `post_views`. 1-인자 `toggle_post_like`·`toggle_post_scrap`·`toggle_comment_like`, `record_post_view` |
+| `0009_posts_comments_integrity` | 글·댓글 길이 CHECK, `comments.deleted_at`, `updated_at` 트리거, 글·댓글 insert 트리거(활성 그룹·유형·부모 검증·빈도 제한), `delete_comment`, 보이는 댓글만 세는 `sync_comment_count`, 복합 인덱스 |
+| `0010_chat` | `chat_messages.session_id` 삭제, 발신자 덮어쓰기·빈도 제한 트리거, insert 컬럼 제한, `chat_moderation_events` (Realtime) |
+| `0011_reports_moderation` | `reports`, `moderation_actions`, 숨김 글·댓글 작성자 수정 금지, `submit_report`(자동 숨김 3명, D-4), `admin_moderate`·`admin_dismiss_reports`·`admin_report_queue`, `idol_groups` 관리자 쓰기 + `color_key`(D-18) |
+| `0012_seed_launch_groups` | 출시 그룹 5개 (D-10) |
 
 v1.0 스키마 대비 실제 차이:
 
 | 테이블 | v1.0 문서 | 실제 |
 |---|---|---|
-| `users` | `username`, `provider`, `role` | `nickname`, `bio`, `updated_at`. **`provider`·`role` 없음** — 관리자 판별 수단 필요 (F8-1) |
-| `idol_groups` | `name_en`, `genre text[]` | `name`, `name_ko`, **`slug` (unique, URL 키)**, `description`, `created_at`. `genre` 없음 |
-| `posts` | `media_urls text[]` | `media_urls` 없음. `comment_count`, `updated_at` 있음 |
-| `reactions` | 좋아요·스크랩·**신고** | 좋아요·스크랩만. 신고는 별도 `reports` 로 분리 (신고는 사유·상태·처리자가 필요) |
-| `chat_members` | 있음 | 없음. 필요 없다고 판단 (BACKLOG P2) |
-| `chat_messages` | `messages` | `chat_messages`, `nickname` 자유 입력, `session_id` |
+| `users` | `username`, `provider`, `role` | `nickname`, `bio`, `updated_at`, 온보딩 컬럼 3개(0007). `provider`·`role` 없음 — 관리자는 `admins` 테이블(D-3) |
+| `idol_groups` | `name_en`, `genre text[]` | `name`, `name_ko`, **`slug` (unique, URL 키, 변경 불가)**, `agency`, `debut_date`, `cover_url`, `description`, `is_active`, `color_key`. `genre` 없음 |
+| `posts` | `media_urls text[]` | `media_urls` 없음. `comment_count`, `view_count`, `updated_at` 있음. 새 글 유형은 `text`·`fanfic` 만 (0009) |
+| `reactions` | 좋아요·스크랩·**신고** | 좋아요·스크랩만, `user_id` 기준. 신고는 별도 `reports` |
+| `chat_members` | 있음 | 없음. 필요 없다고 판단 |
+| `chat_messages` | `messages` | `chat_messages`. `author_id`·`nickname` 은 트리거가 채움 (0010) |
 
-### 12.2 MVP 에 추가할 스키마 🟡
+### 12.2 MVP 에 추가한 스키마 (구현됨)
 
-설계 초안이다. 확정은 `supabase-backend` 가 D-1 결과를 반영해 마이그레이션(`0007_...`)으로 한다.
+09-24 판의 초안은 0007~0011 로 구현됐다 ✅. 상세 DDL 은 마이그레이션 파일과 TECH-DESIGN §3·§4 가 원본이다. 초안과 달라진 점만 적는다.
 
-#### `reports`
+#### `reports` (0011)
 
-| 컬럼 | 타입 | 설명 |
-|---|---|---|
-| `id` | uuid PK | |
-| `reporter_id` | uuid FK → users | 신고자 |
-| `target_type` | text | `post` \| `comment` \| `chat_message` |
-| `target_id` | uuid | 대상 id (다형 참조라 FK 없음) |
-| `reason` | text | [6.1](#61-신고-사유-코드-) 의 사유 코드 (check 제약) |
-| `detail` | text | 선택 설명, ≤ 300자 |
-| `status` | text | `open` \| `actioned` \| `dismissed` |
-| `handled_by` | uuid FK → users | 처리한 관리자 |
-| `handled_at` | timestamptz | |
-| `created_at` | timestamptz | |
-| | unique | (`reporter_id`, `target_type`, `target_id`) — 중복 신고 방지 |
+초안 컬럼(`id`, `reporter_id`, `target_type`, `target_id`, `reason`, `detail` ≤ 300자, `status`, `handled_by`, `handled_at`, `created_at`, unique(`reporter_id`, `target_type`, `target_id`)) 그대로 + 다음을 추가:
 
-RLS: 신고자는 본인 신고 insert·select 만. 관리자는 전체 select. update 는 관리자 RPC 전담.
+| 추가 컬럼 | 설명 |
+|---|---|
+| `target_author_id` | 신고 시점 작성자 (2단계 제재용) |
+| `snapshot` (jsonb) | 신고 시점 내용. 원문이 지워져도 검토 가능 (AD-9) |
 
-#### 관리자 판별 — D-3: `admins` 테이블로 결정 (2026-09-30)
+RLS: 신고자는 본인 신고 select 만, 관리자는 전체 select. **insert·update 는 RPC 전용** (`submit_report`, 관리자 RPC) — 초안의 "신고자 insert" 와 다르다.
+
+#### 관리자 판별 — D-3: `admins` 테이블 (0007)
 
 | 안 | 내용 |
 |---|---|
-| `users.role` 컬럼 | 단순. 단 `users` 는 본인이 update 할 수 있으므로 `role` 은 GRANT 대상에서 반드시 제외 |
-| `admins` 테이블 | 권한 부여 경로가 분리되어 실수 여지가 적음. **채택** — 설계는 `docs/design/TECH-DESIGN.md` §3.2(0007)·§4.2 |
+| `users.role` 컬럼 | 기각. `users` 에 UPDATE 권한이 생기면 실수로 열릴 위험 |
+| `admins` 테이블 | **채택·구현**. 정책 없음 = 클라이언트 접근 불가, 판별은 `private.is_admin()`. 첫 관리자는 SQL 에디터로 지정 (README) |
 
-#### `moderation_actions` (감사 로그)
+#### `moderation_actions` (감사 로그, 0011)
 
-`id`, `actor_id`, `action` (`hide` \| `unhide` \| `dismiss`), `target_type`, `target_id`, `report_id`, `note`, `created_at`. insert 는 관리자 RPC 에서만, update·delete 불가.
+`id`, `actor_id`(null = 시스템 자동 숨김), `action` (`hide` \| `unhide` \| `auto_hide` \| `dismiss`), `target_type`, `target_id`, `note`, `created_at`. insert 는 RPC 에서만, 관리자만 조회. 초안과 차이: `auto_hide` 추가, **`report_id` 컬럼 없음** (대상 단위로 기록).
+
+#### 그 밖에 추가된 것
+
+`post_views` (조회수 중복 제거, 0008), `chat_moderation_events` (숨김 전파, 0010), `reserved_nicknames` (0007), `idol_groups.color_key` (0011).
 
 ### 12.3 2단계 이후 스키마
 
@@ -740,33 +775,35 @@ v1.0 의 "3/6/12개월" 은 달력이 아니라 **공개 출시일 기준**으�
 | MAU, DAU, 리텐션, 체류시간 | 방문 이벤트 필요 | 베타는 자체 이벤트 테이블 또는 DB 집계(무료 플랜, D-5). 분석 도구는 공개 출시 전 재검토 |
 | NPS | 베타 사용자 설문 | 외부 설문 |
 
-- 채팅 `author_id` 가 현재 항상 `null` 이므로 ✅, D-1 이 해결되기 전에는 채팅 기반 지표를 계산할 수 없다.
+- 채팅 `author_id` 는 0010 부터 트리거가 `auth.uid()` 로 채운다 ✅. 0010 이전 메시지는 원격에 0행이었다(smoke-log 10-05). 따라서 채팅 기반 지표도 DB 로 계산할 수 있다.
 
 ---
 
 ## 15. 개발 로드맵
 *Development Roadmap*
 
-v1.0 로드맵은 달력 기준이었고 1단계가 약 2분기 밀렸다. 이후 단계는 **앞 단계 종료 조건** 기준으로 바꾼다. 날짜는 모두 추정.
+v1.0 로드맵은 달력 기준이었고 1단계가 약 2분기 밀렸다. 이후 단계는 **앞 단계 종료 조건** 기준으로 바꾼다. 날짜는 모두 추정. 2026-10-11 에 1a~1c 의 실제 결과를 git 이력 기준으로 채웠다 ✅.
 
-| 단계 | 기간 (추정) | 범위 | 종료 조건 |
-|---|---|---|---|
-| **1a · 기반 복구** | 2026-09-24 ~ 10-11 | 작업 트리 커밋, `0004`/`0005` 원격 적용·검증, CI, 로그인 404 수정, D-1 결정 및 보안 수정 | BACKLOG P0 전부 완료 |
-| **1b · 자정 기능** | 10-12 ~ 10-25 | 신고, 관리자 역할·숨김 RPC, `/admin`, 채팅 방어 | 신고 → 숨김이 화면에서 완결 |
-| **1c · 출시 준비** | 10-26 ~ 11-08 | Production 배포, 법적 페이지, sitemap/robots, 에러 수집, 모바일 점검 | **클로즈드 베타** (초대 20~50명 🟡) |
-| **1d · 베타 운영** | 클로즈드 베타 + 4주 🟡 | 버그 수정, 지표 관찰, 가이드라인 보완 | 공개 출시 판단 기준 충족 (아래) |
-| **2a · Engagement Core** | 공개 출시 후 | 이미지 업로드, 마이페이지, 그룹 팔로우 + 홈 피드, 제재, 레벨 시스템 | — |
-| **2b · Media & Global** | 2a 이후 | 투표, 캘린더, 다국어, 푸시·PWA, 검색 | — |
-| **3 · Creator Economy** | MAU 10,000 이후 | 멤버십, 마켓, 결제 | 법무 검토 선행 |
-| **4 · AI & Web3** | 3단계 안정화 이후 | AI 팬픽·포토카드, NFT, AR, 메타버스 | 금지 콘텐츠 필터 선행 |
+| 단계 | 계획 기간 (09-24 추정) | 범위 | 종료 조건 | 실제 결과 (2026-10-11) |
+|---|---|---|---|---|
+| **1a · 기반 복구** | 2026-09-24 ~ 10-11 | 작업 트리 커밋, `0004`/`0005` 원격 적용·검증, CI, 로그인 404 수정, D-1 결정 및 보안 수정 | 기반·보안 P0 완료 | **완료 10-05** — D-1=A(09-29), T0~T7, PR #1~#13. 남은 것: S22·권한 표 대시보드 SQL (BACKLOG P0-4) |
+| **1b · 자정 기능** | 10-12 ~ 10-25 | 신고, 관리자 역할·숨김 RPC, `/admin`, 채팅 방어 | 신고 → 숨김이 화면에서 완결 | **완료 10-09** (계획보다 약 2주 앞) — T8·T9, PR #14~#16. 로컬 QA ✅ (PR #25) |
+| **1c · 출시 준비** | 10-26 ~ 11-08 | Production 배포, 법적 페이지, sitemap/robots, 에러 수집, 모바일 점검 | **클로즈드 베타** (초대 20~50명 🟡) | **코드 완료, 운영 준비 진행 중** — T10~T12, PR #17~#27. 남은 것: T13 배포·OAuth, `LEGAL_*`·도메인 값, 90일 문구 결정, R2 전환(10-30) 후 회귀 확인, T14 QA, D-7 모집. 목표 11-08 유지 (추정 ○) |
+| **1d · 베타 운영** | 클로즈드 베타 + 4주 🟡 | 버그 수정, 지표 관찰, 가이드라인 보완 | 공개 출시 판단 기준 충족 (아래) | — |
+| **2a · Engagement Core** | 공개 출시 후 | 이미지 업로드, 마이페이지, 그룹 팔로우 + 홈 피드, 제재, 레벨 시스템 | — | — |
+| **2b · Media & Global** | 2a 이후 | 투표, 캘린더, 다국어, 푸시·PWA, 검색 | — | — |
+| **3 · Creator Economy** | MAU 10,000 이후 | 멤버십, 마켓, 결제 | 법무 검토 선행 | — |
+| **4 · AI & Web3** | 3단계 안정화 이후 | AI 팬픽·포토카드, NFT, AR, 메타버스 | 금지 콘텐츠 필터 선행 | — |
+
+1c 의 남은 기간: 10-12 ~ 11-08 (4주). 주차별 배정은 BACKLOG §6.
 
 ### 공개 출시 판단 기준 (Go / No-Go) 🟡
 
-- [ ] BACKLOG 의 P0·P1 차단 이슈 0건
-- [ ] `qa-reviewer` 보안 체크리스트(BACKLOG P0-3) 전 항목 Production 에서 통과
+- [ ] BACKLOG 의 P0·P1 이슈 0건
+- [ ] 보안 테스트 매트릭스(TECH-DESIGN §9.2 S1~S23) 통과 — CI pgTAP 녹색 + Production 에서 운영 스모크(`docs/qa/smoke-log.md` 의 S22·권한 표·동선) 통과
 - [ ] 베타 기간 WAF 30 이상, 활성화율 40% 이상
 - [ ] 신고 처리 시간 중앙값 48시간 이내
-- [ ] 이용약관·개인정보처리방침 법무 검토 완료
+- [ ] 이용약관·개인정보처리방침 법무 검토 완료 (TECH-DESIGN §7.9.1)
 - [ ] 모바일 Lighthouse 성능·접근성 90 이상 (주요 4개 화면)
 
 ---
@@ -775,8 +812,8 @@ v1.0 로드맵은 달력 기준이었고 1단계가 약 2분기 밀렸다. 이�
 *Risk Management*
 
 ### 🔴 HIGH — 권한 우회로 인한 데이터 변조 🆕
-원격 DB 가 `0003` 까지만 적용된 상태라면 anon key 로 남의 글 수정·삭제가 가능하다. `toggle_*` RPC 는 호출자가 넘긴 `session_id` 를 믿는다.
-**완화:** `0004`/`0005` 원격 적용 + Production 대상 검증 체크리스트(BACKLOG P0-3), D-1 결정 후 RPC 재작성, CI 도입, 권한 변경마다 `qa-reviewer` 검토.
+브라우저가 anon key 로 PostgREST 를 직접 부를 수 있으므로, DB 권한이 하나라도 열려 있으면 앱 검사를 우회해 데이터를 바꿀 수 있다.
+**완화:** 0004~0011 원격 적용, D-1 = A 로 RPC 재작성(0008), CI pgTAP(TECH-DESIGN §9.2), 권한 변경마다 `qa-reviewer` 검토 — 완료 ✅ (2026-10-11). 남은 것: 대시보드 S22·권한 표 확인(BACKLOG P0-4), Supabase 기본 권한 강제 전환(2026-10-30, R2) 직후 회귀 확인(BACKLOG P0-5).
 
 ### 🔴 HIGH — 저작권·초상권 분쟁: 팬 창작물 내 아이돌 이미지 사용
 **완화:** 명확한 저작권 정책 고지, 권리자 신고 경로([6.4](#64-권리자-신고-저작권초상권)), 상업적 사용 구분 가이드라인. MVP 는 업로드가 없어 노출이 작다.
@@ -796,7 +833,7 @@ v1.0 로드맵은 달력 기준이었고 1단계가 약 2분기 밀렸다. 이�
 **완화:** 팬 주도 생태계 차별화, 관리 품질로 포지셔닝(02), 소속사 직접 의존도 최소화.
 
 ### 🟠 MEDIUM — 악성 콘텐츠 및 스팸 계정 증가
-**완화:** 사용자 단위 rate limit, D-1 이 B(익명 로그인)라면 CAPTCHA, 신고 기반 빠른 처리. AI 1차 필터는 2단계.
+**완화:** 사용자 단위 rate limit(0009·0010·0011 구현 ✅), 로그인 필수(D-1 = A — 익명 계정 대량 생성 경로 없음), 신고 기반 빠른 처리. AI 1차 필터는 2단계.
 
 ### 🟠 MEDIUM — AI API 비용 급증 (Claude, Replicate)
 **완화:** 멤버십 AI 기능 분리, 공정 사용 한도, 캐싱, 사용량 기반 비용 알림.
@@ -819,7 +856,7 @@ v1.0 로드맵은 달력 기준이었고 1단계가 약 2분기 밀렸다. 이�
 | **품질 게이트** | PR 마다 lint + typecheck + build | GitHub Actions | 실패 시 수정 | MVP |
 | **배포** | main 머지 → 자동 배포, 문제 시 즉시 롤백 | Vercel | PR 리뷰만 | MVP |
 | **SEO** | 메타데이터·sitemap 자동 생성 | Next.js `generateMetadata`, `sitemap.ts` | 없음 | MVP |
-| **모니터링** | 에러·다운 감지 → 알림 | Sentry / uptime 모니터 | 알림 수신 후 대응 | MVP |
+| **모니터링** | 에러·다운 감지 → 알림 | 베타: Vercel 로그 구조화 출력(D-5, T12) — 알림 없음. Sentry·uptime 모니터는 공개 출시 전 재검토 | 로그 확인 후 대응 | MVP |
 | **백업** | DB 일일 자동 백업 | Supabase (요금제 ❓) | 월 1회 복구 리허설 🟡 | 2단계 |
 | **미디어** | 이미지 리사이징 & WebP 변환 | `next/image` | 없음 | 2단계 |
 | **아이돌 데이터** | 그룹 추가·비활성화 | 관리자 화면(F8-4) | 입력 (최소) | MVP |
@@ -830,17 +867,17 @@ v1.0 로드맵은 달력 기준이었고 1단계가 약 2분기 밀렸다. 이�
 ## 18. 결정 필요 사항
 *Open Decisions* — 신설
 
-결정권자: 프로젝트 오너. 결정되면 이 표에 결과와 날짜를 적고, 해당 🔷 표기를 지운다.
+결정권자: 프로젝트 오너. 결정되면 이 표에 결과와 날짜를 적고, 해당 🔷 표기를 지운다. 이 표 뒤의 번호는 이어서 쓴다: 구현 결정 D-8~D-14 는 `docs/design/TECH-DESIGN.md` §11, 디자인 결정 D-15~ 는 `docs/design/DESIGN-ANALYSIS.md`·`TOKENS.md`. 2026-10-11 기준 미결은 D-6 값 입력과 D-7 뿐이다.
 
 | ID | 질문 | 선택지 | 막고 있는 것 | 기한 (제안) |
 |---|---|---|---|---|
-| **D-1** | 쓰기 행동의 식별 체계 | A 쓰기 전부 로그인 필수 / B Supabase 익명 로그인 / C 쿠키 혼재 유지 + 구멍 막기 — 상세는 BACKLOG P0-1. PRD 관점에서는 **제재 단위가 필요하므로 A 또는 B** | F5, F6, 권한 매트릭스, WAF 측정, P0-6 | 2026-10-04 |
-| **D-2** | 출시 시 노출할 로그인 공급자 | **Google 만으로 결정 (2026-09-30)** — 설정·검증 부담 최소, 공급자 간 계정 중복 없음. 카카오·X 는 베타 반응을 보고 추가 검토 | F1-1, P1-7 | ~~2026-10-25~~ |
-| **D-3** | 관리자 판별 방식 | **`admins` 테이블로 결정 (2026-09-30)** — 권한 부여 경로 분리, 해제 즉시 반영. `users.role`·토큰 `app_metadata` 안은 기각 | F8, P1-2 | ~~2026-10-11~~ |
+| **D-1** | 쓰기 행동의 식별 체계 | **A 쓰기 전부 로그인 필수로 결정 (2026-09-29)**. 기각: B Supabase 익명 로그인, C 쿠키 혼재 유지 + 구멍 막기. 구현 0007~0010 (T4~T7) | — | ~~2026-10-04~~ |
+| **D-2** | 출시 시 노출할 로그인 공급자 | **Google 만으로 결정 (2026-09-30)** — 설정·검증 부담 최소, 공급자 간 계정 중복 없음. 카카오·X 는 베타 반응을 보고 추가 검토 | F1-1, T13 | ~~2026-10-25~~ |
+| **D-3** | 관리자 판별 방식 | **`admins` 테이블로 결정 (2026-09-30)** — 권한 부여 경로 분리, 해제 즉시 반영. `users.role`·토큰 `app_metadata` 안은 기각 | F8 | ~~2026-10-11~~ |
 | **D-4** | 신고 누적 자동 임시 숨김 | **3건(서로 다른 신고자 3명)으로 결정 (2026-09-30)** | F7-5 | ~~2026-10-11~~ |
 | **D-5** | 베타 기간 요금제·관측 도구 | **둘 다 무료로 결정 (2026-09-30)**: Supabase Free + Vercel Hobby, 오류는 Vercel 로그. 조건: Supabase 는 1주 비활성 시 일시 정지(수동 복구), Vercel Hobby 는 비상업 용도만 — 광고·결제·후원·제휴 링크를 넣는 순간 Pro 필요. 공개 출시 전 재검토 | 동시 접속 목표, 백업, 14.2 | ~~2026-10-25~~ |
-| **D-6** | 운영자 연락처·사업자 정보 | 신고·이의 제기·권리자 신고 이메일, 처리방침에 적을 운영 주체 — **입력 방식 결정 (2026-09-30)**: 문안은 코드에 두고 운영자 정보는 `LEGAL_*` 환경변수로 주입(`.env.example`). 값 자체는 사용자 입력 대기 | F9-1, L-2, 6.3 | 2026-10-25 |
-| **D-7** | 클로즈드 베타 모집 방식 | 지인·팬 커뮤니티 초대 / 대기자 명단 — **보류 (2026-09-30), 구현 중반(T12 무렵)에 결정** | 1c 종료 | 2026-11-01 |
+| **D-6** | 운영자 연락처·사업자 정보 | 신고·이의 제기·권리자 신고 이메일, 처리방침에 적을 운영 주체 — **입력 방식 결정 (2026-09-30)**: 문안은 코드에 두고 운영자 정보는 `LEGAL_*` 환경변수로 주입(`.env.example`). 값 자체는 사용자 입력 대기 (2026-10-11 현재 미설정, BACKLOG P0-2) | F9-1, L-2, 6.3 | 2026-10-25 |
+| **D-7** | 클로즈드 베타 모집 방식 | 지인·팬 커뮤니티 초대 / 대기자 명단 — **보류 (2026-09-30), 구현 중반(T12 무렵)에 결정** — T12 는 10-09 완료, 2026-10-11 현재 미결 (BACKLOG P0-8) | 1c 종료 | 2026-11-01 |
 
 ---
 
@@ -850,11 +887,12 @@ v1.0 로드맵은 달력 기준이었고 1단계가 약 2분기 밀렸다. 이�
 | 버전 | 날짜 | 변경 |
 |---|---|---|
 | v1.0.0 | 2026-05-31 | 최초 작성 |
+| v1.1.1 | 2026-10-11 | 사유: 09-24 이후 진척(PR #1~#27)이 TECH-DESIGN §10~12 와 git 에만 있었음. 범위·요구사항은 바꾸지 않음. 변경: §00 을 2026-10-11 현황으로 · §05 F1~F9 상태 열과 권한 매트릭스(D-1=A, D-13) 갱신 · §07.1 쿠키 식별자(`vid`) · §08 보안·접근성·인덱스·글꼴 상태 · §09 원칙 03 과 §5.3 을 D-17(시스템 테마)에 맞춤 · §10·§11 을 실제 구성으로 · §12 를 0001~0012 기준으로, §12.2 를 "추가한 스키마"로 · §14.2 채팅 `author_id` · §15 에 1a~1c 실제 결과, Go/No-Go 의 사라진 참조(BACKLOG P0-3)를 TECH-DESIGN §9.2·smoke-log 로 · §16 권한 우회 리스크 상태 · §18 D-1 결정 반영 · 관련 문서 링크(SPRINTS.md, TECH-DESIGN, smoke-log) · 표기에 ○ 추가 |
 | v1.1.0 | 2026-09-24 | 현재 상태(00) 추가 · MVP 목표/비목표 · North Star(WAF) · MVP 기능별 수용 기준과 권한 매트릭스 · 커뮤니티 정책(06)·개인정보/법적 요건(07) 신설 · 기술 스택을 실제 코드(Next.js 16.2 등)로 정정 · DB 스키마를 마이그레이션과 대조, `reports` 등 초안 추가 · NFR 에서 FID→INP, 가용성·동시 접속 단계화 · KPI 를 출시일 기준으로 재정의하고 측정 방법 추가 · 로드맵을 조건 기반으로 재기준 · 리스크 3건 추가 · 결정 필요 사항(18) 신설 |
 
 ---
 
 **✦ IdolUniv — Product Requirements Document**
-Version 1.1.0 · 2026-09-24 · MIT License © 2026 IdolUniv Team
+Version 1.1.1 · 2026-10-11 · MIT License © 2026 IdolUniv Team
 
 이 문서는 살아있는 문서입니다. 커뮤니티 성장과 트렌드 변화에 따라 지속 업데이트됩니다.

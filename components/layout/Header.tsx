@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { createClient } from "@/lib/supabase/server";
+import { LoginLink } from "./LoginLink";
 
 export async function Header() {
   const supabase = await createClient();
@@ -36,7 +37,7 @@ export async function Header() {
             // 보이는 높이 36px, 누르는 영역은 가상 요소로 44px (50px 상단 바 안에서 꽉 차 보이지 않게)
             className="relative h-9 px-3 after:absolute after:inset-x-0 after:-inset-y-1 after:content-['']"
             nativeButton={false}
-            render={<Link href="/login">로그인</Link>}
+            render={<LoginLink>로그인</LoginLink>}
           />
         )}
       </div>

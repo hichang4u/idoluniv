@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ChevronLeftIcon, ChevronRightIcon, Clock, Feather, Flame, type LucideIcon } from "lucide-react";
@@ -95,6 +95,8 @@ export default async function BoardPage({ params, searchParams }: Props) {
     countPosts(false),
     countPosts(true),
   ]);
+  // 마지막 페이지를 넘는 번호(PGRST103, 416)는 첫 페이지로 보낸다
+  if (error?.code === "PGRST103") redirect(sort === "latest" ? `/g/${group.slug}` : `/g/${group.slug}?sort=${sort}`);
   // 빈 목록과 조회 실패를 구분한다: 실패는 error.tsx 로 (디자인 리뷰 S10)
   if (error) throw error;
 

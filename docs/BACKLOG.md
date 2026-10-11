@@ -65,7 +65,7 @@
 | P0-4 | S22·권한 표·`users.email` SQL 대시보드 실행 (T0 에서 대기, `docs/qa/smoke-log.md` §3). R12 `private` 스키마 노출 여부도 같은 자리에서 확인. **완료 (2026-10-11)** — S22·email·R12 ✅, `members` 에 남아 있던 anon 쓰기 권한은 **0013**(PR #32)으로 회수·운영 적용, 권한 표·컬럼 권한 재확인 ✅ (smoke-log 10-11) | 실행 = 사용자. 판정 = `supabase-backend` | — | S22 결과가 smoke-log "0008 이후" 허용 목록(`get_or_create_chat_room(uuid)`, `record_post_view(uuid,uuid)`)과 일치, anon INSERT·UPDATE·DELETE 전부 false, email false. smoke-log 에 기록 |
 | P0-5 | **R2** Supabase 기본 권한 강제 전환(**2026-10-30**) 직후 회귀 확인 | 사용자 + `qa-reviewer` | 10-30 이후. P0-4 (전환 전 기준값) | P0-4 쿼리 재실행 결과 불변 + 운영 스모크 4단계(로그인·글·좋아요·라운지) 통과, smoke-log 기록 |
 | P0-6 | 온보딩 완료 → `next` 이동 확인 — **완료 (2026-10-11)**: 새 Google 계정으로 운영 첫 로그인 → `/onboarding` → `/g/ive` 복귀 ✅ (smoke-log 10-11). PR #27 에서는 미확인이었음 | 사용자(새 Google 계정) + `qa-reviewer` | P0-1 | 신규 계정 첫 로그인 → `/onboarding` → 완료 후 원래 페이지 도착 |
-| P0-7 | **T14** 전체 QA — TECH-DESIGN §9.2 + PRD F1~F9 수용 기준, Production 대상 | `qa-reviewer` (로그인 필요 구간은 사용자) | P0-1~P0-3 | 차단 이슈 0 |
+| P0-7 | **T14** 전체 QA — TECH-DESIGN §9.2 + PRD F1~F9 수용 기준, Production 대상. **2026-10-12 진행 중**: A단계(쓰기 없는 운영 확인 + `qa-reviewer` 코드 대조) 완료 → 수정 3건(숨김 글 댓글 노출 0015, 헤더 로그인 `next`, 페이지 범위 초과 오류) PR. B단계(운영 쓰기 동선) 남음 | `qa-reviewer` (로그인 필요 구간은 사용자) | P0-1~P0-3 | 차단 이슈 0 |
 | P0-8 | D-7 클로즈드 베타 모집 방식 결정 (PRD §18, 기한 제안 2026-11-01) | 사용자 | — | 초대 대상·경로 확정 |
 | P0-9 | 개인정보처리방침 + 온보딩 동의 방식(D-25: 약관·개인정보 분리) 법무 검토 — D-26 으로 클로즈드 베타 전에 받기로 함 | 사용자 | P0-2, P0-3 | 처리방침·동의 문구 확정, 지적 사항 반영 |
 
@@ -81,6 +81,7 @@ P0-8 은 원래 출시 차단 후보 목록에 없던 것을 PM 이 추가했다
 | P1-2 | 온보딩 폼을 띄운 뒤 세션이 끊긴 상태로 제출하면 로그인 화면 대신 "권한이 없어요." 가 나옴 (비로그인 제출로 재현 ✅, 2026-10-11). anon 에 `complete_onboarding` EXECUTE 가 없어 42501 → `FORBIDDEN` 으로 매핑되는 것으로 보임 ○ (`app/actions/auth.ts:43-52` 가 `AUTH_REQUIRED` 일 때만 로그인으로 보내고, `lib/action-result.ts` 는 42501 을 `FORBIDDEN` 으로 바꿈 ✅). 정상 동선은 페이지가 먼저 redirect 하므로 영향 작음 | `frontend-dev` | — | 세션 없는 제출 → 로그인 화면(복귀 `next` 유지) |
 | P1-3 | Production 오류 수집 확인 — Vercel 로그에 `onRequestError`·`/api/client-errors` 기록이 남는지 (F9-6) | `frontend-dev` | P0-1 | 의도적 오류 1건이 로그에 구조화 형태로 보임 |
 | P1-4 | 베타 운영 루틴 — R16(무료 플랜 1주 비활성 정지) 대비 주 1회 접속·스모크, R18 주 1회 수동 덤프. `db dump` 는 Docker 가 필요해 이 PC 에서 실패한 기록이 있다(TECH-DESIGN §8.1) → 덤프 수단부터 정해야 함 ❓ | 사용자 | P0-1 | 덤프 방법 확정, 첫 덤프 1회 |
+| P1-6 | T14 비차단 발견 (2026-10-12, `qa-reviewer` + 운영 확인): ① 작성자가 API 로 `post_type` 을 `video`·`image` 로 바꿀 수 있음(update 정책에 유형 제한 없음, 코드 확인) ② 처리방침 "신고 기록 처리 종료 후 1년 뒤 삭제" 미구현(첫 기한 약 1년 뒤) ③ 신고자가 자기 신고의 `handled_by` 로 처리 관리자를 알 수 있음 ○ ④ 숨김·없는 글 상세가 404 화면을 HTTP 200 으로 냄(soft 404, `noindex` 있음) ⑤ 로그아웃 Origin 검사·`/api/client-errors` 빈도 제한 없음 ⑥ 신고 큐 조회 실패가 "신고 없음" 과 같아 보임 ⑦ pgTAP 공백: S15 병렬 미검증, S23 러너 없음(`safeNext` 일회 실행 ✅) | `supabase-backend`, `frontend-dev` | — | 항목별 수정 또는 수용 결정 기록 |
 | P1-5 | 모바일 Lighthouse 성능·접근성 90+ (PRD §15 Go/No-Go, 주요 4개 화면) | `frontend-dev`, `designer` | P0-1 | 4개 화면 측정값 기록, 90 미만 항목 수정 |
 
 ---
@@ -93,6 +94,7 @@ P0-8 은 원래 출시 차단 후보 목록에 없던 것을 PM 이 추가했다
 | 목업 정렬 후속: 팬픽 뷰어, 글자 크기 단계 토큰화 | PR #26 이후 남은 차이. 최근 방문 그룹은 D-24 로 `/g` 에도 추가함 | `designer`, `frontend-dev` |
 | 이미지 업로드 + 검증 | PRD §01 비목표 | `supabase-backend`, `frontend-dev` |
 | 스크랩 목록 화면 | F5-4 2단계. 토글은 완료 | `frontend-dev` |
+| 댓글 수정 UI | F4-3: MVP 는 삭제만 (2026-10-12 T14 결정). DB 는 `update (content)` 허용(0009) — 도입 시 "수정됨" 표시·신고 스냅샷 고려 | `frontend-dev` |
 | 댓글 좋아요 UI | `toggle_comment_like(uuid)` RPC 만 있음(0008) ✅ | `frontend-dev` |
 | 타이핑 인디케이터 | presence 코드 없음 | `frontend-dev` |
 | Markdown 렌더링 | 비목표. 도입 시 XSS 방어 | `frontend-dev`, `qa-reviewer` |

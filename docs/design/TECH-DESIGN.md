@@ -377,6 +377,10 @@ on conflict (slug) do nothing;
 - `public` 전 테이블: anon·authenticated 의 TRUNCATE·TRIGGER·REFERENCES 회수(API 미사용)
 - 테스트: `supabase/tests/70_table_acl.sql`. S22 조회는 이벤트 트리거 함수도 제외(`90_function_acl.sql`)
 
+#### 0015 — 숨김 글의 댓글 비공개 (T14, 2026-10-12)
+
+0009 의 댓글 SELECT 정책은 댓글 자신의 `is_hidden` 만 봐서, 숨김 글의 댓글이 anon API 로 읽혔다(운영 3건 ✅). 정책에 `exists (select 1 from public.posts p where p.id = post_id)` 를 더해 글을 볼 수 있는 사람(작성자·관리자)에게만 보이게 한다 — 정책 안의 posts 조회에도 posts RLS 가 적용된다. 테스트 `35_comment_visibility.sql`(S21 댓글·S3 댓글 단언도 추가).
+
 ---
 
 ## 4. DB 함수 · 트리거 명세

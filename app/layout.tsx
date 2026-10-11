@@ -12,7 +12,8 @@ export const metadata: Metadata = {
     default: "IdolUniv — 아이돌 팬덤 커뮤니티",
     template: "%s | IdolUniv",
   },
-  description: "팬이 만들고, AI가 잇고, 세계가 함께하는 아이돌 유니버스",
+  // 검색 결과·공유 미리보기 문구. 홈 소개 카드와 같은 내용(MVP 범위, 비공식 표기 D-22). PRD 머리의 비전 문구는 장기 목표라 쓰지 않는다
+  description: "그룹별 게시판과 라운지에서 팬끼리 이야기하는 비공식 아이돌 팬 커뮤니티",
   keywords: ["kpop", "아이돌", "팬덤", "커뮤니티", "K-pop"],
 };
 

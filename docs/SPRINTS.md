@@ -114,7 +114,7 @@ PRD Phase 1 Foundation을 4개의 2주 Sprint로 분리한 실행 계획 — 소
 
 ### 남은 일
 
-Must Have 밖에서 출시를 막는 것: T14 전체 QA, `LEGAL_*`·`NEXT_PUBLIC_SITE_URL` 값, 라운지 "90일 후 삭제" 문구 결정, S22·권한 SQL, R2 전환(2026-10-30) 후 회귀 확인, 온보딩 완료 동선 확인, 베타 모집(D-7). 담당·순서는 `docs/BACKLOG.md` §2.
+Must Have 밖에서 출시를 막는 것: T14 전체 QA, `LEGAL_*`·`NEXT_PUBLIC_SITE_URL` 값, 라운지 "90일 후 삭제" 문구 결정, S22·권한 SQL, R2 전환(2026-10-30) 후 회귀 확인, 온보딩 완료 동선 확인, 베타 모집(D-7), 개인정보처리방침·동의 방식 법무 검토(D-26). 담당·순서는 `docs/BACKLOG.md` §2.
 
 ---
 

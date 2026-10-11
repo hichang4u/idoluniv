@@ -6,13 +6,16 @@ import { History } from "lucide-react";
 import { GroupAvatar } from "@/components/group/GroupAvatar";
 import { formatRelative } from "@/lib/format";
 import { getRecentGroups, getServerRecentGroups, subscribeRecentGroups } from "@/lib/recent-groups";
+import { cn } from "@/lib/utils";
 
-// 최근 방문한 그룹 · 이 기기 (목업 08). 그룹 카드는 자기 그룹의 옅은 면 위에 타일 + 이름 + 다녀간 때
-export function RecentGroups() {
+// 최근 방문한 그룹 · 이 기기 (목업 08). 그룹 카드는 자기 그룹의 옅은 면 위에 타일 + 이름 + 다녀간 때.
+// 그룹 목록(/g)에서는 빈 안내("그룹 둘러보기")가 제자리를 가리키므로 hideWhenEmpty 로 숨긴다
+export function RecentGroups({ hideWhenEmpty = false, className }: { hideWhenEmpty?: boolean; className?: string }) {
   const groups = useSyncExternalStore(subscribeRecentGroups, getRecentGroups, getServerRecentGroups);
+  if (hideWhenEmpty && groups.length === 0) return null;
 
   return (
-    <section aria-labelledby="recent-h" className="mt-2 bg-card md:rounded-2xl">
+    <section aria-labelledby="recent-h" className={cn("mt-2 bg-card md:rounded-2xl", className)}>
       <h2 id="recent-h" className="flex items-center gap-1.5 px-4 pt-3.5 pb-1.5 text-[13px] font-semibold text-text-subtle">
         <History className="size-3.5" aria-hidden="true" />
         최근 방문한 그룹 · 이 기기

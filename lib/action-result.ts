@@ -30,7 +30,7 @@ export type ErrorCode =
 export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   AUTH_REQUIRED: "로그인이 필요해요.",
   ONBOARDING_REQUIRED: "닉네임을 먼저 정해 주세요.",
-  CONSENT_REQUIRED: "만 14세 이상 확인과 약관 동의가 필요해요.",
+  CONSENT_REQUIRED: "만 14세 이상 확인과 약관·개인정보 동의가 필요해요.",
   VALIDATION: "입력한 내용을 다시 확인해 주세요.",
   NICKNAME_INVALID: "닉네임은 2~20자의 한글·영문·숫자·밑줄(_)만 쓸 수 있어요.",
   NICKNAME_RESERVED: "사용할 수 없는 닉네임이에요.",

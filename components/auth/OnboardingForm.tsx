@@ -14,11 +14,12 @@ export function OnboardingForm({ next }: { next: string }) {
   const [nickname, setNickname] = useState("");
   const [ageOver14, setAgeOver14] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
 
   const error = state && !state.ok ? state : null;
   const nicknameError = error?.fields?.nickname ? error.message : null;
   const formError = error && !nicknameError ? error.message : null;
-  const canSubmit = nickname.trim().length > 0 && ageOver14 && agreeTerms && !pending;
+  const canSubmit = nickname.trim().length > 0 && ageOver14 && agreeTerms && agreePrivacy && !pending;
 
   return (
     <form onSubmit={submitWithoutReset(formAction)} className="flex min-h-[calc(100dvh-50px)] flex-col" noValidate>
@@ -86,18 +87,12 @@ export function OnboardingForm({ next }: { next: string }) {
           <CheckRow name="ageOver14" checked={ageOver14} onChange={setAgeOver14}>
             만 14세 이상이에요
           </CheckRow>
-          <CheckRow
-            name="agreeTerms"
-            checked={agreeTerms}
-            onChange={setAgreeTerms}
-            // 이용약관 화면에서 개인정보처리방침으로도 이어진다
-            trailing={
-              <Link href="/terms" target="_blank" className="relative ml-auto shrink-0 text-[13px] text-text-subtle underline underline-offset-[3px] after:absolute after:-inset-x-3 after:-inset-y-3 after:content-['']">
-                보기
-              </Link>
-            }
-          >
-            이용약관 · 개인정보처리방침 동의
+          {/* 약관과 개인정보 수집·이용 동의는 따로 받는다 (D-25, 법무 검토 전 안전한 쪽) */}
+          <CheckRow name="agreeTerms" checked={agreeTerms} onChange={setAgreeTerms} trailing={<ViewLink href="/terms" />}>
+            이용약관 동의
+          </CheckRow>
+          <CheckRow name="agreePrivacy" checked={agreePrivacy} onChange={setAgreePrivacy} trailing={<ViewLink href="/privacy" />}>
+            개인정보 수집·이용 동의
           </CheckRow>
         </div>
 
@@ -119,6 +114,19 @@ export function OnboardingForm({ next }: { next: string }) {
         </button>
       </div>
     </form>
+  );
+}
+
+// 동의 줄 오른쪽의 "보기". 보이는 크기는 작게 두고 누르는 영역만 44px
+function ViewLink({ href }: { href: string }) {
+  return (
+    <Link
+      href={href}
+      target="_blank"
+      className="relative ml-auto shrink-0 text-[13px] text-text-subtle underline underline-offset-[3px] after:absolute after:-inset-x-3 after:-inset-y-3 after:content-['']"
+    >
+      보기
+    </Link>
   );
 }
 

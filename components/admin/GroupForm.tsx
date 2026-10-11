@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { DEFAULT_GROUP_COLOR, GROUP_COLORS } from "@/lib/group-colors";
+import { submitWithoutReset } from "@/lib/submit-without-reset";
 import { cn } from "@/lib/utils";
 import type { IdolGroup } from "@/types/database";
 
@@ -64,7 +65,7 @@ export function GroupForm({ group }: { group?: GroupValues }) {
   );
 
   return (
-    <form action={formAction} className="space-y-4" noValidate>
+    <form onSubmit={submitWithoutReset(formAction)} className="space-y-4" noValidate>
       {isEdit && <input type="hidden" name="id" value={group.id} />}
 
       <div className="grid gap-3 sm:grid-cols-2">

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Check, CircleAlert, Tag, User } from "lucide-react";
 import { completeOnboarding } from "@/app/actions/auth";
 import { LIMITS } from "@/lib/limits";
+import { submitWithoutReset } from "@/lib/submit-without-reset";
 import { cn } from "@/lib/utils";
 
 // 목업 06: 명찰 + 제목 · 닉네임 입력 · 동의 두 개 · 바닥의 시작하기. 조건을 다 채우기 전엔 비활성
@@ -20,10 +21,10 @@ export function OnboardingForm({ next }: { next: string }) {
   const canSubmit = nickname.trim().length > 0 && ageOver14 && agreeTerms && !pending;
 
   return (
-    <form action={formAction} className="flex min-h-[calc(100dvh-50px)] flex-col" noValidate>
+    <form onSubmit={submitWithoutReset(formAction)} className="flex min-h-[calc(100dvh-50px)] flex-col" noValidate>
       <input type="hidden" name="next" value={next} />
 
-      <div className="grid flex-1 content-start gap-[18px] px-5 pt-2">
+      <div className="grid flex-1 grid-cols-1 content-start gap-[18px] px-5 pt-2">
         <div className="grid gap-2.5">
           <span
             data-group-color="lemon"
@@ -64,7 +65,7 @@ export function OnboardingForm({ next }: { next: string }) {
               spellCheck={false}
               aria-invalid={nicknameError ? true : undefined}
               aria-describedby="nickname-help nickname-error"
-              className="h-full min-w-0 flex-1 bg-transparent text-base text-text-strong outline-none"
+              className="h-full w-0 min-w-0 flex-1 bg-transparent text-base text-text-strong outline-none"
             />
             <span className="shrink-0 text-[12.5px] text-text-subtle tabular-nums" aria-hidden="true">
               {nickname.length}/{LIMITS.nickname.max}
@@ -91,7 +92,7 @@ export function OnboardingForm({ next }: { next: string }) {
             onChange={setAgreeTerms}
             // 이용약관 화면에서 개인정보처리방침으로도 이어진다
             trailing={
-              <Link href="/terms" target="_blank" className="ml-auto shrink-0 text-[13px] text-text-subtle underline underline-offset-[3px]">
+              <Link href="/terms" target="_blank" className="relative ml-auto shrink-0 text-[13px] text-text-subtle underline underline-offset-[3px] after:absolute after:-inset-x-3 after:-inset-y-3 after:content-['']">
                 보기
               </Link>
             }
@@ -147,7 +148,7 @@ function CheckRow({
         />
         <span
           aria-hidden="true"
-          className="inline-grid size-[22px] shrink-0 place-items-center rounded-md border-[1.5px] border-line-strong text-transparent peer-checked:border-ink peer-checked:bg-ink peer-checked:text-on-ink peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50"
+          className="inline-grid size-[22px] shrink-0 place-items-center rounded-[6px] border-[1.5px] border-line-strong text-transparent peer-checked:border-ink peer-checked:bg-ink peer-checked:text-on-ink peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50"
         >
           <Check className="size-4" strokeWidth={2.4} />
         </span>

@@ -53,7 +53,7 @@ v1.0 의 MVP 목표(2026 Q2 출시)는 지켜지지 않았다. 09-24 재기준 �
 | 그룹 라운지 (채팅) | ✅ 발신자 덮어쓰기·빈도 제한·중복 차단·숨김 전파. 로컬 실시간 전송·숨김 전파 ✅(2026-10-10) | `components/chat/`, `0010`, T7·T9 |
 | 신고 · 관리자 | ✅ 신고 시트·자동 숨김(3명)·`/admin` 3화면. 로컬 QA ✅(PR #25). 자동 숨김은 pgTAP 로만 확인 | `0011`, `app/(main)/admin/`, T8·T9 |
 | 그룹 시드 | ✅ 5개 그룹 원격 적용 | `0012`, T10 |
-| 보안 · DB | ✅ 0001~0012 원격 적용 기록, CI pgTAP. S22·권한 표 대시보드 SQL 실행 ✅(2026-10-11) → `members` 권한 잔존 발견, 0013 적용 대기. R2 권한 전환일 2026-10-30 | TECH-DESIGN §8.1, smoke-log, T0·T2 |
+| 보안 · DB | ✅ 0001~0013 원격 적용 기록, CI pgTAP. S22·권한 표 대시보드 SQL 실행 ✅(2026-10-11) → `members` 권한 잔존 발견, 0013 으로 회수·원격 적용 ✅. R2 권한 전환일 2026-10-30 | TECH-DESIGN §8.1, smoke-log, T0·T2 |
 | 디자인 · 모바일 | ✅ 토큰·Pretendard·하단 탭바 3칸·44px·화면별 목업 정렬. 390px·다크·1280px 확인 ✅(PR #26) | T11, PR #23·#26·#27 |
 | 법적 페이지 · SEO · 오류 수집 | 코드 ✅. `LEGAL_*`·`NEXT_PUBLIC_SITE_URL` 값 미설정, 법무 검토 전. 처리방침의 "라운지 90일 후 삭제" 는 삭제 작업이 없어 문구가 앞서 있음 | `app/(main)/{terms,privacy,guidelines}/`, `app/sitemap.ts`, `instrumentation.ts`, T12 |
 | CI · Production 배포 | CI ✅(`ci.yml`·`db.yml`). Production 배포·Google OAuth 운영 등록은 남음 | T1·T2, T13 |
@@ -624,9 +624,9 @@ v1.0 대비 변경: FID → INP, 1인 운영·요금제 현실에 맞게 가용�
 ## 12. DB 스키마
 *Database Schema*
 
-### 12.1 현재 스키마 (마이그레이션 `0001`~`0012` 기준 ✅, 2026-10-11 갱신)
+### 12.1 현재 스키마 (마이그레이션 `0001`~`0013` 기준 ✅, 2026-10-11 갱신)
 
-원격 적용 기록: 0001~0003 은 CLI 이력 없이 적용돼 있던 것을 repair, 0004~0012 는 `db push` (TECH-DESIGN §8.1, `docs/qa/smoke-log.md`). 원격 카탈로그를 이 문서 작성 중 직접 조회하지는 않았다 ❓.
+원격 적용 기록: 0001~0003 은 CLI 이력 없이 적용돼 있던 것을 repair, 0004~0013 은 `db push` (TECH-DESIGN §8.1, `docs/qa/smoke-log.md`). 원격 카탈로그를 이 문서 작성 중 직접 조회하지는 않았다 ❓.
 
 ```
 auth.users ──(trigger handle_new_user)──► users ──── fan_profiles
@@ -661,7 +661,7 @@ reports ── moderation_actions (감사 로그)      reserved_nicknames (금�
 | `0010_chat` | `chat_messages.session_id` 삭제, 발신자 덮어쓰기·빈도 제한 트리거, insert 컬럼 제한, `chat_moderation_events` (Realtime) |
 | `0011_reports_moderation` | `reports`, `moderation_actions`, 숨김 글·댓글 작성자 수정 금지, `submit_report`(자동 숨김 3명, D-4), `admin_moderate`·`admin_dismiss_reports`·`admin_report_queue`, `idol_groups` 관리자 쓰기 + `color_key`(D-18) |
 | `0012_seed_launch_groups` | 출시 그룹 5개 (D-10) |
-| `0013_members_grants` | `members` 쓰기·`fan_profiles` anon 읽기·전 테이블 TRUNCATE·TRIGGER·REFERENCES 회수 (P0-4). **원격 적용 대기** |
+| `0013_members_grants` | `members` 쓰기·`fan_profiles` anon 읽기·전 테이블 TRUNCATE·TRIGGER·REFERENCES 회수 (P0-4). 원격 적용 ✅ 2026-10-11 |
 
 v1.0 스키마 대비 실제 차이:
 

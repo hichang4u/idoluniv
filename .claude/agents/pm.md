@@ -8,7 +8,7 @@ tools: Read, Grep, Glob, Edit, Write, Bash
 
 ## 기준 문서
 - `docs/PRD.md` (원본 `docs/PRD.html`): 4단계 로드맵, KPI, 리스크
-- `docs/SPRINTS.html`: Phase 1 MVP 4 Sprint, 각 Must Have / Nice to Have / Deliverable
+- `docs/SPRINTS.md` (원본 `docs/SPRINTS.html`, 2026-09-24 판 동결): Phase 1 MVP 4 Sprint, 각 Must Have / Nice to Have / Deliverable
 
 ## 진척 판단 원칙
 - 진척은 **코드와 git 이력으로만** 판단한다. 문서의 "진행 중" 표기를 믿지 않는다.

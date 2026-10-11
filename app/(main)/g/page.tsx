@@ -4,6 +4,7 @@ import { ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { GroupAvatar } from "@/components/group/GroupAvatar";
 import { TopBar } from "@/components/layout/TopBar";
+import { RecentGroups } from "@/components/me/RecentGroups";
 import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
 
 export const metadata: Metadata = { title: "그룹" };
@@ -21,6 +22,8 @@ export default async function GroupsPage() {
   return (
     <div className="mx-auto max-w-[640px]">
       <TopBar big title="그룹" />
+      {/* 이 기기에서 들른 그룹 (PRD §09 IA, D-24). 들른 적이 없으면 아무것도 그리지 않는다 */}
+      <RecentGroups hideWhenEmpty className="mt-0 mb-2 md:shadow-card md:dark:shadow-none" />
 
       {!groups?.length ? (
         <Empty>

@@ -30,12 +30,14 @@ export async function completeOnboarding(
   const nickname = normalizeNickname(readText(formData, "nickname"));
   const ageOver14 = formData.get("ageOver14") === "on";
   const agreeTerms = formData.get("agreeTerms") === "on";
+  const agreePrivacy = formData.get("agreePrivacy") === "on";
   const next = safeNext(readText(formData, "next"));
 
   if (!LIMITS.nickname.pattern.test(nickname)) {
     return fail("NICKNAME_INVALID", { fields: { nickname: "NICKNAME_INVALID" } });
   }
-  if (!ageOver14 || !agreeTerms) {
+  // 약관·개인정보 동의는 화면에서 따로 받지만(D-25) DB 에는 둘을 함께 terms_version 으로 남긴다
+  if (!ageOver14 || !agreeTerms || !agreePrivacy) {
     return fail("CONSENT_REQUIRED");
   }
 

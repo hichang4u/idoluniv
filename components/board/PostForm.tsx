@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { LIMITS } from "@/lib/limits";
+import { submitWithoutReset } from "@/lib/submit-without-reset";
 import { cn } from "@/lib/utils";
 import { WRITABLE_POST_TYPES, type Post, type WritablePostType } from "@/types/database";
 
@@ -40,7 +41,7 @@ export function PostForm({ groupSlug, post }: PostFormProps) {
   const formError = error && !error.fields ? error.message : null;
 
   return (
-    <form action={formAction} className="space-y-5" noValidate>
+    <form onSubmit={submitWithoutReset(formAction)} className="space-y-5" noValidate>
       <input type="hidden" name="groupSlug" value={groupSlug} />
       {isEdit && <input type="hidden" name="postId" value={post.id} />}
 

@@ -368,6 +368,15 @@ on conflict (slug) do nothing;
 
 - 원격 DB 에 이미 그룹 행이 있을 수 있다 ❓(T0 에서 확인). 같은 slug 가 있으면 `do nothing` 이라 기존 값이 남으므로, T0 결과를 보고 필요하면 `update` 로 맞춘다.
 
+#### 0013 — 남은 기본 권한 회수 (P0-4, 2026-10-11)
+
+운영 권한 표(`docs/qa/smoke-log.md` 2026-10-11)에서 `members` 에 anon·authenticated 의 INSERT·UPDATE·DELETE 가 남아 있었다(0001 자동 GRANT, 0004~0011 회수 목록에서 누락). 쓰기 정책이 없어 RLS 가 막고 있었다(익명 INSERT 42501 ✅).
+
+- `members`: INSERT·UPDATE·DELETE 회수(테이블·컬럼 단위) → 읽기 전용
+- `fan_profiles`: anon SELECT 회수(0006 의도대로 authenticated 만)
+- `public` 전 테이블: anon·authenticated 의 TRUNCATE·TRIGGER·REFERENCES 회수(API 미사용)
+- 테스트: `supabase/tests/70_table_acl.sql`. S22 조회는 이벤트 트리거 함수도 제외(`90_function_acl.sql`)
+
 ---
 
 ## 4. DB 함수 · 트리거 명세

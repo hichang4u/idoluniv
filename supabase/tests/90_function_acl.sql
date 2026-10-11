@@ -5,14 +5,15 @@ create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 select no_plan();
 
--- public 스키마의 security definer 함수 중 anon 이 실행할 수 있는 것 (트리거 함수 제외)
+-- public 스키마의 security definer 함수 중 anon 이 실행할 수 있는 것
+-- 트리거·이벤트 트리거 함수는 RPC 로 호출할 수 없어 제외한다(운영의 rls_auto_enable(), smoke-log 2026-10-11)
 create temp view anon_definer_functions as
   select p.oid::regprocedure::text as fn
   from pg_proc p
   join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public'
     and p.prosecdef
-    and p.prorettype <> 'trigger'::regtype
+    and p.prorettype not in ('trigger'::regtype, 'event_trigger'::regtype)
     and has_function_privilege('anon', p.oid, 'EXECUTE');
 
 -- 모든 security definer 함수는 search_path 를 고정해야 한다 (§4.1)

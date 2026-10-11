@@ -22,7 +22,7 @@ from pg_proc p
 join pg_namespace n on n.oid = p.pronamespace
 where n.nspname = 'public'
   and p.prosecdef
-  and p.prorettype <> 'trigger'::regtype
+  and p.prorettype not in ('trigger'::regtype, 'event_trigger'::regtype)
   and has_function_privilege('anon', p.oid, 'EXECUTE')
 order by 1;
 ```
@@ -33,6 +33,8 @@ order by 1;
 |---|---|
 | 0006 까지 | `get_or_create_chat_room(uuid)` + 알려진 구멍 `toggle_post_like(uuid,uuid)`, `toggle_post_scrap(uuid,uuid)`, `toggle_comment_like(uuid,uuid)`, `increment_view_count(uuid)` |
 | 0008 이후 | `get_or_create_chat_room(uuid)`, `record_post_view(uuid,uuid)` |
+
+이벤트 트리거 함수는 제외한다. 2026-10-11 까지는 `trigger` 만 제외해서 운영의 `rls_auto_enable()`(소유자 `postgres`, 이벤트 트리거 `ensure_rls` · `ddl_command_end` — Supabase 의 RLS 자동 활성화로 보임 ○)이 섞여 나왔다. RPC 로는 호출되지 않는다(익명 호출 400 `cannot display a value of type event_trigger`).
 
 ### S21·S2 — anon 권한 (테이블 단위)
 
@@ -47,7 +49,9 @@ where n.nspname = 'public' and c.relkind = 'r'
 order by 1;
 ```
 
-기대: anon 의 INSERT·UPDATE·DELETE 는 모두 `false` (예외: 0010 전까지 `chat_messages` INSERT 는 컬럼 단위로 열려 있어 표에는 `false` 로 보일 수 있다 — 컬럼 권한은 아래로 확인).
+기대: anon 의 INSERT·UPDATE·DELETE 는 모두 `false` (예외: 0010 전까지 `chat_messages` INSERT 는 컬럼 단위로 열려 있어 표에는 `false` 로 보일 수 있다 — 컬럼 권한은 아래로 확인). 0013 이후 `members` 도 `false` 여야 한다.
+
+컬럼 권한 조회의 기대: 0013 이후 0행. 0013 전 운영에는 `REFERENCES`(전 테이블)와 `members` 의 INSERT·UPDATE 가 나왔다.
 
 ```sql
 select table_name, column_name, privilege_type
@@ -65,6 +69,10 @@ select has_column_privilege('anon', 'public.users', 'email', 'SELECT') as anon_e
 
 기대: 둘 다 `false`.
 
+### R12 — `private` 스키마 비노출
+
+대시보드 대신 API 로 확인한다: 익명 키로 `GET /rest/v1/admins` 에 `Accept-Profile: private` 헤더를 붙여 요청 → `406 PGRST106`, 힌트 `Only the following schemas are exposed: public, graphql_public` 이면 통과.
+
 ## 기록
 
 | 날짜 | 적용한 마이그레이션 | S22 | 권한 표 | email | 로그인·글·좋아요 | 라운지 | 비고 |
@@ -79,3 +87,4 @@ select has_column_privilege('anon', 'public.users', 'email', 'SELECT') as anon_e
 | 2026-10-10 | — (로컬 테스트, `docs/qa/local-oauth.md`) | — | — | — | 로컬 Google 로그인 ✅ → 온보딩 ✅ → 첫 관리자 지정(SQL Editor) ✅ → `/me` 관리자 링크 ✅. 이후 playwright-cli(사용자가 직접 로그인한 창)로 390px 확인: 글쓰기 일반·팬픽 ✅, 목록 행·팬픽 필터·헤더 지표 ✅, 수정 → "수정됨" ✅, 좋아요·스크랩 새로고침 유지 ✅, 댓글 → 답글 → 답글의 답글 `@닉네임` 자동 입력 ✅, 답글 있는 댓글 삭제 → "삭제된 댓글입니다"·댓글 수 3→2 ✅, 다크 모드 전환 ✅, `/admin` 3화면 열림 ✅, 콘솔 오류 0. 발견·수정: 상세 하단 버튼 두 줄 엉킴(→ ⋯ 메뉴), 라운지 1px 넘침 | 로그인 창 전송 → 비로그인 창 실시간 표시 ✅, 같은 문구 3연속 거부 + 입력 유지 ✅ | 신고·관리자 처리(두 번째 계정 필요)는 대기. 테스트 데이터(글 2·댓글 3·메시지 3·좋아요·스크랩)는 정리 대기 → 2026-10-11 정리하지 않기로 결정(사용자) |
 | 2026-10-10 | — (로컬 테스트: 신고·관리자) | — | — | — | 두 번째 계정(Test user)으로 신고: 글 ⋯ 메뉴는 "신고"만(관리자 링크 없음) ✅, 신고 시트 사유 8종·사유 전 제출 비활성 ✅, 글·댓글·라운지 메시지 신고 → "신고한 … · 보기" 가림, 새로고침 후 유지 ✅. 관리자: 큐 대상별 카드 3장 ✅, 글 숨김 → 비로그인·신고자 404, 작성자 "나에게만 보여요" 배너, 목록에서 빠짐 ✅, 댓글 기각 → 큐 비움 ✅, `/admin/log` 처리자·메모 기록 ✅, 콘솔 오류 0 | **R1 확인**: 관리자 숨김 → 새로고침 없는 비로그인 창에서 "가려진 메시지입니다" ✅, 입장 전에 숨겨졌던 메시지의 숨김 해제 → 실시간으로 다시 나타남 ✅ | 자동 숨김(신고자 3명)은 계정 부족으로 pgTAP 결과로 갈음. 관찰: 숨김 해제해도 이미 닫힌(actioned) 신고는 그대로라 카드가 "숨김 처리" 탭에 남는다(설계대로). 테스트 데이터 정리 대기 |
 | 2026-10-11 | — (Production 배포, T13) | — | — | — | `idoluniv.vercel.app` = `main` 자동 배포(Git 연결, PR #30 병합으로 자동 배포 확인 ✅). 비로그인: 공개 화면 200, 보호 화면 → `/login?next=`, 없는 주소 404, robots·sitemap·canonical 이 운영 주소 기준 ✅. 첫 로그인은 Supabase Site URL 이 localhost 라 `http://localhost:3000/?code=` 로 떨어짐(앱은 `redirect_to=https://idoluniv.vercel.app/auth/callback?next=…` 를 보냄 ✅) → 사용자가 URL Configuration 수정 후 퓨리·곰농담 로그인 → `next` 복귀 ✅, `/me`·글쓰기 화면·`/admin` ✅. **새 계정(귀요미) 첫 로그인 → 온보딩 → `/g/ive` 복귀 ✅(사용자 조작, 최종 주소·DB 최신 사용자로 확인) — P0-6** | 비로그인 읽기·참여 안내 ✅, 로그인 시 입력창 ✅ | 실제 글 저장은 하지 않음. `LEGAL_*` 미설정(`[설정 필요]` terms 10·privacy 14·guidelines 6). Vercel: 안 쓰는 `SUPABASE_SERVICE_ROLE_KEY`·`NEXT_PUBLIC_APP_URL` 삭제 → 이후 Supabase–Vercel 연동 설치로 비밀값 변수 다시 생김(코드 미사용, 처리 결정 대기) |
+| 2026-10-11 | — (P0-4: 10-30 전환 전 기준값) | ✅ 허용 목록 2개 일치 + `rls_auto_enable()`(이벤트 트리거 함수, 위 설명) → 쿼리에서 제외하도록 수정 | ⚠️ `members` 만 anon INSERT·UPDATE·DELETE `true`(0001 자동 GRANT 잔존). 익명 API INSERT → 401 42501(RLS) ✅, UPDATE·DELETE 없는 id → 204(0행, 테이블 0행이라 구분 불가). `fan_profiles` anon SELECT `true`(정책상 0행 ○). 컬럼 권한: `members` INSERT·UPDATE + 전 테이블 `REFERENCES` → **0013** 에서 회수 | ✅ 둘 다 `false` | 해당 없음 | 해당 없음 | 실행: 사용자가 SQL Editor 에서 S22·권한 표·컬럼 권한·email·`rls_auto_enable` 출처 쿼리, 판정은 Claude. R12 ✅(API: 노출 스키마 `public`, `graphql_public`). 같은 날 운영 글 저장 확인: 퓨리 계정 IVE 팬픽 글 → 상세·목록 노출·조회수 ✅. `LEGAL_*` 필수 6개를 임시 값("운영자(임시)", `contact@example.com`, 시행일 2026-11-01)으로 설정 → 세 페이지 `[설정 필요]` 0 ✅. `LEGAL_SUPABASE_REGION` 은 미확인 ❓ |

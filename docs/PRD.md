@@ -53,9 +53,9 @@ v1.0 의 MVP 목표(2026 Q2 출시)는 지켜지지 않았다. 09-24 재기준 �
 | 그룹 라운지 (채팅) | ✅ 발신자 덮어쓰기·빈도 제한·중복 차단·숨김 전파. 로컬 실시간 전송·숨김 전파 ✅(2026-10-10) | `components/chat/`, `0010`, T7·T9 |
 | 신고 · 관리자 | ✅ 신고 시트·자동 숨김(3명)·`/admin` 3화면. 로컬 QA ✅(PR #25). 자동 숨김은 pgTAP 로만 확인 | `0011`, `app/(main)/admin/`, T8·T9 |
 | 그룹 시드 | ✅ 5개 그룹 원격 적용 | `0012`, T10 |
-| 보안 · DB | ✅ 0001~0013 원격 적용 기록, CI pgTAP. S22·권한 표 대시보드 SQL 실행 ✅(2026-10-11) → `members` 권한 잔존 발견, 0013 으로 회수·원격 적용 ✅. R2 권한 전환일 2026-10-30 | TECH-DESIGN §8.1, smoke-log, T0·T2 |
+| 보안 · DB | ✅ 0001~0014 원격 적용 기록, CI pgTAP. S22·권한 표 대시보드 SQL 실행 ✅(2026-10-11) → `members` 권한 잔존 발견, 0013 으로 회수·원격 적용 ✅. R2 권한 전환일 2026-10-30 | TECH-DESIGN §8.1, smoke-log, T0·T2 |
 | 디자인 · 모바일 | ✅ 토큰·Pretendard·하단 탭바 3칸·44px·화면별 목업 정렬. 390px·다크·1280px 확인 ✅(PR #26) | T11, PR #23·#26·#27 |
-| 법적 페이지 · SEO · 오류 수집 | 코드 ✅. `LEGAL_*`·`NEXT_PUBLIC_SITE_URL` 값 미설정, 법무 검토 전. 처리방침의 "라운지 90일 후 삭제" 는 0014(D-27)로 구현, 원격 적용 대기 | `app/(main)/{terms,privacy,guidelines}/`, `app/sitemap.ts`, `instrumentation.ts`, T12 |
+| 법적 페이지 · SEO · 오류 수집 | 코드 ✅. `LEGAL_*`·`NEXT_PUBLIC_SITE_URL` 값 미설정, 법무 검토 전. 처리방침의 "라운지 90일 후 삭제" 는 0014(D-27)로 구현·원격 적용 ✅ | `app/(main)/{terms,privacy,guidelines}/`, `app/sitemap.ts`, `instrumentation.ts`, T12 |
 | CI · Production 배포 | CI ✅(`ci.yml`·`db.yml`). Production 배포·Google OAuth 운영 등록은 남음 | T1·T2, T13 |
 
 **알려진 차이** — 홈 `/` 는 소개 카드뿐이다. "최신 글" 은 P2 로 미뤘다(D-23, 2026-10-11). 미해결 결함 1건: 세션이 끊긴 채 온보딩을 제출하면 로그인 화면 대신 "권한이 없어요." (BACKLOG P1-2).
@@ -272,7 +272,7 @@ MVP 는 기능 수로 위 플랫폼과 경쟁할 수 없다. 1단계의 차별�
 | F6-5 | 도배 방지: 사용자당 10초에 5건 🟡, 같은 내용 연속 3회 🟡 차단, 초과 시 안내 문구 | ✅ `RATE_LIMITED`·`DUPLICATE_MESSAGE` (0010). 연속 중복은 같은 방 본인 직전 2건 기준. 로컬 확인 ✅ |
 | F6-6 | 다른 사용자의 `session_id` 등 내부 식별자가 클라이언트·Realtime payload 에 노출되지 않는다 | ✅ `session_id` 컬럼 삭제 (0010) |
 | F6-7 | 숨김 처리된 메시지는 이미 받은 클라이언트에서도 사라지거나 "가려진 메시지" 로 바뀐다 🟡 | ✅ `chat_moderation_events` 구독 (0010, T9). 로컬 확인 ✅ (R1, 10-10) |
-| F6-8 | 메시지 보존 기간: 90일 🟡 이후 삭제 (신고된 메시지는 처리 종료 후 90일) | **구현 (0014, D-27)**: `pg_cron` 매일 03:00 UTC, 작성 후 90일 지난 메시지 삭제. 설계 대비 변경: 신고된 메시지는 "처리 종료 후 90일" 이 아니라 **처리 중(open)이면 미루고 처리 후 다음 실행에서 삭제** — 내용은 `reports.snapshot` 에 1년 남음. 원격 적용 대기 |
+| F6-8 | 메시지 보존 기간: 90일 🟡 이후 삭제 (신고된 메시지는 처리 종료 후 90일) | **구현 (0014, D-27)**: `pg_cron` 매일 03:00 UTC, 작성 후 90일 지난 메시지 삭제. 설계 대비 변경: 신고된 메시지는 "처리 종료 후 90일" 이 아니라 **처리 중(open)이면 미루고 처리 후 다음 실행에서 삭제** — 내용은 `reports.snapshot` 에 1년 남음. 원격 적용 ✅ 2026-10-11 |
 
 #### F7. 신고
 
@@ -624,9 +624,9 @@ v1.0 대비 변경: FID → INP, 1인 운영·요금제 현실에 맞게 가용�
 ## 12. DB 스키마
 *Database Schema*
 
-### 12.1 현재 스키마 (마이그레이션 `0001`~`0013` 기준 ✅, 2026-10-11 갱신)
+### 12.1 현재 스키마 (마이그레이션 `0001`~`0014` 기준 ✅, 2026-10-11 갱신)
 
-원격 적용 기록: 0001~0003 은 CLI 이력 없이 적용돼 있던 것을 repair, 0004~0013 은 `db push` (TECH-DESIGN §8.1, `docs/qa/smoke-log.md`). 원격 카탈로그를 이 문서 작성 중 직접 조회하지는 않았다 ❓.
+원격 적용 기록: 0001~0003 은 CLI 이력 없이 적용돼 있던 것을 repair, 0004~0014 는 `db push` (TECH-DESIGN §8.1, `docs/qa/smoke-log.md`). 원격 카탈로그를 이 문서 작성 중 직접 조회하지는 않았다 ❓.
 
 ```
 auth.users ──(trigger handle_new_user)──► users ──── fan_profiles
@@ -662,7 +662,7 @@ reports ── moderation_actions (감사 로그)      reserved_nicknames (금�
 | `0011_reports_moderation` | `reports`, `moderation_actions`, 숨김 글·댓글 작성자 수정 금지, `submit_report`(자동 숨김 3명, D-4), `admin_moderate`·`admin_dismiss_reports`·`admin_report_queue`, `idol_groups` 관리자 쓰기 + `color_key`(D-18) |
 | `0012_seed_launch_groups` | 출시 그룹 5개 (D-10) |
 | `0013_members_grants` | `members` 쓰기·`fan_profiles` anon 읽기·전 테이블 TRUNCATE·TRIGGER·REFERENCES 회수 (P0-4). 원격 적용 ✅ 2026-10-11 |
-| `0014_chat_retention` | `pg_cron` + `private.purge_expired_chat_messages()` — 라운지 메시지 90일 보존(F6-8, D-27). **원격 적용 대기** |
+| `0014_chat_retention` | `pg_cron` + `private.purge_expired_chat_messages()` — 라운지 메시지 90일 보존(F6-8, D-27). 원격 적용 ✅ 2026-10-11 |
 
 v1.0 스키마 대비 실제 차이:
 

@@ -23,6 +23,7 @@ export type LegalInfo = {
   effectiveDate: Field;
   supabaseRegion: Field;
   vercelRegion: Field;
+  sentryRegion: Field;
   /** 필수인데 비어 있는 환경변수 이름 */
   missing: string[];
 };
@@ -57,6 +58,8 @@ export function getLegalInfo(): LegalInfo {
     effectiveDate: read("LEGAL_EFFECTIVE_DATE", DATE),
     supabaseRegion: read("LEGAL_SUPABASE_REGION"),
     vercelRegion: read("LEGAL_VERCEL_REGION"),
+    // 오류 수집(D-31). Sentry 조직을 만들 때 고른 데이터 리전
+    sentryRegion: read("LEGAL_SENTRY_REGION"),
   };
 
   const required: Field[] = [
@@ -66,6 +69,7 @@ export function getLegalInfo(): LegalInfo {
     info.effectiveDate,
     info.supabaseRegion,
     info.vercelRegion,
+    info.sentryRegion,
   ];
   const missing = required.filter((f) => !f.value).map((f) => f.env);
   if (missing.length > 0) {

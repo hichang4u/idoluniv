@@ -9,6 +9,7 @@
 -- 고침: 댓글은 "글을 볼 수 있을 때만" 보인다. 정책 안의 posts 조회에도 posts 의 RLS 가 적용되므로
 -- 숨김 글의 댓글은 글 작성자·관리자에게만 보인다(글을 볼 수 있는 사람과 같다).
 -- 숨김 글에 댓글을 단 다른 사용자는 자기 댓글도 보지 못한다 — 글 자체를 볼 수 없으므로 같은 기준이다.
+-- 하위 쿼리의 post_id 는 comments.post_id 로 적는다(posts 에 같은 이름 열이 생겨도 해석이 바뀌지 않게).
 -- security definer 함수(delete_comment, sync_comment_count, 신고·관리자 RPC)는 RLS 를 거치지 않아 영향이 없다.
 -- ============================================================
 
@@ -17,5 +18,5 @@ create policy "comments: public read" on public.comments
   for select
   using (
     (not is_hidden or author_id = (select auth.uid()) or (select private.is_admin()))
-    and exists (select 1 from public.posts p where p.id = post_id)
+    and exists (select 1 from public.posts p where p.id = comments.post_id)
   );

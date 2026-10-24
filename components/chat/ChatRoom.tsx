@@ -171,10 +171,14 @@ export function ChatRoom({ roomId, initialMessages, initialReportedIds, currentU
     };
   }, [roomId]);
 
-  // 새 메시지 오면 목록만 맨 아래로 스크롤한다(scrollIntoView 는 창까지 움직여 상단 바를 밀어낸다)
+  // 새 메시지 오면 목록만 맨 아래로 스크롤한다(scrollIntoView 는 창까지 움직여 상단 바를 밀어낸다).
+  // 입장 직후 첫 위치는 애니메이션 없이 잡는다 — smooth 스크롤이 첫 화면 그리기와 겹치면 Chrome 이 LCP 를 기록하지 않는다 (P1-5)
+  const scrolledOnce = useRef(false);
   useEffect(() => {
     const list = listRef.current;
-    list?.scrollTo({ top: list.scrollHeight, behavior: "smooth" });
+    if (!list) return;
+    list.scrollTo({ top: list.scrollHeight, behavior: scrolledOnce.current ? "smooth" : "instant" });
+    scrolledOnce.current = true;
   }, [messages]);
 
   const handleSubmit = (e?: React.FormEvent) => {

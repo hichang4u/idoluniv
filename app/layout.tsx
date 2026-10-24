@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
+import { DeferredFonts } from "@/components/layout/DeferredFonts";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { FONTS_COOKIE, PRETENDARD_CSS } from "@/lib/fonts";
 import { OG_BASE, siteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -25,15 +28,19 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // 글꼴을 이미 받은 브라우저면 처음부터 넣고(캐시), 처음이면 페이지 로드 뒤에 붙인다 (D-32)
+  const fontsCached = (await cookies()).has(FONTS_COOKIE);
+
   return (
     // next-themes 가 렌더 전에 html 의 class 를 바꾸므로 하이드레이션 경고를 끈다
     <html lang="ko" className="h-full antialiased" suppressHydrationWarning>
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        {fontsCached ? <link rel="stylesheet" href={PRETENDARD_CSS} precedence="fonts" /> : <DeferredFonts href={PRETENDARD_CSS} />}
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

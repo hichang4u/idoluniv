@@ -381,6 +381,12 @@ on conflict (slug) do nothing;
 
 0009 의 댓글 SELECT 정책은 댓글 자신의 `is_hidden` 만 봐서, 숨김 글의 댓글이 anon API 로 읽혔다(운영 3건 ✅). 정책에 `exists (select 1 from public.posts p where p.id = post_id)` 를 더해 글을 볼 수 있는 사람(작성자·관리자)에게만 보이게 한다 — 정책 안의 posts 조회에도 posts RLS 가 적용된다. 테스트 `35_comment_visibility.sql`(S21 댓글·S3 댓글 단언도 추가).
 
+#### 0016 — 글 유형 수정 제한 · 신고 처리자 비공개 (P1-6 ①③, 2026-10-24)
+
+- `posts: update own` 의 WITH CHECK 에 `post_type in ('text', 'fanfic')` 을 더한다. 0009 는 새 글만 막아서 작성자가 API 로 유형을 `video`·`image` 로 바꿀 수 있었다.
+- `reports` 의 authenticated SELECT 를 `handled_by` 를 뺀 컬럼 단위 GRANT 로 바꾼다. 신고자는 자기 신고를 읽을 수 있어 처리한 관리자의 id 를 알 수 있었다. 앱은 신고자에게 `target_type`·`target_id` 만 읽고(`lib/reports.ts`), 관리자 화면은 definer RPC 로 읽어 영향이 없다 ✅.
+- 테스트: `01_rls_grants.sql`(유형 수정 2건), `50_reports_admin.sql`(`handled_by` 거부·나머지 허용).
+
 ---
 
 ## 4. DB 함수 · 트리거 명세
@@ -714,7 +720,7 @@ proxy 는 요청마다 `getUser()`(Auth 서버 왕복)를 호출한다. `getClai
 | 관할 | 민사소송법에 따른 관할 법원 | 🟡 |
 | 국외 이전 | Supabase·Vercel, 위치는 `LEGAL_*_REGION` | 실제 리전 확인 필요 ❓ (Supabase 대시보드, Vercel 함수 리전) |
 | 외부 상담 기관 번호 | 118, 1833-6972 | 게시 전 번호 재확인 |
-| Google 로그인 수신 항목 | 이메일·이름·프로필 사진 주소 | 실제 동의 화면 범위와 대조 |
+| Google 로그인 수신 항목 | 이메일·이름·프로필 사진 주소 | 요청 범위 `email profile` ✅ (2026-10-24, Supabase authorize 주소로 확인) — 처리방침 1항과 일치 |
 
 ## 8. 마이그레이션 · 배포 순서
 
@@ -857,7 +863,7 @@ PRD F1~F9 수용 기준표를 그대로 체크리스트로 쓴다(`qa-reviewer`)
 | T10 | 시드 (0012) — 그룹 5개, 적용 직전 표기·소속 재확인 — **완료 (2026-10-09)**: 각 그룹 영어 위키백과로 표기·소속사·데뷔일 재확인(초안과 동일, 2차 출처 ○) → 0012 + `60_seed.sql` → 원격 적용, 익명 API 로 5개·한글 값 UTF-8 일치 확인. 로컬 `next start` + 헤드리스 Chrome 으로 `/g`·`/g/ive`·라운지 렌더 확인(390px iframe·1280px). 근황: NewJeans 2025-03 이후 활동 중단·멤버 변동, SEVENTEEN 군 복무 휴지(2028 복귀 예정) — description 에는 넣지 않음 | supabase-backend | T9(0011 의 `color_key`) | 0.5 | 새 환경에서 목록 표시 |
 | T11 | 셸·디자인 P0 (하단 탭바·44px·오류/404 화면, 디자인 S1~S4, S10) — A/B/C 로 나눔. **A 토큰·테마 (2026-10-09)**: `tokens.draft.css` → `globals.css`(shadcn 매핑 + `@theme` 에 surface·text·group·shadow 역할 이름), `[data-group-color]` 안에서 `--primary` 재매핑(사용자 정의 속성은 선언 요소에서 해석돼 상속되므로 필요), 그룹 레이아웃에 `data-group-color`, `next-themes` 시스템 기본 + `/me` 화면 모드, `.dark` 하드코딩 제거, Pretendard 가변 dynamic subset(`pretendard` npm, woff2 92개 `unicode-range`), Geist 제거, 잉크 워드마크, 그룹 안 `text-primary` 사용처(좋아요·스크랩·유형 칩·"나" 배지)를 `group-text`/`group-soft` 로, 상세 본문 16/1.75·`prose-invert` 제거, `themeColor`. **B 셸 (2026-10-09)**: 모바일 하단 탭바 3칸(`lib/nav.ts` 공유, 60px + safe-area, 활성은 굵기·선 굵기 2.4, 라운지에서 숨김), 모바일은 사이드바 버튼·푸터 숨김, 상단 바 50px, 라운지 높이 화면 맞춤(`100dvh` − 상단 바·그룹 헤더·여백) + 로딩 스켈레톤 같은 높이, `Button` 에 `touch`(h-11)·`icon-touch`(44) 크기, 글·댓글·신고·라운지·폼 버튼 44px(작은 글자 버튼은 보이는 크기 유지 + 누르는 영역만 44px), 라운지 전송 별도 44px 버튼, `(main)/error.tsx`(`unstable_retry`, digest 표시)·`(main)/not-found.tsx`·`app/not-found.tsx`·`global-error.tsx`. 참고: `loading.tsx` 가 있는 라우트의 `notFound()` 는 스트리밍이 시작된 뒤라 상태 200 + `noindex` + 404 화면(Next 동작). **C 화면별 (2026-10-09)**: 그룹 헤더 띠(`group-soft` 면, 그룹 타일·"비공식" 표시·글/팬픽 수·글쓰기) — 라운지는 이름만, 아이콘 탭 + `group-text` 밑줄, 정렬 칩(최신·인기 7일·팬픽, `?sort=`, 알 수 없는 값은 최신), 게시판 목록을 텍스트 행(D-25: 팬픽 깃펜 라벨, 제목 2줄, 메타, 오른쪽 댓글 수 상자, 신고한 글 행), 목록 조회 실패는 `error.tsx` 로, 그룹 목록에 그룹 색 타일(`GroupAvatar`), 라운지 평면 메시지(사람별 고정 파스텔 아바타, 15/1.7, 라운지 규칙 줄, 둥근 입력·전송), `lib/format.ts`(상대·전체·시각, 한국 시간 고정)로 게시판·댓글·상세·라운지 날짜 통일, 시트 스크림 45%, 콘텐츠 최대 폭 640px. **미확인**: 글·메시지가 있는 목록 행 화면(원격 콘텐츠 0) | frontend-dev | T3 | 2~3 | 디자인 리뷰 P0 항목 |
 | T12 | 법적 페이지(초안 구현됨 — 값 설정·검토만)·sitemap·robots·메타데이터·오류 수집 — **코드 완료 (2026-10-09)**: `app/robots.ts`(관리·인증·개인·작성 화면·`/api/` 차단), `app/sitemap.ts`(요청 시 생성, 고정 5 + 활성 그룹 게시판·라운지 + 숨김 아닌 글 최근 5,000, DB 실패 시 고정 항목만), `lib/site.ts`(`NEXT_PUBLIC_SITE_URL`, 빈 문자열은 미설정 — 로그인 `redirectTo` 가 상대 주소가 되던 잠재 버그 수정), `metadataBase`·OG 공통값, 게시판·상세 description·canonical·OG, `instrumentation.ts` `onRequestError`(digest·routePath·routeType 한 줄 JSON, 쿼리 제외), `instrumentation-client.ts` + `app/api/client-errors`(4KB 제한, 필드 길이 자름, 페이지당 10건·같은 메시지 1회), `error.tsx` 도 같은 수신처로. **남은 것(사용자)**: `LEGAL_*`·`NEXT_PUBLIC_SITE_URL` 값 설정, §7.9.1 법무 검토 — 특히 개인정보처리방침의 "라운지 메시지 90일 후 삭제" ✱ 는 삭제 작업이 없어 지금은 문구가 앞서간다 | frontend-dev | D-6 | 1.5 | F9-1~F9-4, F9-6 |
-| T13 | Production 배포·Google OAuth 클라이언트·Redirect URL 등록 — **대부분 완료 (2026-10-11)**: Vercel 프로젝트 `idoluniv` 를 GitHub `main` 에 연결(병합 시 Production 자동 배포, PR 은 Vercel 인증 보호 Preview), 환경변수 `NEXT_PUBLIC_SUPABASE_URL`·`ANON_KEY`·`AUTH_PROVIDERS`(Production·Preview) + `NEXT_PUBLIC_SITE_URL`(Production 만), 함수 리전 `iad1`, Node 24.x. Supabase Site URL·Redirect URLs 를 운영 주소로(사용자). 운영 로그인 3계정·새 계정 온보딩 복귀 ✅ (`docs/qa/smoke-log.md` 10-11). **남은 것**: `LEGAL_*` 값(사용자) 후 재배포, 운영에서 실제 글 저장 1회, Supabase–Vercel 연동이 넣은 미사용 비밀값 처리, Preview Redirect URL 패턴(R3) | 사용자 + frontend-dev | T1 | 1 | Production 에서 로그인→쓰기 동선 |
+| T13 | Production 배포·Google OAuth 클라이언트·Redirect URL 등록 — **대부분 완료 (2026-10-11)**: Vercel 프로젝트 `idoluniv` 를 GitHub `main` 에 연결(병합 시 Production 자동 배포, PR 은 Vercel 인증 보호 Preview), 환경변수 `NEXT_PUBLIC_SUPABASE_URL`·`ANON_KEY`·`AUTH_PROVIDERS`(Production·Preview) + `NEXT_PUBLIC_SITE_URL`(Production 만), 함수 리전 `iad1`, Node 24.x. Supabase Site URL·Redirect URLs 를 운영 주소로(사용자). 운영 로그인 3계정·새 계정 온보딩 복귀 ✅ (`docs/qa/smoke-log.md` 10-11). Google OAuth 클라이언트는 IdolUniv 전용 Google Cloud 프로젝트(브랜딩 IdolUniv, 외부·프로덕션 게시, 리디렉션 URI = Supabase 콜백 하나)로 교체 ✅ (2026-10-24, smoke-log). **남은 것**: `LEGAL_*` 값(사용자) 후 재배포, 운영에서 실제 글 저장 1회, Supabase–Vercel 연동이 넣은 미사용 비밀값 처리, Preview Redirect URL 패턴(R3) | 사용자 + frontend-dev | T1 | 1 | Production 에서 로그인→쓰기 동선 |
 | T14 | 전체 QA (§9.2 전 항목 + PRD 수용 기준) | qa-reviewer | T4~T13 | 1~2 | 차단 이슈 0 |
 
 ```
@@ -907,6 +913,7 @@ D-15~D-22 는 디자인 결정(`docs/design/DESIGN-ANALYSIS.md` §9). 아래는 
 | **D-29** | 로그아웃 뒤 이미 발급된 access JWT | **수용 (2026-10-12, 권장안 채택)** — 로그아웃 뒤 옛 토큰으로 PostgREST `get_viewer` 200, `auth/v1/user` 403 ✅. Supabase JWT 는 만료(프로젝트 설정값 미확인 ❓, 기본 1시간 ○)까지 유효하다. 토큰을 따로 가진 경우만 해당하고 앱 화면의 쓰기는 막힌다 | PRD F1-7, smoke-log 2026-10-12 |
 | **D-30** | 서버 함수 리전 | **`icn1`(서울)로 이동 (2026-10-12, 사용자 결정)** — DB 가 `ap-northeast-2`(서울)인데 함수가 `iad1` 이라 요청마다 한국 ↔ 미국 ↔ 서울을 오갔다. 이동 후 라운지 지연 0.45~0.85초(1초 이내 3/3), 게시판 TTFB 0.2~0.5초. D-28 의 2초 목표는 그대로 두되 실측은 1초 안 ✅. 처리방침 처리 위치도 대한민국(서울) — Vercel·Supabase 는 미국 회사라 처리 위탁 고지는 유지(P0-9 검토 대상) | smoke-log 2026-10-12, `.env.example` |
 | **D-31** | 오류 수집처 (D-5 수정) | **Sentry 무료(Developer) 추가 (2026-10-13, 권장안 A 채택)** — P1-3 에서 Vercel Hobby 로그 보관이 1시간(문서 ✅)이라 사용자 문의 시점에 로그가 없다. Sentry 무료: 1명·월 5천 건·30일 ✅(가격표). `@sentry/nextjs` 10.75.2(Next 16 peer ✅, v11 은 9-23 출시라 보류). 오류만(`tracesSampleRate: 0`), `sendDefaultPii: false`, `beforeSend` 로 쿼리·쿠키·헤더·`contexts.nextjs.request_path` 쿼리 제거 — 로컬 가짜 수신처로 전송 내용 확인 ✅. Vercel 로그 한 줄 JSON 은 유지(광고 차단·한도 초과 대비). 소스맵 업로드는 보류(`SENTRY_AUTH_TOKEN`·`@sentry/cli` 설치 스크립트 필요). 처리방침 5항에 위탁·국외 이전 추가, `LEGAL_SENTRY_REGION` | `lib/sentry-options.ts`, `instrumentation*.ts`, `app/(main)/privacy/page.tsx` |
+| **D-32** | Pretendard 로딩 시점 | **첫 화면 뒤에 받기 (2026-10-24, 사용자 결정 — P1-5)** — 번들 CSS 에 넣으면 첫 화면 글꼴 조각(약 200~260KiB)이 모바일 Lighthouse 시뮬레이션의 LCP 경로에 들어가 글 상세가 85~87 이었다(실측 LCP 0.49초). `font-display: optional` 은 요청 시점이 같아 효과 없음(로컬 동일 점수). 그래서 글꼴을 `public/fonts/pretendard-<버전>/`(빌드 때 복사, 1년 immutable 캐시)로 옮기고, 첫 방문은 시스템 글꼴로 그린 뒤 load + 1.5초 + 한가할 때 CSS 를 붙인다(`swap`, 한 번 바뀌어 보임). 받은 뒤 `pf` 쿠키를 남겨 재방문은 레이아웃이 처음부터 CSS 를 넣는다(캐시라 바뀌어 보이지 않음). load 직후 바로 붙이면 빠른 망에서 첫 그리기 전에 받아져 효과가 없었다 | `components/layout/DeferredFonts.tsx`, `app/layout.tsx`, `scripts/pretendard-public.mjs`, BACKLOG P1-5 |
 
 ---
 

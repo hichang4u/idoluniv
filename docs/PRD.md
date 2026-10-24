@@ -664,6 +664,7 @@ reports ── moderation_actions (감사 로그)      reserved_nicknames (금�
 | `0013_members_grants` | `members` 쓰기·`fan_profiles` anon 읽기·전 테이블 TRUNCATE·TRIGGER·REFERENCES 회수 (P0-4). 원격 적용 ✅ 2026-10-11 |
 | `0014_chat_retention` | `pg_cron` + `private.purge_expired_chat_messages()` — 라운지 메시지 90일 보존(F6-8, D-27). 원격 적용 ✅ 2026-10-11 |
 | `0015_hidden_post_comments` | 숨김 글의 댓글은 글을 볼 수 있는 사람(작성자·관리자)에게만 (T14 발견). 원격 적용 ✅ 2026-10-12 |
+| `0016_post_type_report_columns` | 글 수정 시에도 유형은 text/fanfic 만, 신고자는 `reports.handled_by` 를 읽지 못함 (P1-6 ①③). 원격 적용 ✅ 2026-10-24 |
 
 v1.0 스키마 대비 실제 차이:
 
@@ -807,7 +808,7 @@ v1.0 로드맵은 달력 기준이었고 1단계가 약 2분기 밀렸다. 이�
 - [ ] 베타 기간 WAF 30 이상, 활성화율 40% 이상
 - [ ] 신고 처리 시간 중앙값 48시간 이내
 - [ ] 이용약관·개인정보처리방침 법무 검토 완료 (TECH-DESIGN §7.9.1)
-- [ ] 모바일 Lighthouse 성능·접근성 90 이상 (주요 4개 화면)
+- [x] 모바일 Lighthouse 성능·접근성 90 이상 (주요 4개 화면) — 2026-10-24 운영: 성능 94~98, 접근성 100 (BACKLOG P1-5)
 
 ---
 

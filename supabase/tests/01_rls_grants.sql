@@ -120,6 +120,12 @@ select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b1',
 select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b1',
   $q$insert into public.posts (author_id, idol_group_id, title, content, post_type) values ('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-0000000000a1', 't', 'b', 'video')$q$),
   '42501', 'S8 video 유형 새 글 거부');
+select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b1',
+  $q$update public.posts set post_type = 'video' where id = '00000000-0000-0000-0000-0000000000c1'$q$),
+  '42501', '작성자도 글 유형을 video 로 바꿀 수 없다 (0016)');
+select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b1',
+  $q$update public.posts set post_type = 'fanfic' where id = '00000000-0000-0000-0000-0000000000c1'$q$),
+  'ok:1', '작성자는 글 유형을 text·fanfic 사이에서 바꿀 수 있다 (0016)');
 
 -- ── comments ────────────────────────────────────────────────
 select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b1',

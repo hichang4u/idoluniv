@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // 글꼴은 경로에 버전이 있으므로(lib/fonts.ts) 바뀌지 않는다 — 오래 캐시한다 (D-32)
+  async headers() {
+    return [{ source: "/fonts/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] }];
+  },
   // 그룹 중심 IA(D-16)로 옮기기 전 경로. 구체적인 경로를 먼저 둔다(위에서부터 첫 일치).
   async redirects() {
     return [

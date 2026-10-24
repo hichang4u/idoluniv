@@ -1,8 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-/* Pretendard 가변 글꼴의 dynamic subset: 글자 범위별 woff2 를 unicode-range 로 필요한 것만 받는다 (TOKENS §4.1) */
-@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
+/* Pretendard 가변 글꼴의 dynamic subset 은 번들 CSS 에 넣지 않고 레이아웃이 따로 불러온다 (TOKENS §4.1, D-32 — app/layout.tsx) */
 
 @custom-variant dark (&:is(.dark *));
 

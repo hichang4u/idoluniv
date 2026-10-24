@@ -303,7 +303,7 @@ MVP 는 기능 수로 위 플랫폼과 경쟁할 수 없다. 1단계의 차별�
 | F9-3 | 글 상세 `generateMetadata` 에 title + description(본문 앞 120자 🟡) | ✅ description·canonical·OG (T12) |
 | F9-4 | 없는 경로는 서비스 스타일 404 (`not-found.tsx`) | ✅ `app/not-found.tsx`, `(main)/not-found.tsx` (T11-B) |
 | F9-5 | 모바일 하단 탭바 **3칸 (홈 / 그룹 / 마이)** — 그룹 중심 IA (D-16, 2026-09-30). 라운지 화면에서는 숨김 | ✅ T11-B. 글 상세에서도 숨김 (하단 댓글 입력창, PR #26) |
-| F9-6 | FE 런타임 오류 수집 | 코드 ✅ `instrumentation.ts`·`/api/client-errors` → Vercel 로그 (T12, D-5). Production 수집 확인 전 |
+| F9-6 | FE 런타임 오류 수집 | 운영 Vercel 로그 수집 ✅ (2026-10-13 P1-3: 브라우저 오류·Promise 거부·서버 `onRequestError` 한 줄 JSON). 단 Hobby 보관 1시간 → **Sentry 추가 (D-31)**: 서버·브라우저·오류 경계, 쿼리·쿠키·헤더 제거, 성능 추적·리플레이 없음. DSN 설정 대기 |
 
 ### 5.2 권한 매트릭스 (MVP)
 

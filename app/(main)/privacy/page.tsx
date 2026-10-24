@@ -34,7 +34,7 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong>자동으로 수집되는 정보</strong>: 쿠키(아래 7항), 접속 IP 주소·접속 시각·브라우저 정보 등 서버
-            접속 기록.
+            접속 기록, 오류가 났을 때의 오류 기록(오류 내용, 페이지 주소, 브라우저·운영체제 종류).
           </li>
         </ul>
       </Section>
@@ -83,6 +83,11 @@ export default function PrivacyPage() {
           <li>
             <strong>Vercel, Inc.</strong> — 웹 호스팅과 접속 기록. 처리 위치: <V field={info.vercelRegion} />. 이전 항목:
             접속 기록, 쿠키.
+          </li>
+          <li>
+            <strong>Functional Software, Inc.(Sentry)</strong> — 서비스 오류 기록. 처리 위치:{" "}
+            <V field={info.sentryRegion} />. 이전 항목: 오류가 난 페이지 주소(검색어 등 주소 뒤 값 제외), 오류 내용, 브라우저·운영체제 종류.
+            이전 방법: 오류가 날 때 네트워크를 통한 전송. 보관 기간: 30일.
           </li>
         </ul>
         <p>보유 기간은 3항과 같습니다. 국외 이전을 원하지 않으면 서비스 이용을 중단하고 탈퇴를 요청할 수 있습니다.</p>

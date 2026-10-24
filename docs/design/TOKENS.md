@@ -193,6 +193,8 @@ font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFon
 
 **로딩 방식** ○: Pretendard 의 **dynamic subset**(글자 범위별로 나눈 woff2 를 `unicode-range` 로 필요한 것만 받는 방식)을 쓴다. 가변 글꼴 한 파일은 한글 전체를 담아 수 MB 라서 모바일 첫 화면(LCP)에 불리하다. 구현 후보는 두 가지다 — (a) `pretendard` npm 패키지의 dynamic subset CSS 를 전역 CSS 로 import, (b) woff2 를 `public/` 에 두고 `@font-face` 직접 작성. `next/font/local` 은 가변 글꼴을 지원하지만(Next 16 문서 `font.md` ✅) 수십 개 서브셋의 `unicode-range` 를 다루는 방법은 문서에서 확인하지 못했다 ❓ → 구현 시 1회 검증.
 
+**로딩 시점 (D-32, 2026-10-24)**: (a)로 구현했다가 (b)로 옮겼다. 첫 방문은 시스템 글꼴(위 스택의 `Apple SD Gothic Neo`·`Noto Sans KR` 등)로 그리고 페이지 로드 뒤 Pretendard 를 붙인다 — 한 번 바뀌어 보인다. 재방문은 처음부터 Pretendard(캐시). 근거·측정은 TECH-DESIGN D-32.
+
 ### 4.2 크기 스케일 (모바일 기준)
 
 | 토큰 | 크기 / 행간 / 굵기 | 쓰는 곳 |

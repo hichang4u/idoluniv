@@ -20,6 +20,9 @@
 # production
 /build
 
+# Pretendard 글꼴 복사본 (scripts/pretendard-public.mjs)
+/public/fonts/
+
 # misc
 .DS_Store
 *.pem

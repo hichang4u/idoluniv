@@ -665,7 +665,7 @@ reports ── moderation_actions (감사 로그)      reserved_nicknames (금�
 | `0014_chat_retention` | `pg_cron` + `private.purge_expired_chat_messages()` — 라운지 메시지 90일 보존(F6-8, D-27). 원격 적용 ✅ 2026-10-11 |
 | `0015_hidden_post_comments` | 숨김 글의 댓글은 글을 볼 수 있는 사람(작성자·관리자)에게만 (T14 발견). 원격 적용 ✅ 2026-10-12 |
 | `0016_post_type_report_columns` | 글 수정 시에도 유형은 text/fanfic 만, 신고자는 `reports.handled_by` 를 읽지 못함 (P1-6 ①③). 원격 적용 ✅ 2026-10-24 |
-| `0017_moderation_retention` | 처리 끝난 신고·처리 기록을 1년 뒤 매일 삭제(처리방침 3항, P1-6 ②). 원격 적용 대기 |
+| `0017_moderation_retention` | 처리 끝난 신고·처리 기록을 1년 뒤 매일 삭제(처리방침 3항, P1-6 ②). 원격 적용 ✅ 2026-10-24 |
 
 v1.0 스키마 대비 실제 차이:
 

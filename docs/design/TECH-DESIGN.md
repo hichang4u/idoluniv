@@ -387,6 +387,10 @@ on conflict (slug) do nothing;
 - `reports` 의 authenticated SELECT 를 `handled_by` 를 뺀 컬럼 단위 GRANT 로 바꾼다. 신고자는 자기 신고를 읽을 수 있어 처리한 관리자의 id 를 알 수 있었다. 앱은 신고자에게 `target_type`·`target_id` 만 읽고(`lib/reports.ts`), 관리자 화면은 definer RPC 로 읽어 영향이 없다 ✅.
 - 테스트: `01_rls_grants.sql`(유형 수정 2건), `50_reports_admin.sql`(`handled_by` 거부·나머지 허용).
 
+#### 0017 — 신고·처리 기록 1년 보관 후 삭제 (P1-6 ②, 2026-10-24)
+
+처리방침 3항("처리 종료 후 1년간 보관한 뒤 삭제")을 0014 와 같은 pg_cron 방식으로 구현한다. `private.purge_expired_moderation_records()`(definer 아님, `search_path=''`, public EXECUTE 회수)가 처리 끝난 신고(`status <> 'open'`)를 `coalesce(handled_at, created_at)` 부터 1년, `moderation_actions` 를 `created_at` 부터 1년 지나면 지운다. 처리 중 신고와 콘텐츠의 숨김 상태는 건드리지 않는다. 예약 `purge-expired-moderation-records` `15 3 * * *`. 테스트 `85_moderation_retention.sql`.
+
 ---
 
 ## 4. DB 함수 · 트리거 명세

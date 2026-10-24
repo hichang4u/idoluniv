@@ -32,6 +32,14 @@ export async function completeOnboarding(
   const agreeTerms = formData.get("agreeTerms") === "on";
   const agreePrivacy = formData.get("agreePrivacy") === "on";
   const next = safeNext(readText(formData, "next"));
+  const loginUrl = `/login?next=${encodeURIComponent(`/onboarding?next=${encodeURIComponent(next)}`)}`;
+
+  // 폼을 띄운 뒤 세션이 끊기면 anon 으로 RPC 를 불러 42501(FORBIDDEN)이 되므로 먼저 확인한다 (P1-2)
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect(loginUrl);
 
   if (!LIMITS.nickname.pattern.test(nickname)) {
     return fail("NICKNAME_INVALID", { fields: { nickname: "NICKNAME_INVALID" } });
@@ -41,7 +49,6 @@ export async function completeOnboarding(
     return fail("CONSENT_REQUIRED");
   }
 
-  const supabase = await createClient();
   const { error } = await supabase.rpc("complete_onboarding", {
     p_nickname: nickname,
     p_age_over_14: ageOver14,
@@ -51,7 +58,7 @@ export async function completeOnboarding(
 
   if (error) {
     const code = fromDbError(error, "NICKNAME_TAKEN");
-    if (code === "AUTH_REQUIRED") redirect(`/login?next=${encodeURIComponent(`/onboarding?next=${encodeURIComponent(next)}`)}`);
+    if (code === "AUTH_REQUIRED") redirect(loginUrl);
     return fail(code, code.startsWith("NICKNAME_") ? { fields: { nickname: code } } : {});
   }
 
@@ -69,6 +76,11 @@ export async function changeNickname(
   }
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return fail("AUTH_REQUIRED");
+
   const { data, error } = await supabase.rpc("change_nickname", { p_nickname: nickname });
 
   if (error) {

@@ -255,5 +255,13 @@ select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b9',
   $q$delete from public.idol_groups where slug = 'new-group'$q$),
   '42501', '그룹은 삭제하지 않는다 (비활성화로 대체)');
 
+-- ── 0016: 신고자는 처리 관리자를 알 수 없다 ──────────────────
+select is(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b2',
+  $q$select handled_by from public.reports where reporter_id = '00000000-0000-0000-0000-0000000000b2'$q$),
+  '42501', '신고자는 handled_by 를 읽을 수 없다 (0016)');
+select ok(pg_temp.act('authenticated', '00000000-0000-0000-0000-0000000000b2',
+  $q$select target_type, target_id, status, handled_at from public.reports where reporter_id = '00000000-0000-0000-0000-0000000000b2'$q$)
+  like 'ok:%', '신고자는 자기 신고의 대상·상태는 읽을 수 있다 (0016)');
+
 select * from finish();
 rollback;

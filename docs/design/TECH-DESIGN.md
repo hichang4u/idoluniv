@@ -381,6 +381,12 @@ on conflict (slug) do nothing;
 
 0009 의 댓글 SELECT 정책은 댓글 자신의 `is_hidden` 만 봐서, 숨김 글의 댓글이 anon API 로 읽혔다(운영 3건 ✅). 정책에 `exists (select 1 from public.posts p where p.id = post_id)` 를 더해 글을 볼 수 있는 사람(작성자·관리자)에게만 보이게 한다 — 정책 안의 posts 조회에도 posts RLS 가 적용된다. 테스트 `35_comment_visibility.sql`(S21 댓글·S3 댓글 단언도 추가).
 
+#### 0016 — 글 유형 수정 제한 · 신고 처리자 비공개 (P1-6 ①③, 2026-10-24)
+
+- `posts: update own` 의 WITH CHECK 에 `post_type in ('text', 'fanfic')` 을 더한다. 0009 는 새 글만 막아서 작성자가 API 로 유형을 `video`·`image` 로 바꿀 수 있었다.
+- `reports` 의 authenticated SELECT 를 `handled_by` 를 뺀 컬럼 단위 GRANT 로 바꾼다. 신고자는 자기 신고를 읽을 수 있어 처리한 관리자의 id 를 알 수 있었다. 앱은 신고자에게 `target_type`·`target_id` 만 읽고(`lib/reports.ts`), 관리자 화면은 definer RPC 로 읽어 영향이 없다 ✅.
+- 테스트: `01_rls_grants.sql`(유형 수정 2건), `50_reports_admin.sql`(`handled_by` 거부·나머지 허용).
+
 ---
 
 ## 4. DB 함수 · 트리거 명세
